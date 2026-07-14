@@ -176,6 +176,8 @@ module alchitry_top #(
     wire [7:0]  cmd_count;
     wire [23:0] dac_rate;
     wire        dac_run;
+    wire        tgc_en;
+    wire [11:0] tgc_code;
 
     ctrl_decode u_ctrl (
         .clk            (clk_in),
@@ -192,6 +194,10 @@ module alchitry_top #(
         .adc_rd_en      (adc_rd_en),
         .dac_rate       (dac_rate),
         .dac_run        (dac_run),
+        .tgc_en         (tgc_en),
+        .tgc_code       (tgc_code),
+        .pulse_active   (),              // pretend pulser - no IO yet
+        .pulse_elem     (),              // future pulser/mux hookup
         .afe_word       (afe_word),
         .afe_wr         (afe_wr),
         .streaming      (streaming),
@@ -206,6 +212,8 @@ module alchitry_top #(
         .rst         (rst_sys),
         .step_cycles (dac_rate),
         .run         (dac_run),
+        .tgc_en      (tgc_en),
+        .tgc_code    (tgc_code),
         .dac_sync_n  (dac_sync_n),
         .dac_sclk    (dac_sclk),
         .dac_din     (dac_din)

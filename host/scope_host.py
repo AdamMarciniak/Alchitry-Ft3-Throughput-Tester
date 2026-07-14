@@ -103,7 +103,7 @@ for i in range(NBUF):
 send_cmd(cmd(OP_START), "start")            # ring armed first, THEN start
 
 # --- shared state: reader thread <-> UI ---------------------------------------
-RING_N   = 1 << 21                          # ~52 ms of history to scroll through
+RING_N   = 1 << 26                          # ~1.7 s of history (128 MB, uint16)
 ring     = np.zeros(RING_N, dtype=np.uint16)
 ring_wr  = 0                                # total samples ever written
 ring_lk  = threading.Lock()
@@ -160,7 +160,9 @@ ML, MR, MT, MB = 64, 16, 14, 30              # plot margins
 PW       = W - ML - MR
 TPH, FPH = TH - MT - MB, FH - MT - MB
 
-NWIN_MIN, NWIN_MAX = 256, 1 << 18
+NWIN_MIN, NWIN_MAX = 256, 1 << 25            # up to ~0.84 s across the screen
+TRIG_HUNT_MAX      = 1 << 19                 # free-run above this: hunting a 3x
+                                             # grab on huge windows costs frames
 DB_TOP, DB_BOT     = 0.0, -110.0
 FFT_MAX_N          = 32768
 
@@ -409,7 +411,7 @@ def get_raw(grab):
 #-------------------------------------------------------------------------------
 # render
 #-------------------------------------------------------------------------------
-last_wnd = None                              # samples currently on screen
+last_wnd = None                              # decoded tail of the window (FFT input)
 
 def y_px(vv, lo, hi):
     return MT + TPH * (1.0 - (vv - lo) / float(hi - lo))
@@ -417,23 +419,40 @@ def y_px(vv, lo, hi):
 def render_time():
     global last_wnd
     nwin = view["nwin"]
-    raw  = get_raw(min(RING_N, nwin * 3))
+    hunt = trig_on.get() and nwin <= TRIG_HUNT_MAX
+    raw  = get_raw(min(RING_N, nwin * 3 if hunt else nwin))
     if raw is None: return
-    v = decode(raw)
 
-    start = max(0, v.size - nwin)
-    if trig_on.get() and v.size > nwin:
+    start = max(0, raw.size - nwin)
+    if hunt and raw.size > nwin:
+        v    = decode(raw)
         pre  = nwin // 4
         lvl  = disp_trig_level()
-        hunt = v[pre : v.size - (nwin - pre)]
-        x = np.nonzero((hunt[:-1] < lvl) & (hunt[1:] >= lvl))[0]
+        hv   = v[pre : v.size - (nwin - pre)]
+        x = np.nonzero((hv[:-1] < lvl) & (hv[1:] >= lvl))[0]
         if x.size: start = int(x[0])         # trigger sits 1/4 from the left
-    wnd = v[start:start + nwin]
-    if wnd.size < 2: return
-    last_wnd = wnd
+    rwnd = raw[start:start + nwin]
+    if rwnd.size < 2: return
+    last_wnd = decode(rwnd[-FFT_MAX_N:])     # FFT only ever sees the tail
+
+    # min/max decimation so fast edges stay visible.  Done in the raw domain
+    # (in signed mode +2048 offset-binary keeps the ordering) so huge windows
+    # never get fully decoded - only the 2*PW drawn points do.
+    if rwnd.size > 2 * PW:
+        u = rwnd & 0x0FFF
+        if signedv.get(): u = u ^ 0x0800     # two's-comp -> offset binary
+        m   = (u.size // PW) * PW
+        blk = u[:m].reshape(PW, -1)
+        yu  = np.empty(2 * PW, dtype=np.uint16)
+        yu[0::2] = blk.min(axis=1); yu[1::2] = blk.max(axis=1)
+        yy  = yu.astype(np.int32) - (2048 if signedv.get() else 0)
+        xs  = np.repeat(np.linspace(ML, ML + PW, PW), 2)
+    else:
+        yy = decode(rwnd)
+        xs = np.linspace(ML, ML + PW, rwnd.size)
 
     if view["ylo"] is None:
-        lo, hi = int(wnd.min()), int(wnd.max())
+        lo, hi = int(yy.min()), int(yy.max())
         pad = max(8, (hi - lo) // 8)
         lo, hi = lo - pad, hi + pad
     else:
@@ -450,25 +469,16 @@ def render_time():
     else:
         cv.itemconfigure(trig_line, state="hidden")
 
-    # min/max decimation so fast edges stay visible
-    if wnd.size > 2 * PW:
-        m   = (wnd.size // PW) * PW
-        blk = wnd[:m].reshape(PW, -1)
-        yy  = np.empty(2 * PW, dtype=np.int32)
-        yy[0::2] = blk.min(axis=1); yy[1::2] = blk.max(axis=1)
-        xs  = np.repeat(np.linspace(ML, ML + PW, PW), 2)
-    else:
-        yy = wnd
-        xs = np.linspace(ML, ML + PW, wnd.size)
-
     ys  = np.clip(MT + TPH * (1.0 - (yy - lo) / float(hi - lo)), MT-2, MT+TPH+2)
     pts = np.empty(2 * len(xs)); pts[0::2] = xs; pts[1::2] = ys
     cv.coords(trace, *pts.tolist())
 
     for i, l in enumerate(t_ylabels):
         cv.itemconfigure(l, text=f"{hi - (hi - lo) * i / 8:.0f}")
+    tspan = nwin / FS_HZ
+    unit, scl = ("ms", 1e3) if tspan >= 1e-3 else ("us", 1e6)
     cv.itemconfigure(t_xlabel,
-        text=f"{nwin/FS_HZ*1e6:.4g} us total   ({nwin/FS_HZ*1e6/10:.4g} us/div)")
+        text=f"{tspan*scl:.4g} {unit} total   ({tspan*scl/10:.4g} {unit}/div)")
     cv.itemconfigure(paused_tag,
         text=(f"PAUSED  (-{view['pan']/FS_HZ*1e3:.2f} ms)" if paused.get() else ""))
     wininfo.config(text=f"window {nwin} samp | "
@@ -642,13 +652,15 @@ for c in (cv, fv):
 def draw_cursors(lohi):
     if mouse["cv"] is cv and ML <= mouse["x"] <= ML+PW and MT <= mouse["y"] <= MT+TPH:
         lo, hi = lohi
-        tt = (mouse["x"] - ML) / PW * view["nwin"] / FS_HZ * 1e6
+        tt = (mouse["x"] - ML) / PW * view["nwin"] / FS_HZ
+        ts = f"t={tt*1e3:.4f} ms" if view["nwin"] / FS_HZ >= 1e-3 \
+             else f"t={tt*1e6:.3f} us"
         vv = lo + (hi - lo) * (1.0 - (mouse["y"] - MT) / TPH)
         cv.itemconfigure(t_cross_v, state="normal")
         cv.itemconfigure(t_cross_h, state="normal")
         cv.coords(t_cross_v, mouse["x"], MT, mouse["x"], MT+TPH)
         cv.coords(t_cross_h, ML, mouse["y"], ML+PW, mouse["y"])
-        cv.itemconfigure(t_readout, text=f"t={tt:.3f} us   v={vv:.0f}")
+        cv.itemconfigure(t_readout, text=f"{ts}   v={vv:.0f}")
     else:
         cv.itemconfigure(t_cross_v, state="hidden")
         cv.itemconfigure(t_cross_h, state="hidden")

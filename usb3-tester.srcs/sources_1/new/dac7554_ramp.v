@@ -12,6 +12,12 @@
 //              full ramp in ~2.9 ms); 100_000 = one step per 1 ms (full ramp
 //              in ~4.1 s); max 16.7M = one step per 167 ms.
 //
+//              TGC follow mode: while tgc_en is high the free-run sawtooth is
+//              suspended and channel B tracks tgc_code instead - a new SPI
+//              frame goes out whenever the code changes and the bus is idle
+//              (~0.7 us/frame), so the pulse/receive sequencer can sweep the
+//              gain across each receive window.
+//
 //              SPI: mode 2 (CPOL=1, CPHA=0), gated 25 MHz SCLK from 100 MHz,
 //              16-bit frames MSB first.  DIN is driven on the SCLK rising
 //              edge; the DAC samples it on the falling edge.  /SYNC must stay
@@ -24,6 +30,8 @@ module dac7554_ramp (
     input  wire        rst,          // rst_sys
     input  wire [23:0] step_cycles,  // clk cycles between ramp steps (0 = max rate)
     input  wire        run,          // 0 = freeze the ramp at its current code
+    input  wire        tgc_en,       // 1 = follow tgc_code (sequencer TGC mode)
+    input  wire [11:0] tgc_code,     // target channel-B code while tgc_en
     output reg         dac_sync_n,
     output reg         dac_sclk,
     output reg         dac_din
@@ -109,6 +117,7 @@ module dac7554_ramp (
     reg [11:0] code;
     reg [23:0] step_timer;
     reg        step_due;
+    reg [12:0] tgc_last;               // bit 12 set = nothing written since tgc_en rose
 
     always @(posedge clk) begin
         if (rst) begin
@@ -119,8 +128,11 @@ module dac7554_ramp (
             step_due   <= 1'b0;
             start      <= 1'b0;
             word       <= 16'h0000;
+            tgc_last   <= 13'h1000;
         end else begin
             start <= 1'b0;
+
+            if (!tgc_en) tgc_last <= 13'h1000;     // re-entry always rewrites
 
             if (step_timer != 24'd0) step_timer <= step_timer - 1'b1;
             else                     step_due   <= 1'b1;
@@ -139,12 +151,20 @@ module dac7554_ramp (
                 SEQ_PD_D: if (!spi_busy) begin
                     word <= 16'hF600;  start <= 1'b1;  seq <= SEQ_RAMP;
                 end
-                SEQ_RAMP: if (!spi_busy && step_due && run) begin
-                    word       <= 16'h9000 | {4'h0, code};
-                    start      <= 1'b1;
-                    code       <= code + 1'b1;         // 4095 wraps to 0
-                    step_timer <= step_cycles;
-                    step_due   <= (step_cycles == 24'd0);
+                SEQ_RAMP: if (!spi_busy) begin
+                    if (tgc_en) begin                  // follow the sequencer's TGC code
+                        if (tgc_last != {1'b0, tgc_code}) begin
+                            word     <= 16'h9000 | {4'h0, tgc_code};
+                            start    <= 1'b1;
+                            tgc_last <= {1'b0, tgc_code};
+                        end
+                    end else if (step_due && run) begin
+                        word       <= 16'h9000 | {4'h0, code};
+                        start      <= 1'b1;
+                        code       <= code + 1'b1;     // 4095 wraps to 0
+                        step_timer <= step_cycles;
+                        step_due   <= (step_cycles == 24'd0);
+                    end
                 end
             endcase
         end
