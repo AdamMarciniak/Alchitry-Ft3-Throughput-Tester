@@ -96,6 +96,36 @@ set_property -dict {PACKAGE_PIN J3 IOSTANDARD LVCMOS33} [get_ports {ft_data[29]}
 set_property -dict {PACKAGE_PIN H3 IOSTANDARD LVCMOS33} [get_ports {ft_data[30]}]
 set_property -dict {PACKAGE_PIN H2 IOSTANDARD LVCMOS33} [get_ports {ft_data[31]}]
 #=============================================================================
+# AFE5804 LVDS inputs  (Alchitry A45-A53)
+# EXTERNAL 100 ohm termination at the connector -> NO DIFF_TERM
+#=============================================================================
+# A47 / A45  -- LCLK, 240 MHz bit clock.  F5 must be clock-capable (BUFR).
+set_property -dict {PACKAGE_PIN F5 IOSTANDARD LVDS_25} [get_ports lclk_p]
+set_property -dict {PACKAGE_PIN E5 IOSTANDARD LVDS_25} [get_ports lclk_n]
+
+# A48 / A46  -- FCLK, 40 MHz frame clock
+set_property -dict {PACKAGE_PIN F4 IOSTANDARD LVDS_25} [get_ports fclk_p]
+set_property -dict {PACKAGE_PIN F3 IOSTANDARD LVDS_25} [get_ports fclk_n]
+
+# A53 / A51  -- OUT1, 480 Mbps data
+set_property -dict {PACKAGE_PIN B4 IOSTANDARD LVDS_25} [get_ports out1_p]
+set_property -dict {PACKAGE_PIN A3 IOSTANDARD LVDS_25} [get_ports out1_n]
+
+create_clock -period  4.167 -name lclk [get_ports lclk_p]   ;# 240 MHz
+create_clock -period 25.000 -name fclk [get_ports fclk_p]   ;#  40 MHz
+
+#=============================================================================
+# AFE5804 SPI  (Alchitry B70-B78)
+#=============================================================================
+set_property -dict {PACKAGE_PIN M5 IOSTANDARD LVCMOS33} [get_ports afe_sclk]   ;# B78
+set_property -dict {PACKAGE_PIN N4 IOSTANDARD LVCMOS33} [get_ports afe_cs_n]   ;# B76
+set_property -dict {PACKAGE_PIN T4 IOSTANDARD LVCMOS33} [get_ports afe_sdata]  ;# B72
+set_property -dict {PACKAGE_PIN T3 IOSTANDARD LVCMOS33} [get_ports afe_rst_n]  ;# B70
+
+set_false_path -to   [get_ports {afe_cs_n afe_sclk afe_sdata afe_rst_n}]
+set_false_path -from [get_ports out1_p]
+
+#=============================================================================
 # FT601Q Sync 245 timing - datasheet Table 4.2 (v1.05+)
 #   T1 slave drive setup = 3.0 ns   T2 slave drive hold  = 3.5 ns
 #   T3 master drive setup= 1.0 ns   T4 master drive hold = 4.8 ns
@@ -114,7 +144,9 @@ set_output_delay -clock ft_clk -min -4.800 [get_ports {ft_data[*] ft_be[*] ft_wr
 #      must be timed, not false-pathed.
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks clk_100] \
-    -group [get_clocks -include_generated_clocks ft_clk]
+    -group [get_clocks -include_generated_clocks ft_clk] \
+    -group [get_clocks -include_generated_clocks lclk] \
+    -group [get_clocks -include_generated_clocks fclk]
 
 set_false_path -from [get_ports rst_n]
 set_false_path -from [get_ports usb_rx]

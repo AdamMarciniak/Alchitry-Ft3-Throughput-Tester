@@ -30,10 +30,17 @@ module alchitry_top #(
     input  wire        rst_n,        // active-low button
     output wire [7:0]  led,
     input  wire        usb_rx,
-    output wire        usb_tx
-);
+    output wire        usb_tx,
 
-    assign usb_tx = 1'b1;
+    // AFE5804 analog frontend
+    input  wire        lclk_p, lclk_n,   // 240 MHz LVDS bit clock
+    input  wire        fclk_p, fclk_n,   // 40 MHz LVDS frame clock
+    input  wire        out1_p, out1_n,   // 480 Mbps LVDS data (CH1)
+    output wire        afe_sclk,
+    output wire        afe_cs_n,
+    output wire        afe_sdata,
+    output wire        afe_rst_n
+);
 
     //--------------------------------------------------------------------------
     // ft_clk MMCM: 0 deg for logic, FT_OUT_PHASE for the output IOBs.
@@ -101,10 +108,58 @@ module alchitry_top #(
     end
     assign ft_reset = &por_cnt;
 
+    //--------------------------------------------------------------------------
+    // AFE5804: SPI init + LVDS auto-align sequencer (self-boots at power-up).
+    // The UART debug console stays live on the Au's own USB2 port @ 2 Mbaud.
+    //--------------------------------------------------------------------------
+    wire [7:0]  afe_led;
+    wire        afe_samp_clk;
+    wire [11:0] afe_samp;
+    wire        afe_samp_val;
+
+    afe5804_ctrl #(
+        .CLK_HZ (100_000_000),
+        .BAUD   (2_000_000)
+    ) u_afe (
+        .clk          (clk_in),
+        .rst_n        (rst_n),
+        .usb_rx       (usb_rx),
+        .usb_tx       (usb_tx),
+        .led          (afe_led),
+        .lclk_p       (lclk_p),  .lclk_n(lclk_n),
+        .fclk_p       (fclk_p),  .fclk_n(fclk_n),
+        .out1_p       (out1_p),  .out1_n(out1_n),
+        .afe_sclk     (afe_sclk),
+        .afe_cs_n     (afe_cs_n),
+        .afe_sdata    (afe_sdata),
+        .afe_rst_n    (afe_rst_n),
+        .stream_clk   (afe_samp_clk),
+        .stream_data  (afe_samp),
+        .stream_valid (afe_samp_val)
+    );
+
+    //--------------------------------------------------------------------------
+    // ADC sample stream: tag + pack in the LVDS domain, cross to clk_in
+    //--------------------------------------------------------------------------
+    wire [31:0] adc_word;
+    wire        adc_empty;
+    wire        adc_rd_en;
+
+    afe_stream u_stream (
+        .samp_clk (afe_samp_clk),
+        .rst      (rst_sys),
+        .samp     (afe_samp),
+        .samp_val (afe_samp_val),
+        .rd_clk   (clk_in),
+        .rd_en    (adc_rd_en),
+        .dout     (adc_word),
+        .empty    (adc_empty)
+    );
+
     wire [31:0] ctrl_word;        // RX FIFO -> decoder (host command stream)
     wire        ctrl_empty;
     wire        ctrl_rd_en;
-    wire [31:0] tx_din;           // decoder -> TX FIFO (pattern data)
+    wire [31:0] tx_din;           // decoder -> TX FIFO (pattern or ADC data)
     wire        tx_fifo_wr_en;
     wire        tx_fifo_full;
     wire        tx_wr_rst_busy;
@@ -121,6 +176,9 @@ module alchitry_top #(
         .tx_wr_en       (tx_fifo_wr_en),
         .tx_full        (tx_fifo_full),
         .tx_wr_rst_busy (tx_wr_rst_busy),
+        .adc_word       (adc_word),
+        .adc_empty      (adc_empty),
+        .adc_rd_en      (adc_rd_en),
         .streaming      (streaming),
         .cmd_count      (cmd_count)
     );
@@ -235,9 +293,10 @@ module alchitry_top #(
     //--------------------------------------------------------------------------
     // Status LEDs
     //--------------------------------------------------------------------------
-    assign led = {ft_locked,        // 7: MMCM locked
+    assign led = {ft_locked,        // 7: FT601 MMCM locked
                   rx_locked,        // 6: magic word found, control channel live
                   streaming,        // 5: START received
-                  tx_fifo_full,     // 4: TX backpressured (FT601 is the bottleneck)
-                  cmd_count[3:0]};  // 3:0 commands accepted
+                  afe_led[4],       // 4: AFE FCLK alive
+                  afe_led[3],       // 3: AFE OUT1 activity
+                  afe_led[2:0]};    // 2:0 AFE phase (101 = LOCKED, 110 = FAILED)
 endmodule

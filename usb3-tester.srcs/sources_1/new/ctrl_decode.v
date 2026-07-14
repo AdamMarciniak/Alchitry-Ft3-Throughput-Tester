@@ -20,6 +20,11 @@ module ctrl_decode (
     input  wire        tx_full,
     input  wire        tx_wr_rst_busy,
 
+    // From ADC stream FIFO (FWFT, clk_in read side)
+    input  wire [31:0] adc_word,
+    input  wire        adc_empty,
+    output wire        adc_rd_en,
+
     // Status
     output reg         streaming,
     output reg  [7:0]  cmd_count       // increments per accepted command
@@ -31,7 +36,8 @@ module ctrl_decode (
                      OP_RST_CNT   = 8'h03,
                      OP_SET_PAT   = 8'h04,
                      OP_SET_CONST = 8'h05,
-                     OP_SET_LIMIT = 8'h06;
+                     OP_SET_LIMIT = 8'h06,
+                     OP_SET_SRC   = 8'h07;   // payload[0]: 0 = pattern, 1 = ADC
 
     localparam [1:0] PAT_COUNTER = 2'd0,
                      PAT_LFSR    = 2'd1,
@@ -44,6 +50,7 @@ module ctrl_decode (
     wire [23:0] payload = ctrl_word[23:0];
 
     reg [1:0]  pattern;
+    reg        src_adc;
     reg [23:0] const_val;
     reg [31:0] word_limit;
     reg [31:0] words_sent;
@@ -58,6 +65,7 @@ module ctrl_decode (
         if (rst) begin
             streaming  <= 1'b0;
             pattern    <= PAT_COUNTER;
+            src_adc    <= 1'b0;           // default: pattern (old tester behaviour)
             const_val  <= 24'hDEAD00;
             word_limit <= 32'h0;          // 0 = unlimited
             cmd_count  <= 8'h0;
@@ -74,6 +82,7 @@ module ctrl_decode (
                 OP_SET_PAT:   pattern    <= payload[1:0];
                 OP_SET_CONST: const_val  <= payload;
                 OP_SET_LIMIT: word_limit <= {payload, 8'h0};
+                OP_SET_SRC:   src_adc    <= payload[0];
                 default:      ;           // NOP, lock word, anything unknown
             endcase
         end
@@ -86,25 +95,35 @@ module ctrl_decode (
     reg [31:0] lfsr;
 
     wire limit_hit = (word_limit != 32'h0) && (words_sent >= word_limit);
-    wire can_write = streaming && !limit_hit && !tx_full && !tx_wr_rst_busy;
+    wire tx_ready  = streaming && !limit_hit && !tx_full && !tx_wr_rst_busy;
 
-    assign tx_wr_en = can_write;
+    wire pat_write = tx_ready && !src_adc;
+    wire adc_write = tx_ready &&  src_adc && !adc_empty;
+
+    assign tx_wr_en = pat_write || adc_write;
+
+    // Consume the ADC FIFO when streaming it; otherwise drain and discard so
+    // a new START always begins with fresh samples, never a stale backlog.
+    assign adc_rd_en = adc_write || ((!streaming || !src_adc) && !adc_empty);
 
     always @(posedge clk) begin
         if (rst || rst_cnt_pulse) begin
             counter    <= 32'h0;
             lfsr       <= 32'hACE1_2345;   // any non-zero seed
             words_sent <= 32'h0;
-        end else if (can_write) begin
-            counter    <= counter + 1'b1;
-            // maximal-length 32-bit XNOR LFSR, taps 32,22,2,1
-            lfsr       <= {lfsr[30:0], ~(lfsr[31] ^ lfsr[21] ^ lfsr[1] ^ lfsr[0])};
-            words_sent <= words_sent + 1'b1;
+        end else begin
+            if (pat_write) begin
+                counter <= counter + 1'b1;
+                // maximal-length 32-bit XNOR LFSR, taps 32,22,2,1
+                lfsr    <= {lfsr[30:0], ~(lfsr[31] ^ lfsr[21] ^ lfsr[1] ^ lfsr[0])};
+            end
+            if (tx_wr_en) words_sent <= words_sent + 1'b1;
         end
     end
 
     always @* begin
-        case (pattern)
+        if (src_adc) tx_din = adc_word;
+        else case (pattern)
             PAT_LFSR:  tx_din = lfsr;
             PAT_CONST: tx_din = {8'hC0, const_val};
             default:   tx_din = counter;   // PAT_COUNTER
