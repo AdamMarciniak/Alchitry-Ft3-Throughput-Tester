@@ -1,0 +1,25 @@
+# Vivado generated/build outputs
+usb3-tester.runs/
+usb3-tester.cache/
+usb3-tester.sim/
+usb3-tester.hw/
+usb3-tester.ip_user_files/
+usb3-tester.gen/
+usb3-tester.ioplanning/
+.Xil/
+*.jou
+*.log
+*.str
+*.rpx
+*.pb
+
+# Generated reports
+impl_checks.log
+
+# Vivado auto-checkpoints (regenerated; keep the srcs tree otherwise)
+usb3-tester.srcs/utils_1/
+
+# Python
+__pycache__/
+*.pyc
+dfx_runtime.txt

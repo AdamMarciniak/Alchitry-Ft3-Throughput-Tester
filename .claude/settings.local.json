@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:alchitry.com)",
+      "WebFetch(domain:api.github.com)"
+    ]
+  }
+}
