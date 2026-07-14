@@ -126,6 +126,17 @@ set_false_path -to   [get_ports {afe_cs_n afe_sclk afe_sdata afe_rst_n}]
 set_false_path -from [get_ports out1_p]
 
 #=============================================================================
+# DAC7554 SPI  (Alchitry A76-A78) - channel B drives ADC VCNTRL
+# Write-only, gated 25 MHz SCLK, mode 2.  DRIVE 8 / SLEW SLOW tuned for the
+# 33 ohm series resistors at the FPGA end of SCLK and DIN.
+#=============================================================================
+set_property -dict {PACKAGE_PIN A7 IOSTANDARD LVCMOS33 DRIVE 8 SLEW SLOW} [get_ports dac_sclk]    ;# A76 -> DAC pin 6 SCLK
+set_property -dict {PACKAGE_PIN B6 IOSTANDARD LVCMOS33 DRIVE 8 SLEW SLOW} [get_ports dac_sync_n]  ;# A77 -> DAC pin 9 /SYNC
+set_property -dict {PACKAGE_PIN B7 IOSTANDARD LVCMOS33 DRIVE 8 SLEW SLOW} [get_ports dac_din]     ;# A78 -> DAC pin 7 DIN
+
+set_false_path -to [get_ports {dac_sync_n dac_sclk dac_din}]
+
+#=============================================================================
 # FT601Q Sync 245 timing - datasheet Table 4.2 (v1.05+)
 #   T1 slave drive setup = 3.0 ns   T2 slave drive hold  = 3.5 ns
 #   T3 master drive setup= 1.0 ns   T4 master drive hold = 4.8 ns

@@ -203,6 +203,13 @@ module afe5804_ctrl #(
   output wire       usb_tx,
   output wire [7:0] led,
 
+  // External register write (FT601 control channel, same clk domain).
+  // 1-deep, newest-wins: served whenever the sequencer is idle.  Host
+  // commands are >=30 us apart so depth 1 is enough; absolute register
+  // writes make dropping a stale intermediate value harmless.
+  input  wire [23:0] ext_word,       // {addr[7:0], data[15:0]}
+  input  wire        ext_wr,         // 1-cycle pulse
+
   input  wire       lclk_p, lclk_n,
   input  wire       fclk_p, fclk_n,
   input  wire       out1_p, out1_n,
@@ -389,6 +396,8 @@ module afe5804_ctrl #(
 
   reg [4:0]  seq       = S_RSTLOW;
   reg [4:0]  ret_state = S_ECHO1;
+  reg        ext_pending = 1'b0;
+  reg [23:0] ext_reg     = 24'd0;
   reg [3:0]  romi      = 4'd0;
   reg [31:0] timer     = 32'd0;
   reg [15:0] delay_us  = 16'd0;
@@ -423,7 +432,7 @@ module afe5804_ctrl #(
 
     if (rst) begin
       seq <= S_RSTLOW; timer <= 0; romi <= 0; from_rom <= 1'b1;
-      afe_rst_n <= 1'b0; ph <= 3'b000; rawcnt <= 0;
+      afe_rst_n <= 1'b0; ph <= 3'b000; rawcnt <= 0; ext_pending <= 1'b0;
     end else begin
       case (seq)
 
@@ -563,6 +572,12 @@ module afe5804_ctrl #(
               8'h77: begin rawcnt <= 0; seq <= S_RAW; end                                     // w
               default: seq <= S_ECHO1;
             endcase
+          end else if (ext_pending) begin      // host register write, no echo
+            ext_pending <= 1'b0;
+            spi_word    <= ext_reg;
+            from_rom    <= 1'b0;
+            ret_state   <= S_IDLE;
+            seq         <= S_ISSUE;
           end
         end
 
@@ -713,6 +728,13 @@ module afe5804_ctrl #(
 
         default: seq <= S_IDLE;
       endcase
+
+      // Latched AFTER the case so a write landing in the same cycle that
+      // S_IDLE consumes the previous one still sets ext_pending.
+      if (ext_wr) begin
+        ext_reg     <= ext_word;
+        ext_pending <= 1'b1;
+      end
     end
   end
 

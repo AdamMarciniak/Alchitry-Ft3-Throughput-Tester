@@ -1,0 +1,6 @@
+// DAC7554 SPI (channel B only) - Alchitry Au V2
+// All three are FPGA outputs; DAC has no readback.
+// A76 is the N-side of a diff pair - fine as single-ended LVCMOS33 output.
+pin dac_sync_n A77
+pin dac_sclk A76
+pin dac_din A78

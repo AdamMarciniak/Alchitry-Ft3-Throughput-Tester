@@ -39,7 +39,12 @@ module alchitry_top #(
     output wire        afe_sclk,
     output wire        afe_cs_n,
     output wire        afe_sdata,
-    output wire        afe_rst_n
+    output wire        afe_rst_n,
+
+    // DAC7554 (channel B -> ADC VCNTRL), write-only SPI
+    output wire        dac_sync_n,
+    output wire        dac_sclk,
+    output wire        dac_din
 );
 
     //--------------------------------------------------------------------------
@@ -116,6 +121,8 @@ module alchitry_top #(
     wire        afe_samp_clk;
     wire [11:0] afe_samp;
     wire        afe_samp_val;
+    wire [23:0] afe_word;
+    wire        afe_wr;
 
     afe5804_ctrl #(
         .CLK_HZ (100_000_000),
@@ -126,6 +133,8 @@ module alchitry_top #(
         .usb_rx       (usb_rx),
         .usb_tx       (usb_tx),
         .led          (afe_led),
+        .ext_word     (afe_word),
+        .ext_wr       (afe_wr),
         .lclk_p       (lclk_p),  .lclk_n(lclk_n),
         .fclk_p       (fclk_p),  .fclk_n(fclk_n),
         .out1_p       (out1_p),  .out1_n(out1_n),
@@ -165,6 +174,8 @@ module alchitry_top #(
     wire        tx_wr_rst_busy;
     wire        streaming;
     wire [7:0]  cmd_count;
+    wire [23:0] dac_rate;
+    wire        dac_run;
 
     ctrl_decode u_ctrl (
         .clk            (clk_in),
@@ -179,8 +190,25 @@ module alchitry_top #(
         .adc_word       (adc_word),
         .adc_empty      (adc_empty),
         .adc_rd_en      (adc_rd_en),
+        .dac_rate       (dac_rate),
+        .dac_run        (dac_run),
+        .afe_word       (afe_word),
+        .afe_wr         (afe_wr),
         .streaming      (streaming),
         .cmd_count      (cmd_count)
+    );
+
+    //--------------------------------------------------------------------------
+    // DAC7554: sawtooth ramp on channel B -> ADC VCNTRL attenuation sweep
+    //--------------------------------------------------------------------------
+    dac7554_ramp u_dac (
+        .clk         (clk_in),
+        .rst         (rst_sys),
+        .step_cycles (dac_rate),
+        .run         (dac_run),
+        .dac_sync_n  (dac_sync_n),
+        .dac_sclk    (dac_sclk),
+        .dac_din     (dac_din)
     );
 
     //--------------------------------------------------------------------------

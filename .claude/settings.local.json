@@ -3,7 +3,13 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:alchitry.com)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:claude.ai)",
+      "Bash(python -c ' *)",
+      "Bash(python -c \"import pypdf; print\\('pypdf ok'\\)\")",
+      "Bash(python -m pip install pdfplumber --quiet)",
+      "Bash(python -c \"import pdfplumber; print\\('ok'\\)\")",
+      "Bash(python -m py_compile host/scope_host.py host/ft601_host.py)"
     ]
   }
 }

@@ -25,6 +25,14 @@ module ctrl_decode (
     input  wire        adc_empty,
     output wire        adc_rd_en,
 
+    // DAC7554 ramp control (to dac7554_ramp)
+    output reg  [23:0] dac_rate,        // clk cycles between ramp steps (0 = max)
+    output reg         dac_run,         // 0 = freeze the ramp
+
+    // AFE5804 register write (to afe5804_ctrl ext port)
+    output reg  [23:0] afe_word,        // {addr[7:0], data[15:0]}
+    output reg         afe_wr,          // 1-cycle pulse per write
+
     // Status
     output reg         streaming,
     output reg  [7:0]  cmd_count       // increments per accepted command
@@ -37,7 +45,10 @@ module ctrl_decode (
                      OP_SET_PAT   = 8'h04,
                      OP_SET_CONST = 8'h05,
                      OP_SET_LIMIT = 8'h06,
-                     OP_SET_SRC   = 8'h07;   // payload[0]: 0 = pattern, 1 = ADC
+                     OP_SET_SRC   = 8'h07,   // payload[0]: 0 = pattern, 1 = ADC
+                     OP_DAC_RATE  = 8'h08,   // payload: cycles between DAC steps
+                     OP_DAC_RUN   = 8'h09,   // payload[0]: 1 = ramp, 0 = freeze
+                     OP_AFE_REG   = 8'h0A;   // payload: {addr[7:0], data[15:0]}
 
     localparam [1:0] PAT_COUNTER = 2'd0,
                      PAT_LFSR    = 2'd1,
@@ -61,6 +72,7 @@ module ctrl_decode (
     //--------------------------------------------------------------------------
     always @(posedge clk) begin
         rst_cnt_pulse <= 1'b0;
+        afe_wr        <= 1'b0;
 
         if (rst) begin
             streaming  <= 1'b0;
@@ -68,6 +80,8 @@ module ctrl_decode (
             src_adc    <= 1'b0;           // default: pattern (old tester behaviour)
             const_val  <= 24'hDEAD00;
             word_limit <= 32'h0;          // 0 = unlimited
+            dac_rate   <= 24'd0;          // default: ramp at max SPI rate
+            dac_run    <= 1'b1;           // ramp free-runs from power-up
             cmd_count  <= 8'h0;
         end else if (ctrl_rd_en) begin
             cmd_count <= cmd_count + 1'b1;
@@ -83,6 +97,12 @@ module ctrl_decode (
                 OP_SET_CONST: const_val  <= payload;
                 OP_SET_LIMIT: word_limit <= {payload, 8'h0};
                 OP_SET_SRC:   src_adc    <= payload[0];
+                OP_DAC_RATE:  dac_rate   <= payload;
+                OP_DAC_RUN:   dac_run    <= payload[0];
+                OP_AFE_REG: begin
+                    afe_word <= payload;
+                    afe_wr   <= 1'b1;
+                end
                 default:      ;           // NOP, lock word, anything unknown
             endcase
         end

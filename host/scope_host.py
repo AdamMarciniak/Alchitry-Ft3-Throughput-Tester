@@ -29,7 +29,10 @@ FT_OK, FT_OPEN_BY_INDEX = 0, 0x10
 
 LOCK_WORD = 0xA5A55A5A
 OP_START, OP_STOP, OP_RST_CNT, OP_SET_PAT, OP_SET_SRC = 0x01, 0x02, 0x03, 0x04, 0x07
+OP_DAC_RATE, OP_DAC_RUN = 0x08, 0x09      # DAC7554 VCNTRL ramp control
+OP_AFE_REG = 0x0A                         # AFE5804 write: {addr[7:0], data[15:0]}
 SRC_PATTERN, SRC_ADC = 0, 1
+CLK_HZ = 100_000_000        # FPGA clk_in - OP_DAC_RATE payload is in these cycles
 
 FS_HZ  = 40_000_000         # AFE5804 sample rate (per channel)
 NYQ_HZ = FS_HZ / 2
@@ -78,6 +81,8 @@ send_cmd(LOCK_WORD, "lock")
 time.sleep(0.05)
 send_cmd(cmd(OP_SET_SRC, SRC_ADC), "set_src")
 send_cmd(cmd(OP_RST_CNT), "rst_cnt")        # implies STOP, zeroes word count
+send_cmd(cmd(OP_DAC_RATE, 0), "dac_rate")   # sync FPGA to the UI defaults:
+send_cmd(cmd(OP_DAC_RUN, 1), "dac_run")     # ramp running at max speed
 
 d3.FT_SetStreamPipe(h, C.c_int(0), C.c_int(0), C.c_ubyte(PIPE_IN), C.c_ulong(XFER))
 d3.FT_SetPipeTimeout(h, C.c_ubyte(PIPE_IN), C.c_ulong(1000))
@@ -199,6 +204,92 @@ def on_signed():                            # keep view sane across mode flips
     view["ylo"] = view["yhi"] = None
 chk("signed", signedv, on_signed)
 chk("FFT avg", fft_avg)
+
+# --- DAC7554 VCNTRL ramp: step interval 0 (max speed, ~2.9 ms/ramp) to
+#     1000 us/step (~4.1 s/ramp).  Payload is 100 MHz clk cycles per step.
+dac_runv = tk.BooleanVar(value=True)
+dac_us   = tk.IntVar(value=0)
+
+def send_dac_rate(_v=None):
+    send_cmd(cmd(OP_DAC_RATE, dac_us.get() * (CLK_HZ // 1_000_000)), "dac_rate")
+
+def send_dac_run():
+    send_cmd(cmd(OP_DAC_RUN, 1 if dac_runv.get() else 0), "dac_run")
+
+chk("DAC ramp", dac_runv, send_dac_run)
+tk.Label(top, text="step us", fg=FG, bg=BG).pack(side="left", padx=(10, 2))
+tk.Scale(top, from_=0, to=1000, orient="horizontal", variable=dac_us,
+         length=150, command=send_dac_rate, bg=BG, fg=FG,
+         highlightthickness=0).pack(side="left")
+
+# --- AFE5804 signal-path settings (CH1) ---------------------------------------
+# Register fields from the AFE5804 datasheet (SBOS442C):
+#   0x16 VCA control byte: D1:D0 forced 1 | D2 PWR | D3 BW (0=17M, 1=12.5M)
+#                          D5:D4 mode (01=TGC I, 10=TGC II) | D7:D6 PGA gain
+#   0x2A GAIN_CH1<3:0> in bits 3:0, binary 0-12 dB (digital gain)
+#   0x14 LFNS_CH1 = bit 0 (low-frequency noise suppression)
+#   0x25/0x45 test patterns (ramp / deskew 010101 / sync 111000)
+afebar = tk.Frame(root, bg=BG); afebar.pack(fill="x", padx=6, pady=(0, 2))
+
+def afe_reg(addr, data, name="afe"):
+    send_cmd(cmd(OP_AFE_REG, ((addr & 0xFF) << 16) | (data & 0xFFFF)), name)
+    time.sleep(0.001)      # AFE SPI write takes ~30 us; never outrun the 1-deep queue
+
+afe_pga   = tk.StringVar(value="30 dB")
+afe_tgc   = tk.StringVar(value="TGC I low-noise")
+afe_lpf   = tk.StringVar(value="12.5 MHz")
+afe_dgain = tk.IntVar(value=0)
+afe_lfns  = tk.BooleanVar(value=False)
+afe_pat   = tk.StringVar(value="test: off")
+
+PGA_BITS = {"20 dB": 0, "25 dB": 1, "27 dB": 2, "30 dB": 3}
+TGC_BITS = {"TGC I low-noise": 0x10, "TGC II low-power": 0x20}
+
+def send_vca(*_):
+    v = 0x0003 | (PGA_BITS[afe_pga.get()] << 6) | TGC_BITS[afe_tgc.get()]
+    if afe_lpf.get().startswith("12"):
+        v |= 0x0008
+    afe_reg(0x16, v, "vca")
+
+def send_dgain(_v=None):
+    afe_reg(0x2A, afe_dgain.get() & 0xF, "dgain")     # GAIN_CH1<3:0>
+
+def send_lfns():
+    afe_reg(0x14, 0x0001 if afe_lfns.get() else 0x0000, "lfns")
+
+PATTERNS = {                     # write order matters: turn old pattern off first
+    "test: off":    [(0x45, 0x0000), (0x25, 0x0000)],
+    "test: ramp":   [(0x45, 0x0000), (0x25, 0x0040)],
+    "test: deskew": [(0x25, 0x0000), (0x45, 0x0001)],
+    "test: sync":   [(0x25, 0x0000), (0x45, 0x0002)],
+}
+def send_pat(*_):
+    for a, d in PATTERNS[afe_pat.get()]:
+        afe_reg(a, d, "pattern")
+
+def opt(var, values, cb):
+    m = tk.OptionMenu(afebar, var, *values, command=cb)
+    m.config(fg=FG, bg=BG, activebackground=GRID, activeforeground=FG,
+             highlightthickness=0, relief="groove")
+    m["menu"].config(fg=FG, bg=BG)
+    m.pack(side="left", padx=4)
+
+tk.Label(afebar, text="AFE  PGA", fg=FG, bg=BG).pack(side="left", padx=(2, 2))
+opt(afe_pga, list(PGA_BITS), send_vca)
+opt(afe_tgc, list(TGC_BITS), send_vca)
+tk.Label(afebar, text="LPF", fg=FG, bg=BG).pack(side="left", padx=(8, 2))
+opt(afe_lpf, ["17 MHz", "12.5 MHz"], send_vca)
+tk.Label(afebar, text="dig gain dB", fg=FG, bg=BG).pack(side="left", padx=(8, 2))
+tk.Scale(afebar, from_=0, to=12, orient="horizontal", variable=afe_dgain,
+         length=120, command=send_dgain, bg=BG, fg=FG,
+         highlightthickness=0).pack(side="left")
+tk.Checkbutton(afebar, text="LF noise supp", variable=afe_lfns,
+               command=send_lfns, fg=FG, bg=BG, selectcolor=BG,
+               activebackground=BG, activeforeground=FG).pack(side="left", padx=8)
+opt(afe_pat, list(PATTERNS), send_pat)
+
+# push the UI defaults so FPGA and UI agree even after a host restart
+send_vca(); send_dgain(); send_lfns(); send_pat()
 
 def snapshot_ring():
     with ring_lk:
