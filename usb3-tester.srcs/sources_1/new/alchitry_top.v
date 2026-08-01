@@ -11,7 +11,23 @@ module alchitry_top #(
     // shift on MMCME2_BASE); otherwise STA models a phase the silicon cannot
     // produce (DRC AVAL-139).  202.5 = 45 * 4.5, the valid step nearest the
     // swept optimum of ~205.  Arrival moves ~0.028 ns per degree.
-    parameter real FT_OUT_PHASE = 189.0
+    parameter real FT_OUT_PHASE = 189.0,
+
+    //--------------------------------------------------------------------------
+    // Pulser / transmit sequencer defaults.  All in clk_in cycles (10 ns).
+    // The receive path is NOT synchronised to these yet - the pulser free-runs
+    // independently of ctrl_decode's own SRC_SEQ window.  See tx_sequencer.v.
+    //--------------------------------------------------------------------------
+    parameter integer PULSE_N_CYCLES = 2,        // HV cycles per burst
+    parameter integer PULSE_T_HALF   = 14,       // 140 ns half period -> 3.57 MHz
+    parameter integer PULSE_T_DEAD   = 4,        //  40 ns dead time (>= 35 ns worst case)
+    parameter integer PULSE_T_RING   = 300,      //   3 us ringdown blanking
+    parameter integer PULSE_T_RX     = 13_000,   // 130 us receive window (~100 mm)
+    parameter integer PULSE_LIST_LEN = 48,       // elements per frame
+    // Self-arms out of reset so the control pins are live for scope work with
+    // nothing connected.  SET TO 0 before the pulser board is plugged in and
+    // the host owns arming.
+    parameter integer PULSE_AUTO_ARM = 1
 )(
     // FT601 physical bus
     input  wire        ft_clk,
@@ -44,7 +60,17 @@ module alchitry_top #(
     // DAC7554 (channel B -> ADC VCNTRL), write-only SPI
     output wire        dac_sync_n,
     output wire        dac_sclk,
-    output wire        dac_din
+    output wire        dac_din,
+
+    // Pulser: MAX14866 mux daisy chain + MD1213 driver.  3.3 V LVCMOS.
+    output wire        mux_clk,      // chain clock, idle 0, shifts on rising edge
+    output wire        mux_din,      // chain data, idle 0, MSB first
+    output wire        mux_le,       // ACTIVE LOW latch enable, idle 1
+    output wire        mux_clr,      // ACTIVE HIGH clear, opens every switch
+    input  wire        mux_dout,     // chain loopback from BR3 (unused for now)
+    output wire        pulse_ina,    // MD1213 INA, ACTIVE HIGH, idle 0 -> +HV
+    output wire        pulse_inb,    // MD1213 INB, ACTIVE LOW,  idle 1 -> -HV
+    output wire        pulse_oe      // MD1213 OE, arm/kill, idle 0
 );
 
     //--------------------------------------------------------------------------
@@ -217,6 +243,84 @@ module alchitry_top #(
         .dac_sync_n  (dac_sync_n),
         .dac_sclk    (dac_sclk),
         .dac_din     (dac_din)
+    );
+
+    //--------------------------------------------------------------------------
+    // Transmit sequencer: MAX14866 mux chain + MD1213/TC6320 bipolar pulser.
+    //
+    // Free-running and completely independent of the receive path for now -
+    // it shares nothing with ctrl_decode, afe_stream or the FT601 core beyond
+    // clk_in and rst_sys.  tx_sync is brought out here as the future hook for
+    // range-gating the ADC capture; it is deliberately left unconnected until
+    // the two sides are joined up.
+    //
+    // The control ports are tied to constants so the pulser needs no host
+    // interaction to run.  Wiring them to ctrl_decode opcodes later is a pure
+    // addition - nothing in the receive path has to change.
+    //--------------------------------------------------------------------------
+    // Sized copies of the integer parameters above, so the port map does not
+    // rely on bit-selecting a parameter.
+    localparam [0:0]  PARM_ARM     = PULSE_AUTO_ARM;
+    localparam [7:0]  PARM_NCYC    = PULSE_N_CYCLES;
+    localparam [15:0] PARM_THALF   = PULSE_T_HALF;
+    localparam [15:0] PARM_TDEAD   = PULSE_T_DEAD;
+    localparam [23:0] PARM_TRING   = PULSE_T_RING;
+    localparam [23:0] PARM_TRX     = PULSE_T_RX;
+    localparam [6:0]  PARM_LISTLEN = PULSE_LIST_LEN;
+
+    wire        pulse_tx_sync;
+    wire        pulse_busy;
+    wire [5:0]  pulse_element;
+    wire        pulse_chain_ok;
+    wire        pulse_fault;
+    wire [3:0]  pulse_fault_code;
+    wire [15:0] pulse_frames;
+    wire [3:0]  pulse_state;
+
+    tx_sequencer #(
+        .F_SYS       (100_000_000),
+        .SPI_HALF    (5),              // 10 MHz chain clock
+        .T_SETTLE    (500),            // 5.00 us
+        .T_INHIBIT   (450),            // 4.50 us
+        .CHAIN_CHECK (0),              // mux_dout floating - do not fault on it
+        .N_ELEM      (48)
+    ) u_tx (
+        .clk             (clk_in),
+        .rst             (rst_sys),
+
+        .arm             (PARM_ARM),
+        .start_frame     (1'b0),
+        .continuous      (1'b1),
+        .fault_clr       (1'b0),
+
+        .cfg_n_cycles    (PARM_NCYC),
+        .cfg_t_half      (PARM_THALF),
+        .cfg_t_dead      (PARM_TDEAD),
+        .cfg_t_ring      (PARM_TRING),
+        .cfg_t_rx        (PARM_TRX),
+
+        .el_wr           (1'b0),
+        .el_wr_addr      (6'd0),
+        .el_wr_data      (6'd0),
+        .cfg_list_len    (PARM_LISTLEN),
+
+        .mux_clk         (mux_clk),
+        .mux_din         (mux_din),
+        .mux_le          (mux_le),
+        .mux_clr         (mux_clr),
+        .mux_dout        (mux_dout),
+        .pulse_ina       (pulse_ina),
+        .pulse_inb       (pulse_inb),
+        .pulse_oe        (pulse_oe),
+        .tx_sync         (pulse_tx_sync),
+
+        .busy            (pulse_busy),
+        .element_current (pulse_element),
+        .chain_ok        (pulse_chain_ok),
+        .fault           (pulse_fault),
+        .fault_code      (pulse_fault_code),
+        .frame_count     (pulse_frames),
+        .dbg_state       (pulse_state)
     );
 
     //--------------------------------------------------------------------------
