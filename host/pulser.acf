@@ -1,19 +1,27 @@
-// Sonic transmit chain - Alchitry Au V2, bank B header
+// Sonic transmit chain - Alchitry Au V2, bank B header.
 //
-// MAX14866 mux daisy chain (4 devices, no chip select) + MD1213 gate driver.
-// Port names match the top-level ports in alchitry_top.v exactly, so the XDC
-// Alchitry Labs generates drops straight into usb3-tester.srcs/constrs_1/new/
-// pulser.xdc without renaming anything.
+// Alchitry Labs V2 constraint format.  Paste the pin lines into the project's
+// alchitry.acf (inside the STANDARD/SIDE block) and add matching ports to
+// alchitry_top.luc - Labs will not emit a pin unless the port exists in the
+// Lucid top module.  Build, then lift the PACKAGE_PIN values out of
+// build/constraint/alchitry.xdc into
+// usb3-tester.srcs/constrs_1/new/pulser.xdc.
 //
+// If Labs rejects the B labels under SIDE(TOP), move this block to
+// SIDE(BOTTOM) - the label namespace is per side.
+//
+// Port names match the top-level ports in alchitry_top.v exactly.
 // mux_dout is the only input; everything else is an FPGA output.
 // Idle levels driven out of reset:  clk=0 din=0 le=1 clr=0 ina=0 inb=1 oe=0
 // Note mux_le and pulse_inb idle HIGH - do not add a pulldown to either.
 
-pin mux_clk    B39   // CLK           chain clock, shifts on rising edge
-pin mux_dout   B33   // DOUT_READBACK chain loopback from BR3 (input, unused)
-pin pulse_oe   B51   // DRIVER_EN     MD1213 OE
-pin mux_clr    B53   // CLR           chain clear, active high
-pin pulse_ina  B57   // SIG_IN_POS    MD1213 INA, active high  -> +HV
-pin pulse_inb  B59   // SIG_IN_NEG    MD1213 INB, ACTIVE LOW   -> -HV
-pin mux_din    B63   // DIN           chain data, MSB first
-pin mux_le     B65   // LE            latch enable, ACTIVE LOW
+STANDARD(LVCMOS33), SIDE(TOP) {
+    pin mux_clk    B39   // CLK           chain clock, shifts on rising edge
+    pin mux_dout   B33   // DOUT_READBACK chain loopback from BR3 (input, unused)
+    pin pulse_oe   B51   // DRIVER_EN     MD1213 OE
+    pin mux_clr    B53   // CLR           chain clear, active high
+    pin pulse_ina  B57   // SIG_IN_POS    MD1213 INA, active high  -> +HV
+    pin pulse_inb  B59   // SIG_IN_NEG    MD1213 INB, ACTIVE LOW   -> -HV
+    pin mux_din    B63   // DIN           chain data, MSB first
+    pin mux_le     B65   // LE            latch enable, ACTIVE LOW
+}
