@@ -2,8 +2,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 // Module Name: ctrl_decode
 // Description: Host->FPGA control word decoder + test pattern source +
-//              pulse/receive sequencer.  Entirely in the clk_in domain
-//              (RX FIFO read side).
+//              pulse/receive sequencer + transmit sequencer config registers.
+//              Entirely in the clk_in domain (RX FIFO read side).
+//
+//   Opcodes 0x10-0x1A are the transmit sequencer (tx_sequencer.v): burst
+//   shape, the inter-stage waits, the element list, and arm/stop.  They are
+//   config registers only - the sequencer runs on its own timebase and is
+//   NOT gated by streaming/START, so pulser commands never disturb the ADC
+//   capture and the pulser keeps firing with no host attached.
 //
 //   SRC_SEQ emulates one probe scan cycle per element, 0-31 then wrapping:
 //     1. "fire" the element (pretend: pulse_active/pulse_elem drive no pins
@@ -49,6 +55,23 @@ module ctrl_decode (
     output wire        pulse_active,    // high while "firing"
     output wire [4:0]  pulse_elem,      // element being fired / received
 
+    // Real transmit sequencer (tx_sequencer.v).  Config registers only - the
+    // sequencer free-runs on its own timebase and is not synchronised to the
+    // receive window above.
+    output reg         pls_arm,         // level: 0 parks the driver + clears muxes
+    output reg         pls_fault_clr,   // 1-cycle pulse
+    output reg  [7:0]  pls_n_cycles,
+    output reg  [15:0] pls_t_drive,
+    output reg  [15:0] pls_t_dead,
+    output reg  [23:0] pls_t_settle,
+    output reg  [23:0] pls_t_inhibit,
+    output reg  [23:0] pls_t_ring,
+    output reg  [23:0] pls_t_rx,
+    output reg  [6:0]  pls_list_len,
+    output reg         pls_el_wr,       // 1-cycle pulse
+    output reg  [5:0]  pls_el_addr,
+    output reg  [5:0]  pls_el_data,
+
     // AFE5804 register write (to afe5804_ctrl ext port)
     output reg  [23:0] afe_word,        // {addr[7:0], data[15:0]}
     output reg         afe_wr,          // 1-cycle pulse per write
@@ -73,7 +96,22 @@ module ctrl_decode (
                      OP_SEQ_DLY   = 8'h0C,   // payload: pulse->receive delay, clk cycles
                      OP_SEQ_TGC   = 8'h0D,   // payload: TGC acc increment per captured word
                      OP_SEQ_GAP   = 8'h0E,   // payload: receive-end->pulse damp, clk cycles
-                     OP_SEQ_TGC0  = 8'h0F;   // payload[11:0]: TGC start (min) DAC code
+                     OP_SEQ_TGC0  = 8'h0F,   // payload[11:0]: TGC start (min) DAC code
+
+                     // ---- transmit sequencer (tx_sequencer.v) --------------
+                     // All timing payloads are clk_in cycles (10 ns at 100 MHz).
+                     OP_PLS_ARM     = 8'h10, // payload[0]: 1 = run, 0 = stop +
+                                             //   park driver + CLR all muxes
+                     OP_PLS_NCYC    = 8'h11, // payload[7:0]:  +/- pulse pairs per burst
+                     OP_PLS_TDRIVE  = 8'h12, // payload[15:0]: width of each +HV/-HV pulse
+                     OP_PLS_TDEAD   = 8'h13, // payload[15:0]: gap between opposite polarities
+                     OP_PLS_TSETTLE = 8'h14, // payload: LE rise -> first HV edge
+                     OP_PLS_TINHIB  = 8'h15, // payload: last HV edge -> chain clocking
+                     OP_PLS_TRING   = 8'h16, // payload: ringdown blanking
+                     OP_PLS_TRX     = 8'h17, // payload: echo receive window
+                     OP_PLS_NELEM   = 8'h18, // payload[6:0]: elements per frame
+                     OP_PLS_ELEM    = 8'h19, // payload: {addr[5:0], data[5:0]} list write
+                     OP_PLS_FCLR    = 8'h1A; // clear a latched pulser fault
 
     localparam [1:0] PAT_COUNTER = 2'd0,
                      PAT_LFSR    = 2'd1,
@@ -107,6 +145,8 @@ module ctrl_decode (
     always @(posedge clk) begin
         rst_cnt_pulse <= 1'b0;
         afe_wr        <= 1'b0;
+        pls_el_wr     <= 1'b0;
+        pls_fault_clr <= 1'b0;
 
         if (rst) begin
             streaming  <= 1'b0;
@@ -122,6 +162,21 @@ module ctrl_decode (
             tgc_inc    <= 24'd8196;       // full 0->4095 sweep over 2047 words
             tgc_start  <= 12'd0;          // ramp starts at DAC code 0
             cmd_count  <= 8'h0;
+
+            // Pulser defaults: the settings validated on the scope.  arm=1 so
+            // the transmit chain free-runs from power-up with no host present,
+            // exactly as before this control path existed.
+            pls_arm       <= 1'b1;
+            pls_n_cycles  <= 8'd2;        // 2 positive + 2 negative pulses
+            pls_t_drive   <= 16'd10;      // 100 ns per pulse
+            pls_t_dead    <= 16'd4;       //  40 ns between polarities
+            pls_t_settle  <= 24'd500;     // 5.00 us switch settle
+            pls_t_inhibit <= 24'd450;     // 4.50 us SPI lockout
+            pls_t_ring    <= 24'd300;     //   3 us ringdown blanking
+            pls_t_rx      <= 24'd13_000;  // 130 us receive window
+            pls_list_len  <= 7'd48;       // walk all 48 elements
+            pls_el_addr   <= 6'd0;
+            pls_el_data   <= 6'd0;
         end else if (ctrl_rd_en) begin
             cmd_count <= cmd_count + 1'b1;
 
@@ -147,6 +202,24 @@ module ctrl_decode (
                 OP_SEQ_TGC:   tgc_inc    <= payload;
                 OP_SEQ_GAP:   seq_gap    <= payload;
                 OP_SEQ_TGC0:  tgc_start  <= payload[11:0];
+
+                // ---- transmit sequencer ------------------------------------
+                OP_PLS_ARM:     pls_arm       <= payload[0];
+                OP_PLS_NCYC:    pls_n_cycles  <= payload[7:0];
+                OP_PLS_TDRIVE:  pls_t_drive   <= payload[15:0];
+                OP_PLS_TDEAD:   pls_t_dead    <= payload[15:0];
+                OP_PLS_TSETTLE: pls_t_settle  <= payload;
+                OP_PLS_TINHIB:  pls_t_inhibit <= payload;
+                OP_PLS_TRING:   pls_t_ring    <= payload;
+                OP_PLS_TRX:     pls_t_rx      <= payload;
+                OP_PLS_NELEM:   pls_list_len  <= payload[6:0];
+                OP_PLS_ELEM: begin
+                    pls_el_addr <= payload[11:6];
+                    pls_el_data <= payload[5:0];
+                    pls_el_wr   <= 1'b1;
+                end
+                OP_PLS_FCLR:    pls_fault_clr <= 1'b1;
+
                 default:      ;           // NOP, lock word, anything unknown
             endcase
         end

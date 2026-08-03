@@ -23,6 +23,9 @@ import os, struct
 import numpy as np
 import tkinter as tk
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pulser_ctrl import PulserCtl, build_pulser_panel
+
 XFER, NBUF        = 1024*1024, 8
 PIPE_IN, PIPE_OUT = 0x82, 0x02
 FT_OK, FT_OPEN_BY_INDEX = 0, 0x10
@@ -292,6 +295,17 @@ opt(afe_pat, list(PATTERNS), send_pat)
 
 # push the UI defaults so FPGA and UI agree even after a host restart
 send_vca(); send_dgain(); send_lfns(); send_pat()
+
+# --- Transmit sequencer (tx_sequencer.v) --------------------------------------
+# The pulser runs on its own timebase and is not gated by START/STOP, so the
+# ADC stream above is unaffected by anything here - and the pulser keeps firing
+# whether or not this app is streaming.  STOP parks the driver safely and
+# asserts MUX_CLR, opening every switch in the tree.
+plsbar = tk.Frame(root, bg=BG); plsbar.pack(fill="x", padx=6, pady=(0, 2))
+pulser = PulserCtl(send_cmd, cmd)
+build_pulser_panel(plsbar, pulser, FG=FG, BG=BG, GRID=GRID)
+pulser.push_all()
+print(pulser.summary())
 
 def snapshot_ring():
     with ring_lk:

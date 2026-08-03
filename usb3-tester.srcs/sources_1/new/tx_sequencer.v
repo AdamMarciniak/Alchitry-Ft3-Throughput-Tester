@@ -33,8 +33,8 @@
 //   datasheet number behind each one is in the comment beside it.
 //
 //   RESOLUTION NOTE: the burst runs in the sequencer clock domain, so transmit
-//   edges quantise to 10 ns (t_half = 14 -> 3.57 MHz rather than 3.50 MHz).
-//   Fine for bring-up.  The burst generator is confined to the S_FIRE_* /
+//   edges quantise to 10 ns (t_drive = 10, t_dead = 4 -> 3.57 MHz rather than
+//   3.50 MHz).  Fine so far.  The burst generator is confined to the S_FIRE_* /
 //   S_DEAD_* states so it can later move to a 400-500 MHz MMCM domain or an
 //   OSERDESE2 pattern without touching the rest of the FSM - if that happens,
 //   the interlock must move with it and stay on the final output registers.
@@ -50,8 +50,18 @@ module tx_sequencer #(
     parameter integer T_CLR       = 20,       // 200 ns  (t_WC min 115 ns)
     parameter integer T_LE_LOW    = 5,        //  50 ns  (t_WL min   5 ns)
     parameter integer T_CS        = 2,        //  20 ns  (t_CS min   3 ns)
-    parameter integer T_SETTLE    = 500,      // 5.00 us (t_ON/t_OFF 4 us max +25%)
-    parameter integer T_INHIBIT   = 450,      // 4.50 us (SPI lockout after HV)
+
+    // Floors for the two host-writable waits.  These are the datasheet limits,
+    // not preferences - a host cannot be allowed to set a value that silently
+    // breaks the part:
+    //   below T_SETTLE_MIN  the switches have not finished moving when HV
+    //                       arrives, and the analog node is not at ground
+    //   below T_INHIBIT_MIN the MAX14866 transmit detector is still inhibiting
+    //                       SPI, chain writes are DISCARDED WITH NO ERROR, and
+    //                       the next shot fires into a stale element
+    // Raise them here if you ever need to characterise below spec.
+    parameter integer T_SETTLE_MIN  = 400,    // 4.00 us (t_ON / t_OFF max)
+    parameter integer T_INHIBIT_MIN = 450,    // 4.50 us (SPI lockout after HV)
 
     // ---- MD1213 / TC6320 ----------------------------------------------------
     parameter integer T_OE_WAIT   = 100_000,  //   1 ms  gate coupling caps
@@ -75,9 +85,14 @@ module tx_sequencer #(
     input  wire        fault_clr,             // pulse. Leave S_FAULT.
 
     // ---- runtime timing, clk cycles -----------------------------------------
-    input  wire [7:0]  cfg_n_cycles,          // HV cycles per burst (>= 1)
-    input  wire [15:0] cfg_t_half,            // half period of f0
-    input  wire [15:0] cfg_t_dead,            // dead time between polarities
+    // One "cycle" is one +HV pulse and one -HV pulse, so cfg_n_cycles = N
+    // produces N positive and N negative pulses.  Burst period per cycle is
+    // 2*(cfg_t_drive + cfg_t_dead), i.e. f0 = F_SYS / (2*(t_drive + t_dead)).
+    input  wire [7:0]  cfg_n_cycles,          // +/- pulse pairs per burst (>= 1)
+    input  wire [15:0] cfg_t_drive,           // width of each +HV and -HV pulse
+    input  wire [15:0] cfg_t_dead,            // idle gap between opposite polarities
+    input  wire [23:0] cfg_t_settle,          // LE rising -> first HV edge
+    input  wire [23:0] cfg_t_inhibit,         // last HV edge -> chain clocking
     input  wire [23:0] cfg_t_ring,            // ringdown blanking
     input  wire [23:0] cfg_t_rx,              // echo receive window
 
@@ -117,9 +132,9 @@ module tx_sequencer #(
     localparam integer T_CLR_C     = (T_CLR      < 1) ? 1 : T_CLR;
     localparam integer T_LE_LOW_C  = (T_LE_LOW   < 1) ? 1 : T_LE_LOW;
     localparam integer T_CS_C      = (T_CS       < 1) ? 1 : T_CS;
-    localparam integer T_SETTLE_C  = (T_SETTLE   < 1) ? 1 : T_SETTLE;
-    localparam integer T_INHIBIT_C = (T_INHIBIT  < 1) ? 1 : T_INHIBIT;
     localparam integer T_OE_WAIT_C = (T_OE_WAIT  < 1) ? 1 : T_OE_WAIT;
+    localparam [23:0]  T_SETTLE_FL = (T_SETTLE_MIN  < 1) ? 1 : T_SETTLE_MIN;
+    localparam [23:0]  T_INHIB_FL  = (T_INHIBIT_MIN < 1) ? 1 : T_INHIBIT_MIN;
     localparam [7:0]   SPI_HALF_C  = (SPI_HALF   < 1) ? 1 : SPI_HALF;
     localparam [6:0]   CHAIN_LAST  = CHAIN_BITS - 1;
     localparam [24:0]  WD_LIMIT    = WD_CYCLES;
@@ -311,9 +326,16 @@ module tx_sequencer #(
     // Burst shape.  Driven phase = t_half - t_dead, clamped so both the driven
     // and the dead phase are always at least one cycle long.
     //==========================================================================
-    wire [15:0] t_dead_eff  = (cfg_t_dead == 16'd0) ? 16'd1 : cfg_t_dead;
-    wire [15:0] t_drive_eff = (cfg_t_half > t_dead_eff) ? (cfg_t_half - t_dead_eff) : 16'd1;
+    wire [15:0] t_dead_eff  = (cfg_t_dead  == 16'd0) ? 16'd1 : cfg_t_dead;
+    wire [15:0] t_drive_eff = (cfg_t_drive == 16'd0) ? 16'd1 : cfg_t_drive;
     wire [7:0]  n_cyc_eff   = (cfg_n_cycles == 8'd0) ? 8'd1 : cfg_n_cycles;
+
+    // Host-writable waits, floored at their datasheet minima.  The clamp is
+    // deliberately here in the sequencer rather than in the host: a bad value
+    // arriving over USB must not be able to break the MAX14866, and the
+    // t_inhibit failure mode in particular is silent.
+    wire [23:0] t_settle_eff  = (cfg_t_settle  < T_SETTLE_FL) ? T_SETTLE_FL : cfg_t_settle;
+    wire [23:0] t_inhibit_eff = (cfg_t_inhibit < T_INHIB_FL)  ? T_INHIB_FL  : cfg_t_inhibit;
 
     // Receive window, saturating so an oversized pair of settings cannot wrap
     // the counter and cut the window short.
@@ -533,7 +555,7 @@ module tx_sequencer #(
                      else begin
                          le_r            <= 1'b1;
                          element_current <= elem_pend;
-                         tmr             <= T_SETTLE_C - 1;
+                         tmr             <= t_settle_eff - 24'd1;
                          state           <= S_SETTLE;
                      end
 
@@ -584,7 +606,7 @@ module tx_sequencer #(
                       end else begin
                           // burst complete, parked in the idle state
                           rx_tmr <= rx_win;
-                          tmr    <= T_INHIBIT_C - 1;
+                          tmr    <= t_inhibit_eff - 24'd1;
                           state  <= S_INHIBIT;
                       end
 

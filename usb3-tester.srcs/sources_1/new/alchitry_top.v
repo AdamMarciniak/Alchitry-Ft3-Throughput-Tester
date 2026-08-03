@@ -11,23 +11,7 @@ module alchitry_top #(
     // shift on MMCME2_BASE); otherwise STA models a phase the silicon cannot
     // produce (DRC AVAL-139).  202.5 = 45 * 4.5, the valid step nearest the
     // swept optimum of ~205.  Arrival moves ~0.028 ns per degree.
-    parameter real FT_OUT_PHASE = 189.0,
-
-    //--------------------------------------------------------------------------
-    // Pulser / transmit sequencer defaults.  All in clk_in cycles (10 ns).
-    // The receive path is NOT synchronised to these yet - the pulser free-runs
-    // independently of ctrl_decode's own SRC_SEQ window.  See tx_sequencer.v.
-    //--------------------------------------------------------------------------
-    parameter integer PULSE_N_CYCLES = 2,        // HV cycles per burst
-    parameter integer PULSE_T_HALF   = 14,       // 140 ns half period -> 3.57 MHz
-    parameter integer PULSE_T_DEAD   = 4,        //  40 ns dead time (>= 35 ns worst case)
-    parameter integer PULSE_T_RING   = 300,      //   3 us ringdown blanking
-    parameter integer PULSE_T_RX     = 13_000,   // 130 us receive window (~100 mm)
-    parameter integer PULSE_LIST_LEN = 48,       // elements per frame
-    // Self-arms out of reset so the control pins are live for scope work with
-    // nothing connected.  SET TO 0 before the pulser board is plugged in and
-    // the host owns arming.
-    parameter integer PULSE_AUTO_ARM = 1
+    parameter real FT_OUT_PHASE = 189.0
 )(
     // FT601 physical bus
     input  wire        ft_clk,
@@ -205,6 +189,21 @@ module alchitry_top #(
     wire        tgc_en;
     wire [11:0] tgc_code;
 
+    // ctrl_decode -> tx_sequencer configuration (same clk_in domain, no CDC)
+    wire        pls_arm;
+    wire        pls_fault_clr;
+    wire [7:0]  pls_n_cycles;
+    wire [15:0] pls_t_drive;
+    wire [15:0] pls_t_dead;
+    wire [23:0] pls_t_settle;
+    wire [23:0] pls_t_inhibit;
+    wire [23:0] pls_t_ring;
+    wire [23:0] pls_t_rx;
+    wire [6:0]  pls_list_len;
+    wire        pls_el_wr;
+    wire [5:0]  pls_el_addr;
+    wire [5:0]  pls_el_data;
+
     ctrl_decode u_ctrl (
         .clk            (clk_in),
         .rst            (rst_sys),
@@ -222,8 +221,23 @@ module alchitry_top #(
         .dac_run        (dac_run),
         .tgc_en         (tgc_en),
         .tgc_code       (tgc_code),
-        .pulse_active   (),              // pretend pulser - no IO yet
-        .pulse_elem     (),              // future pulser/mux hookup
+        .pulse_active   (),              // SRC_SEQ receive sequencer, no IO
+        .pulse_elem     (),              // (distinct from the real pulser below)
+
+        .pls_arm        (pls_arm),
+        .pls_fault_clr  (pls_fault_clr),
+        .pls_n_cycles   (pls_n_cycles),
+        .pls_t_drive    (pls_t_drive),
+        .pls_t_dead     (pls_t_dead),
+        .pls_t_settle   (pls_t_settle),
+        .pls_t_inhibit  (pls_t_inhibit),
+        .pls_t_ring     (pls_t_ring),
+        .pls_t_rx       (pls_t_rx),
+        .pls_list_len   (pls_list_len),
+        .pls_el_wr      (pls_el_wr),
+        .pls_el_addr    (pls_el_addr),
+        .pls_el_data    (pls_el_data),
+
         .afe_word       (afe_word),
         .afe_wr         (afe_wr),
         .streaming      (streaming),
@@ -248,26 +262,19 @@ module alchitry_top #(
     //--------------------------------------------------------------------------
     // Transmit sequencer: MAX14866 mux chain + MD1213/TC6320 bipolar pulser.
     //
-    // Free-running and completely independent of the receive path for now -
-    // it shares nothing with ctrl_decode, afe_stream or the FT601 core beyond
-    // clk_in and rst_sys.  tx_sync is brought out here as the future hook for
-    // range-gating the ADC capture; it is deliberately left unconnected until
-    // the two sides are joined up.
+    // Timing and arm/stop come from ctrl_decode opcodes 0x10-0x1A over the
+    // FT601 control pipe.  Same clk_in domain as the decoder, so no CDC.
     //
-    // The control ports are tied to constants so the pulser needs no host
-    // interaction to run.  Wiring them to ctrl_decode opcodes later is a pure
-    // addition - nothing in the receive path has to change.
+    // The sequencer still free-runs on its own timebase: it is not gated by
+    // `streaming` and has no handshake with the receive path, so the ADC
+    // capture is unaffected by anything the host does to the pulser, and the
+    // pulser keeps firing whether or not the host is streaming.  tx_sync is
+    // the hook for range-gating the capture once the two sides are joined up;
+    // it is deliberately still unconnected.
+    //
+    // ctrl_decode resets pls_arm to 1, so the chain free-runs from power-up
+    // with no host present, exactly as it did before this control path.
     //--------------------------------------------------------------------------
-    // Sized copies of the integer parameters above, so the port map does not
-    // rely on bit-selecting a parameter.
-    localparam [0:0]  PARM_ARM     = PULSE_AUTO_ARM;
-    localparam [7:0]  PARM_NCYC    = PULSE_N_CYCLES;
-    localparam [15:0] PARM_THALF   = PULSE_T_HALF;
-    localparam [15:0] PARM_TDEAD   = PULSE_T_DEAD;
-    localparam [23:0] PARM_TRING   = PULSE_T_RING;
-    localparam [23:0] PARM_TRX     = PULSE_T_RX;
-    localparam [6:0]  PARM_LISTLEN = PULSE_LIST_LEN;
-
     wire        pulse_tx_sync;
     wire        pulse_busy;
     wire [5:0]  pulse_element;
@@ -278,31 +285,33 @@ module alchitry_top #(
     wire [3:0]  pulse_state;
 
     tx_sequencer #(
-        .F_SYS       (100_000_000),
-        .SPI_HALF    (5),              // 10 MHz chain clock
-        .T_SETTLE    (500),            // 5.00 us
-        .T_INHIBIT   (450),            // 4.50 us
-        .CHAIN_CHECK (0),              // mux_dout floating - do not fault on it
-        .N_ELEM      (48)
+        .F_SYS         (100_000_000),
+        .SPI_HALF      (5),            // 10 MHz chain clock
+        .T_SETTLE_MIN  (400),          // 4.00 us - datasheet floor, host cannot go below
+        .T_INHIBIT_MIN (450),          // 4.50 us - datasheet floor, host cannot go below
+        .CHAIN_CHECK   (0),            // mux_dout floating - do not fault on it
+        .N_ELEM        (48)
     ) u_tx (
         .clk             (clk_in),
         .rst             (rst_sys),
 
-        .arm             (PARM_ARM),
+        .arm             (pls_arm),
         .start_frame     (1'b0),
         .continuous      (1'b1),
-        .fault_clr       (1'b0),
+        .fault_clr       (pls_fault_clr),
 
-        .cfg_n_cycles    (PARM_NCYC),
-        .cfg_t_half      (PARM_THALF),
-        .cfg_t_dead      (PARM_TDEAD),
-        .cfg_t_ring      (PARM_TRING),
-        .cfg_t_rx        (PARM_TRX),
+        .cfg_n_cycles    (pls_n_cycles),
+        .cfg_t_drive     (pls_t_drive),
+        .cfg_t_dead      (pls_t_dead),
+        .cfg_t_settle    (pls_t_settle),
+        .cfg_t_inhibit   (pls_t_inhibit),
+        .cfg_t_ring      (pls_t_ring),
+        .cfg_t_rx        (pls_t_rx),
 
-        .el_wr           (1'b0),
-        .el_wr_addr      (6'd0),
-        .el_wr_data      (6'd0),
-        .cfg_list_len    (PARM_LISTLEN),
+        .el_wr           (pls_el_wr),
+        .el_wr_addr      (pls_el_addr),
+        .el_wr_data      (pls_el_data),
+        .cfg_list_len    (pls_list_len),
 
         .mux_clk         (mux_clk),
         .mux_din         (mux_din),
