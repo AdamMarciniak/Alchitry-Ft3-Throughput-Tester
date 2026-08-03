@@ -1,16 +1,34 @@
 # pulser_ctrl.py - transmit sequencer control over the FT601 control pipe.
 #
-# Mirrors the opcode map and the datasheet floors in tx_sequencer.v and
-# ctrl_decode.v.  Import into any host app that already has send_cmd()/cmd():
+# Usable two ways.
 #
-#     from pulser_ctrl import PulserCtl, build_pulser_panel
-#     pulser = PulserCtl(send_cmd, cmd)
-#     build_pulser_panel(frame, pulser, FG=FG, BG=BG, GRID=GRID)  # optional GUI
-#     pulser.push_all()          # make the FPGA agree with the UI
+# 1. As a library, from any host app that already has send_cmd()/cmd():
+#
+#        from pulser_ctrl import PulserCtl, build_pulser_panel
+#        pulser = PulserCtl(send_cmd, cmd)
+#        build_pulser_panel(frame, pulser, FG=FG, BG=BG, GRID=GRID)   # optional
+#        pulser.push_all()        # make the FPGA agree with the UI
+#
+#    This is how scope_host.py uses it.
+#
+# 2. As a standalone CLI, for bench tweaks with no GUI:
+#
+#        python pulser_ctrl.py --stop
+#        python pulser_ctrl.py --start --pulses 3 --width 80 --dead 40
+#        python pulser_ctrl.py --single 19
+#        python pulser_ctrl.py --show          (print settings, send nothing)
+#
+#    The FT601 opens exclusively, so close scope_host.py first.
 #
 # The sequencer free-runs on its own timebase and is NOT gated by START/STOP -
 # it keeps firing whether or not the ADC stream is running, and nothing here
 # touches the receive path.
+#
+# There is no readback: the FPGA never reports its state, so what this module
+# prints is what it has SENT, not what the hardware confirms.  Settings persist
+# in the FPGA until the next command or a reset.
+
+import sys, time
 
 CLK_HZ       = 100_000_000          # FPGA clk_in
 NS_PER_CYCLE = 1e9 / CLK_HZ         # 10.0 ns
@@ -283,3 +301,128 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
     return dict(arm=armv, n_cycles=ncyc, t_drive=tdrive, t_dead=tdead,
                 t_settle=tsettle, t_inhib=tinhib, t_ring=tring, t_rx=trx,
                 n_elem=nelem, single=singlev, elem=elemv, refresh=refresh)
+
+
+# =============================================================================
+# Standalone CLI
+# =============================================================================
+LOCK_WORD = 0xA5A55A5A          # RX-latency lock word, must be the first write
+PIPE_OUT  = 0x02
+FT_OK, FT_OPEN_BY_INDEX = 0, 0x10
+
+
+def _open_ft601():
+    """Open the Ft+ and return a send_cmd(word, name) that writes one command."""
+    import ctypes as C, os, struct
+
+    dll = os.path.join(os.path.dirname(os.path.abspath(__file__)), "FTD3XX.dll")
+    if not os.path.exists(dll):
+        raise SystemExit("FTD3XX.dll not found next to this script")
+    d3 = C.WinDLL(dll)
+    d3.FT_Create.restype    = C.c_ulong
+    d3.FT_WritePipe.restype = C.c_ulong
+
+    h = C.c_void_p()
+    if d3.FT_Create(C.c_void_p(0), C.c_ulong(FT_OPEN_BY_INDEX), C.byref(h)) != FT_OK:
+        raise SystemExit("FT_Create failed - is the Ft+ enumerated, and is "
+                         "scope_host.py closed?  The FT601 opens exclusively.")
+    d3.FT_SetPipeTimeout(h, C.c_ubyte(PIPE_OUT), C.c_ulong(1000))
+
+    def send_cmd(word, name=""):
+        buf  = (C.c_ubyte * 4).from_buffer_copy(struct.pack("<I", word & 0xFFFFFFFF))
+        sent = C.c_ulong(0)
+        st = d3.FT_WritePipe(h, C.c_ubyte(PIPE_OUT), buf, C.c_ulong(4),
+                             C.byref(sent), None)
+        if st != FT_OK or sent.value != 4:
+            raise SystemExit("control write failed (%s): st=%d sent=%d"
+                             % (name, st, sent.value))
+
+    return d3, h, send_cmd
+
+
+def _main(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        description="Set transmit sequencer parameters over the FT601 control pipe.",
+        epilog="Only the options you pass are sent; everything else is left "
+               "as the FPGA already has it. Close scope_host.py first.")
+    ap.add_argument("--start",   action="store_true", help="arm the pulser")
+    ap.add_argument("--stop",    action="store_true",
+                    help="park the driver and assert MUX_CLR (opens every switch)")
+    ap.add_argument("--pulses",  type=int,   metavar="N",  help="+/- pulse pairs per burst")
+    ap.add_argument("--width",   type=float, metavar="NS", help="width of each +HV/-HV pulse")
+    ap.add_argument("--dead",    type=float, metavar="NS", help="gap between polarities")
+    ap.add_argument("--settle",  type=float, metavar="US", help="LE rise -> first HV edge")
+    ap.add_argument("--inhibit", type=float, metavar="US", help="last pulse -> SPI mux clocking")
+    ap.add_argument("--ring",    type=float, metavar="US", help="ringdown blanking")
+    ap.add_argument("--rx",      type=float, metavar="US", help="receive window")
+    ap.add_argument("--elems",   type=int,   metavar="N",  help="elements per frame")
+    ap.add_argument("--single",  type=int,   metavar="E",  help="fire only element E")
+    ap.add_argument("--walk",    action="store_true", help="undo --single, walk the aperture")
+    ap.add_argument("--all",     action="store_true",
+                    help="push every setting, not just the ones given")
+    ap.add_argument("--clear-fault", action="store_true", help="clear a latched fault")
+    ap.add_argument("--show",    action="store_true",
+                    help="print the settings and exit without opening the device")
+    a = ap.parse_args(argv)
+
+    if a.start and a.stop:
+        ap.error("--start and --stop are mutually exclusive")
+
+    # Build the object first so --show needs no hardware.
+    pending = []
+    ctl = PulserCtl(lambda w, n="": pending.append((n, w)),
+                    lambda op, pl=0: ((op & 0xFF) << 24) | (pl & 0xFFFFFF))
+
+    if a.show:
+        print(ctl.summary())
+        print("\n(defaults as compiled into ctrl_decode.v - there is no readback,")
+        print(" so this is not a report of the FPGA's current state)")
+        return 0
+
+    d3, h, send = _open_ft601()
+
+    def send_and_log(word, name=""):
+        send(word, name)
+        pending.append((name, word))
+    ctl._send = send_and_log
+
+    print("locking RX window...")
+    send(LOCK_WORD, "lock")
+    time.sleep(0.05)
+
+    try:
+        if a.all:
+            ctl.push_all()
+        else:
+            if a.pulses  is not None: ctl.set_n_cycles(a.pulses)
+            if a.width   is not None: ctl.set_t_drive_ns(a.width)
+            if a.dead    is not None: ctl.set_t_dead_ns(a.dead)
+            if a.settle  is not None: ctl.set_t_settle_us(a.settle)
+            if a.inhibit is not None: ctl.set_t_inhib_us(a.inhibit)
+            if a.ring    is not None: ctl.set_t_ring_us(a.ring)
+            if a.rx      is not None: ctl.set_t_rx_us(a.rx)
+            if a.elems   is not None: ctl.set_n_elem(a.elems)
+            if a.single  is not None: ctl.set_single_elem(a.single)
+            if a.walk:                ctl.set_single_elem(None)
+            if a.clear_fault:         ctl.clear_fault()
+            if a.stop:                ctl.set_arm(False)
+            if a.start:               ctl.set_arm(True)
+
+        if not pending:
+            print("nothing to send - pass some options, or --help")
+        for name, word in pending:
+            print("  sent %-12s 0x%08X" % (name, word))
+        if a.all:
+            print(ctl.summary())
+        elif pending:
+            print("%d command(s) sent; every other pulser setting is left "
+                  "as the FPGA already had it" % len(pending))
+    finally:
+        d3.FT_Close(h)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_main(sys.argv[1:]))
