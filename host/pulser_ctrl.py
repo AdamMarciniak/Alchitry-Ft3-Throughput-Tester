@@ -203,25 +203,20 @@ class PulserCtl:
 # =============================================================================
 def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
                        on_change=None):
-    """Two compact rows of pulser controls. Returns a dict of the Tk vars."""
+    """Slider panel for the pulser. Returns a dict of the Tk vars.
+
+    Every value quantises to a 100 MHz clock cycle in the FPGA, so dragging a
+    slider only emits a command when the QUANTISED value actually changes -
+    a drag across a range worth one cycle sends one command, not fifty.
+    """
     import tkinter as tk
 
-    row1 = tk.Frame(parent, bg=BG); row1.pack(fill="x")
-    row2 = tk.Frame(parent, bg=BG); row2.pack(fill="x")
+    btns = tk.Frame(parent, bg=BG); btns.pack(fill="x")
+    sl   = tk.Frame(parent, bg=BG); sl.pack(fill="x")
 
     armv    = tk.BooleanVar(value=ctl.arm)
-    ncyc    = tk.IntVar(value=ctl.n_cycles)
-    tdrive  = tk.DoubleVar(value=ctl.t_drive_ns)
-    tdead   = tk.DoubleVar(value=ctl.t_dead_ns)
-    tsettle = tk.DoubleVar(value=ctl.t_settle_us)
-    tinhib  = tk.DoubleVar(value=ctl.t_inhib_us)
-    tring   = tk.DoubleVar(value=ctl.t_ring_us)
-    trx     = tk.DoubleVar(value=ctl.t_rx_us)
-    nelem   = tk.IntVar(value=ctl.n_elem)
     singlev = tk.BooleanVar(value=False)
-    elemv   = tk.IntVar(value=0)
-
-    info = tk.Label(row2, text="", fg=FG, bg=BG, anchor="w")
+    info    = tk.Label(btns, text="", fg=FG, bg=BG, anchor="w")
 
     def refresh():
         info.config(text="f0 %.2f MHz   burst %.0f ns   element %.1f us   frame %.2f ms%s"
@@ -231,76 +226,103 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
         if on_change:
             on_change(ctl)
 
-    def num(frame, label, var, setter, width=7, unit=""):
-        tk.Label(frame, text=label, fg=FG, bg=BG).pack(side="left", padx=(8, 2))
-        e = tk.Entry(frame, textvariable=var, width=width, fg=FG, bg=GRID,
-                     insertbackground=FG, relief="flat")
-        e.pack(side="left")
-        if unit:
-            tk.Label(frame, text=unit, fg=FG, bg=BG).pack(side="left", padx=(1, 0))
+    def slider(label, frm, to, res, setter, init, quant, row, col, intvar=False):
+        """One labelled slider. `quant` maps the UI value to FPGA clock cycles
+        so we can skip sends that would not change the hardware."""
+        var  = (tk.IntVar if intvar else tk.DoubleVar)(value=init)
+        last = {"q": quant(init)}
 
-        def commit(_ev=None):
-            try:
-                setter(var.get())
-            except Exception:
-                return
+        def moved(_v):
+            q = quant(var.get())
+            if q == last["q"]:
+                return                  # same clock-cycle value - nothing to send
+            last["q"] = q
+            setter(var.get())
             refresh()
-        e.bind("<Return>", commit)
-        e.bind("<FocusOut>", commit)
-        return e
 
-    # --- row 1: run/stop + burst shape ---------------------------------------
+        w = tk.Scale(sl, from_=frm, to=to, resolution=res, orient="horizontal",
+                     variable=var, command=moved, label=label, length=128,
+                     bg=BG, fg=FG, troughcolor=GRID, highlightthickness=0,
+                     activebackground=GRID, font=("TkDefaultFont", 7))
+        w.grid(row=row, column=col, padx=3, pady=(0, 2), sticky="w")
+        return var, w
+
+    # --- buttons -------------------------------------------------------------
     def on_arm():
-        ctl.set_arm(armv.get())
-        refresh()
+        ctl.set_arm(armv.get()); refresh()
 
-    tk.Checkbutton(row1, text="PULSER RUN", variable=armv, command=on_arm,
+    tk.Checkbutton(btns, text="PULSER RUN", variable=armv, command=on_arm,
                    fg=FG, bg=BG, selectcolor=BG, activebackground=BG,
                    activeforeground=FG).pack(side="left", padx=(2, 4))
 
-    def stop_now():
-        armv.set(False); ctl.set_arm(False); refresh()
+    def set_arm_to(on):
+        armv.set(on); ctl.set_arm(on); refresh()
 
-    def start_now():
-        armv.set(True); ctl.set_arm(True); refresh()
-
-    tk.Button(row1, text="STOP", command=stop_now, fg=FG, bg=GRID,
-              activebackground=GRID, relief="groove").pack(side="left", padx=2)
-    tk.Button(row1, text="START", command=start_now, fg=FG, bg=GRID,
-              activebackground=GRID, relief="groove").pack(side="left", padx=2)
-    tk.Button(row1, text="clr fault", command=ctl.clear_fault, fg=FG, bg=GRID,
-              activebackground=GRID, relief="groove").pack(side="left", padx=(2, 8))
-
-    num(row1, "pulses",   ncyc,   ctl.set_n_cycles,   width=4)
-    num(row1, "width",    tdrive, ctl.set_t_drive_ns, unit="ns")
-    num(row1, "dead",     tdead,  ctl.set_t_dead_ns,  unit="ns")
-
-    # --- row 2: the waits + element selection --------------------------------
-    num(row2, "settle",  tsettle, ctl.set_t_settle_us, unit="us")
-    num(row2, "inhibit", tinhib,  ctl.set_t_inhib_us,  unit="us")
-    num(row2, "ring",    tring,   ctl.set_t_ring_us,   unit="us")
-    num(row2, "rx",      trx,     ctl.set_t_rx_us,     unit="us")
-    num(row2, "elems",   nelem,   ctl.set_n_elem,      width=4)
+    tk.Button(btns, text="STOP", command=lambda: set_arm_to(False), fg=FG,
+              bg=GRID, activebackground=GRID, relief="groove").pack(side="left", padx=2)
+    tk.Button(btns, text="START", command=lambda: set_arm_to(True), fg=FG,
+              bg=GRID, activebackground=GRID, relief="groove").pack(side="left", padx=2)
+    tk.Button(btns, text="clr fault", command=ctl.clear_fault, fg=FG, bg=GRID,
+              activebackground=GRID, relief="groove").pack(side="left", padx=(2, 10))
 
     def on_single():
         ctl.set_single_elem(elemv.get() if singlev.get() else None)
         refresh()
 
-    tk.Checkbutton(row2, text="single", variable=singlev, command=on_single,
-                   fg=FG, bg=BG, selectcolor=BG, activebackground=BG,
-                   activeforeground=FG).pack(side="left", padx=(8, 0))
-    e = tk.Entry(row2, textvariable=elemv, width=4, fg=FG, bg=GRID,
-                 insertbackground=FG, relief="flat")
-    e.pack(side="left")
-    e.bind("<Return>",   lambda _e: on_single())
-    e.bind("<FocusOut>", lambda _e: on_single())
+    tk.Checkbutton(btns, text="single element", variable=singlev,
+                   command=on_single, fg=FG, bg=BG, selectcolor=BG,
+                   activebackground=BG, activeforeground=FG).pack(side="left")
 
     info.pack(side="left", padx=(14, 2))
+
+    # --- sliders -------------------------------------------------------------
+    # Row 0: burst shape.  Row 1: the inter-stage waits and element selection.
+    # settle/inhibit start at their datasheet floors - the FPGA clamps anything
+    # lower regardless, so the slider simply cannot ask for an unsafe value.
+    ncyc,    w_ncyc    = slider("pulses",      1, 16,  1,   ctl.set_n_cycles,    ctl.n_cycles,
+                        lambda v: int(v),  0, 0, intvar=True)
+    tdrive,  w_tdrive  = slider("width ns",   10, 500, 10,  ctl.set_t_drive_ns,  ctl.t_drive_ns,
+                        ns_to_cyc,         0, 1)
+    tdead,   w_tdead   = slider("dead ns",    10, 200, 10,  ctl.set_t_dead_ns,   ctl.t_dead_ns,
+                        ns_to_cyc,         0, 2)
+    tsettle, w_tsettle = slider("settle us",  T_SETTLE_MIN_US,  40, 0.5, ctl.set_t_settle_us,
+                        ctl.t_settle_us,   us_to_cyc,   0, 3)
+    tinhib,  w_tinhib  = slider("inhibit us", T_INHIBIT_MIN_US, 40, 0.5, ctl.set_t_inhib_us,
+                        ctl.t_inhib_us,    us_to_cyc,   0, 4)
+
+    tring,   w_tring   = slider("ring us",     0, 50,  0.5, ctl.set_t_ring_us,   ctl.t_ring_us,
+                        us_to_cyc,         1, 0)
+    trx,     w_trx     = slider("rx us",      10, 500, 5,   ctl.set_t_rx_us,     ctl.t_rx_us,
+                        us_to_cyc,         1, 1)
+    nelem,   w_nelem   = slider("elements",    1, N_ELEM_MAX, 1, ctl.set_n_elem, ctl.n_elem,
+                        lambda v: int(v),  1, 2, intvar=True)
+
+    # The element slider only transmits while "single element" is ticked;
+    # otherwise it just parks a value for when you tick it.
+    elemv = tk.IntVar(value=0)
+    last_e = {"q": 0}
+
+    def elem_moved(_v):
+        if elemv.get() == last_e["q"]:
+            return
+        last_e["q"] = elemv.get()
+        if singlev.get():
+            ctl.set_single_elem(elemv.get()); refresh()
+
+    tk.Scale(sl, from_=0, to=N_ELEM_MAX - 1, resolution=1, orient="horizontal",
+             variable=elemv, command=elem_moved, label="element", length=128,
+             bg=BG, fg=FG, troughcolor=GRID, highlightthickness=0,
+             activebackground=GRID, font=("TkDefaultFont", 7)
+             ).grid(row=1, column=3, padx=3, pady=(0, 2), sticky="w")
+
     refresh()
 
     return dict(arm=armv, n_cycles=ncyc, t_drive=tdrive, t_dead=tdead,
                 t_settle=tsettle, t_inhib=tinhib, t_ring=tring, t_rx=trx,
-                n_elem=nelem, single=singlev, elem=elemv, refresh=refresh)
+                n_elem=nelem, single=singlev, elem=elemv, refresh=refresh,
+                widgets=dict(pulses=w_ncyc, width=w_tdrive, dead=w_tdead,
+                             settle=w_tsettle, inhibit=w_tinhib, ring=w_tring,
+                             rx=w_trx, elements=w_nelem))
 
 
 # =============================================================================
