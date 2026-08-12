@@ -28,6 +28,9 @@ import os, struct
 import numpy as np
 import tkinter as tk
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pulser_ctrl import PulserCtl, build_pulser_panel
+
 XFER, NBUF        = 1024*1024, 8
 PIPE_IN, PIPE_OUT = 0x82, 0x02
 FT_OK, FT_OPEN_BY_INDEX = 0, 0x10
@@ -41,7 +44,15 @@ SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
 FS_HZ  = 40_000_000         # AFE5804 sample rate
 
-N_ELEM   = 32
+# Elements this app reconstructs.  Frames whose header carries an id >= N_ELEM
+# are dropped, so if the pulser is walking a wider aperture than this, raise it
+# (and the geometry below follows).  See tfm_gl_host.py for the 48-element case.
+N_ELEM    = 32
+ELEM_BITS = 6                           # bits the element id occupies at 16
+ELEM_MASK = (1 << ELEM_BITS) - 1
+HDR_SHIFT = 16 + ELEM_BITS              # 22: first bit above the element field
+HDR_MAGIC = 0xE1 << (24 - HDR_SHIFT)    # 0x384: top byte 0xE1, guard bits zero
+
 C_DEF    = 1540.0           # m/s, soft tissue
 
 PROBE_R_MM   = 60.0         # convex radius of curvature
@@ -159,7 +170,7 @@ stats = {"bytes": 0, "win_bytes": 0, "t0": time.perf_counter(), "mbps": 0.0,
 def batch(fr):
     """fr: (m, frame_words) uint32, all rows verified to start with a header."""
     hdr   = fr[:, 0]
-    elems = (hdr >> 16) & 0x1F
+    elems = ((hdr >> 16) & ELEM_MASK).astype(np.int32)
     fcnt  = (hdr & 0xFFFF).astype(np.int64)
     if stats["last_fcnt"] is not None and \
        ((int(fcnt[0]) - stats["last_fcnt"]) & 0xFFFF) != 1:
@@ -169,14 +180,16 @@ def batch(fr):
 
     u = (np.ascontiguousarray(fr[:, 1:]).view(np.uint16) & 0x0FFF).astype(np.int32)
     c = np.where(u >= 2048, u - 4096, u) if mode["signed"] else u - 2048
-    raw_buf[elems] = c.astype(np.int16)
+    keep = elems < N_ELEM                    # ignore ids the array cannot hold
+    raw_buf[elems[keep]] = c[keep].astype(np.int16)
     stats["frames"]     += fr.shape[0]
     stats["win_frames"] += fr.shape[0]
     stats["dirty"] = True
 
 def process(words):
     """Frame parser.  Fast path: back-to-back aligned frames, fully vectorized.
-    A header is 0xE1 in the top byte with bits 23:21 zero -> top 11 bits 0x708."""
+    A header is 0xE1 in the top byte with the guard bits above the element
+    field zero -> (word >> HDR_SHIFT) == HDR_MAGIC."""
     global carry
     with buf_lk:
         FW = cfg["frame_words"]
@@ -185,7 +198,7 @@ def process(words):
         while n - pos >= FW:
             nfr  = (n - pos) // FW
             hdrs = w[pos : pos + nfr*FW : FW]
-            ok   = (hdrs >> 21) == 0x708
+            ok   = (hdrs >> HDR_SHIFT) == HDR_MAGIC
             if ok.all():
                 batch(w[pos : pos + nfr*FW].reshape(nfr, FW))
                 pos += nfr * FW
@@ -196,7 +209,7 @@ def process(words):
                     pos += bad * FW
                 else:                               # lost sync: hunt for a header
                     stats["resyncs"] += 1
-                    nxt = np.nonzero((w[pos+1:] >> 21) == 0x708)[0]
+                    nxt = np.nonzero((w[pos+1:] >> HDR_SHIFT) == HDR_MAGIC)[0]
                     if nxt.size == 0:
                         pos = n
                         break
@@ -244,6 +257,82 @@ IMG_W, IMG_H = NX * SCALE, NZ * SCALE
 # mask multiply.
 lut = {"idx": None, "cov": 0, "samps": 0, "xw": 0.0, "zmax": 0.0,
        "nfft": 0, "wgt": None, "an_pad": None}
+
+# Coherent sum of N_ELEM full-scale analytic samples: the largest magnitude the
+# beamformer can produce, and so the 0 dBFS reference for absolute display.
+FULL_SCALE = float(N_ELEM * 2048 * 2)
+
+# Absolute levels, refreshed every render.  Never normalised away, unlike the
+# image, so these are what to watch when asking "is anything actually getting
+# in".  Two GATED raw meters, because a whole-window peak only ever reports the
+# near-field transmit artifact and is structurally blind to weak echoes further
+# out - comparing that number between two conditions tells you nothing.
+#   near = peak over the first fifth of the window.  This is the artifact and
+#          the ringdown: it is the CLIPPING meter, keep it below 0 dBFS.
+#   far  = RMS over EVERYTHING after the near gate, so the two gates tile the
+#          window with no blind gap - a target just past the artifact counts.
+#          Diffuse backscatter is noise-like, so RMS is the right statistic.
+#          THIS is the number that moves when tissue is being seen.
+#   dbfs = beamformed peak after the coherent sum.
+# Reading the far meter: it is mostly TGC-amplified noise, so an echo shows as
+# a small rise over the no-contact baseline.  Compare against air at the SAME
+# settings; the absolute value alone means nothing.
+GATE_NEAR = 5          # near meter spans samps//GATE_NEAR from the window start
+level = {"dbfs": -99.0, "near": -99.0, "far": -99.0}
+
+# Background (transmit-artifact) subtraction.  The ringdown/feedthrough is
+# phase-locked to the burst - and the capture is slaved to the burst too - so
+# a reference sweep taken with no target in front of the probe can simply be
+# subtracted from every frame.  Tissue moves; the artifact does not.
+#
+# "capture bg" averages BG_AVG sweeps into the reference (noise in the
+# reference drops by sqrt(BG_AVG)); "bg subtract" applies it.  The reference
+# is invalidated by a depth change (shape mismatch) and should be recaptured
+# after changing TGC, pulse shape, or probe loading - it is a snapshot of the
+# artifact under specific settings, not a calibration.
+#
+# The ADC free-runs against the burst timebase, so each window starts at a
+# random ~0-2 sample offset from the burst; a straight subtraction leaves a
+# phase-slipped artifact residue only ~6 dB down (50 ns is 64 deg at 3.6 MHz).
+# _aligned_bg() therefore measures each row's lag off the artifact itself and
+# shifts the reference before subtracting - about 20 dB of cancellation.
+# HARD LIMIT: subtraction is linear, so it cannot remove a CLIPPED artifact.
+# Keep the near meter out of the rail or the residue will be the clip edges.
+BG_AVG = 16
+bg = {"ref": None, "acc": None, "n": 0, "want": 0}
+
+def _aligned_bg(rf, ref, g):
+    """Return `ref` with each row shifted onto this frame's artifact phase.
+
+    Integer lag by cross-correlation over +-MAXLAG samples within the near
+    gate (the artifact dominates there, so it measures its own delay), then
+    parabolic sub-sample refinement and a linear-interp fractional shift.
+    np.roll wrap-around only pollutes the row ends with noise-level samples.
+    """
+    MAXLAG = 4
+    out = np.empty_like(ref)
+    lags = np.arange(-MAXLAG, MAXLAG + 1)
+    for i in range(ref.shape[0]):
+        x, r = rf[i, :g], ref[i, :g]
+        c = np.empty(lags.size, np.float64)
+        for k, L in enumerate(lags):
+            a = x[max(0,  L): g + min(0, L)]
+            b = r[max(0, -L): g - max(0, L)]
+            c[k] = np.dot(a, b)
+        k = int(np.argmax(c))
+        if c[k] <= 0.0:                       # no artifact to align on
+            out[i] = ref[i]
+            continue
+        s = float(lags[k])
+        if 0 < k < lags.size - 1:             # parabolic peak refinement
+            d = c[k-1] - 2.0*c[k] + c[k+1]
+            if d < 0.0:
+                s += 0.5 * (c[k-1] - c[k+1]) / d
+        k0 = int(np.floor(s))
+        fr = s - k0
+        out[i] = ((1.0 - fr) * np.roll(ref[i], k0) +
+                  fr         * np.roll(ref[i], k0 + 1))
+    return out
 
 def next_fast_len(n):
     """Smallest 5-smooth number >= n.  np.fft on the raw window length can be
@@ -319,6 +408,7 @@ speed    = tk.IntVar(value=int(C_DEF))
 accept   = tk.IntVar(value=ACCEPT_DEF)
 dyn_db   = tk.IntVar(value=50)
 gain_db  = tk.IntVar(value=0)
+absscale = tk.BooleanVar(value=False)   # False = per-frame peak normalisation
 
 def chk(parent, text, var, cmd=None):
     tk.Checkbutton(parent, text=text, variable=var, command=cmd, fg=FG, bg=BG,
@@ -344,8 +434,17 @@ def send_tgc(_v=None):
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
 
-def send_dly(_v=None): send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us.get())), "seq_dly")
-def send_gap(_v=None): send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us.get())), "seq_gap")
+# Re-run the tx/rx pacing check.  Rebound once check_pacing() exists further
+# down; a no-op until then so the slider constructors below cannot trip on it.
+_repacing = lambda: None
+
+def send_dly(_v=None):
+    send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us.get())), "seq_dly")
+    _repacing()
+
+def send_gap(_v=None):
+    send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us.get())), "seq_gap")
+    _repacing()
 
 def relut(_ev=None):
     """Geometry/timing changed: rebuild the delay LUT and redraw."""
@@ -370,6 +469,7 @@ def apply_depth(_ev=None):
                     dly_us.get(), gap_us.get())
     send_cmd(cmd(OP_START), "start")
     relut()
+    _repacing()
 
 # depth applies on slider release (restarts the stream); LUT-affecting
 # sliders rebuild on release too - a rebuild is ~tens of ms
@@ -385,9 +485,72 @@ scale(bar2, "TGC min", tgc_min, 0, 4095, send_tgc, length=150)
 scale(bar2, "TGC max", tgc_max, 0, 4095, send_tgc, length=150)
 scale(bar2, "dyn range dB", dyn_db, 20, 80, length=110)
 scale(bar2, "gain dB", gain_db, -40, 40, length=110)
+chk(bar2, "abs scale", absscale)
+
+# --- transmit-artifact background subtraction --------------------------------
+bgsub = tk.BooleanVar(value=False)
+
+def start_bg_capture():
+    """Point the probe at nothing (gel on the face, aimed into air), then click."""
+    bg["want"] = BG_AVG
+    bg["acc"]  = None
+    bgbtn.config(text="capturing %d" % BG_AVG)
+
+bgbtn = tk.Button(bar2, text="capture bg", command=start_bg_capture, fg=FG,
+                  bg=GRID, activebackground=GRID, relief="groove")
+bgbtn.pack(side="left", padx=(10, 2))
+chk(bar2, "bg subtract", bgsub)
 
 wininfo = tk.Label(bar2, fg=DIM, bg=BG, font=("Consolas", 9))
 wininfo.pack(side="right")
+
+# --- Transmit sequencer (tx_sequencer.v) --------------------------------------
+# The pulser owns the timebase: SRC_SEQ is slaved to it, so every receive
+# window starts a fixed pulse->rx delay after a real HV burst and carries the
+# element the mux tree actually had closed.  STOP therefore stops the ADC
+# stream as well - it parks the driver and asserts MUX_CLR, and with no bursts
+# there are no frames.
+#
+# Two distinct notions of "delay" live on this window.  bar1's pulse->rx and
+# damp belong to the SRC_SEQ receive window (pulse->rx is the range offset the
+# TFM delay LUT compensates for).  settle / inhibit / ring / rx below belong to
+# the transmit sequencer.  The pulser's rx should be at least as long as the
+# capture window, or SRC_SEQ will only catch every other burst.  Hover any
+# control for what it actually does.
+plsbar = tk.Frame(root, bg=BG); plsbar.pack(fill="x", padx=6, pady=(0, 2))
+pulser = PulserCtl(send_cmd, cmd)
+
+# SRC_SEQ arms, waits for tx_sync, captures, then holds off seq_gap before
+# re-arming.  Any burst arriving inside that cycle is ignored, so if the pulser
+# is faster than the capture we silently keep only every Nth element - and with
+# an even N over an even aperture that means we would only ever see the even
+# elements.  Warn loudly instead of letting it look like a dead array.
+pace = tk.Label(plsbar, text="", fg="#fa5", bg=BG, font=("Consolas", 9),
+                anchor="w", justify="left")
+
+def check_pacing(_ctl=None):
+    capture_us = dly_us.get() + cfg["win_us"] + gap_us.get()
+    element_us = pulser.element_period_us()
+    if element_us < capture_us:
+        n = int(capture_us // element_us) + 1
+        pace.config(text="PACING: pulser element period %.0f us < capture "
+                         "%.0f us -> only every %d%s burst is captured. Raise "
+                         "the pulser 'rx us' to >= %.0f us, or lower 'damp us'."
+                         % (element_us, capture_us, n,
+                            {1: "st", 2: "nd", 3: "rd"}.get(n, "th"),
+                            # +5 us of margin: equal periods race every frame
+                            pulser.t_rx_us + (capture_us - element_us) + 5.0))
+    else:
+        pace.config(text="")
+
+_repacing = check_pacing
+
+build_pulser_panel(plsbar, pulser, FG=FG, BG=BG, GRID=GRID,
+                   on_change=check_pacing)
+pace.pack(fill="x", padx=2)
+pulser.push_all()
+check_pacing()
+print(pulser.summary())
 
 cv = tk.Canvas(root, width=W, height=MT+IMG_H+MB, bg=PLOT_BG,
                highlightthickness=0)
@@ -439,8 +602,10 @@ def draw_axes():
                                           outline=FRAME))
 
 def update_wininfo():
-    wininfo.config(text=f"win {cfg['samps']} samp | {cfg['win_us']:.0f} us | "
-                        f"grid {NX}x{NZ} | {lut['cov']} px in aperture | "
+    wininfo.config(text=f"peak {level['dbfs']:+6.1f}  near {level['near']:+6.1f}"
+                        f"  far {level['far']:+6.1f} dBFS"
+                        f" | win {cfg['samps']} samp | {cfg['win_us']:.0f} us | "
+                        f"{lut['cov']} px in aperture | "
                         f"R {PROBE_R_MM:g} mm  pitch {PITCH_MM:g} mm")
 
 #-------------------------------------------------------------------------------
@@ -450,6 +615,26 @@ def render_img():
     with buf_lk:
         samps = cfg["samps"]
         rf = raw_buf.astype(np.float32)
+
+    # Meters read the PHYSICAL signal, before background subtraction: near is
+    # a clipping meter (the ADC clips on the real waveform, subtracted or not)
+    # and far vs its air baseline stays comparable across bg on/off.
+    near_pk = float(np.abs(rf[:, :samps // GATE_NEAR]).max())
+    far_rms = float(np.sqrt(np.mean(np.square(rf[:, samps // GATE_NEAR:]))))
+
+    # Background reference: accumulate, then subtract if enabled.
+    if bg["want"] > 0:
+        if bg["acc"] is None or bg["acc"].shape != rf.shape:
+            bg["acc"] = np.zeros_like(rf)
+            bg["n"]   = 0
+        bg["acc"] += rf
+        bg["n"]   += 1
+        bg["want"] -= 1
+        if bg["want"] == 0:
+            bg["ref"], bg["acc"] = bg["acc"] / bg["n"], None
+        bgbtn.config(text="capturing %d" % bg["want"] if bg["want"] else "capture bg")
+    if bgsub.get() and bg["ref"] is not None and bg["ref"].shape == rf.shape:
+        rf = rf - _aligned_bg(rf, bg["ref"], samps // GATE_NEAR)
     if lut["idx"] is None or lut["samps"] != samps:
         return                               # LUT rebuild pending after resize
     # analytic signal (Hilbert) per element, at a fast padded FFT length
@@ -464,9 +649,19 @@ def render_img():
         acc += pad[i][idx[i]]                # intermediate, out-of-window and
     mag = np.abs(acc).reshape(NZ, NX)        # out-of-cone hits land on the pad 0
 
+    # Reference for the log scale.  Peak-normalising per frame is the usual
+    # B-mode look, but it also cancels every global gain change: lift TGC and
+    # the artifact and the echo rise together, so the picture never moves.
+    # "abs scale" pins the reference to full scale instead, so gain, coupling
+    # and loading changes are actually visible.  The dBFS readouts in the info
+    # bar are always absolute, whichever mode is selected.
     peak = float(mag.max())
     if peak <= 0.0: peak = 1.0
-    db = 20.0 * np.log10(mag / peak + 1e-9)
+    level["dbfs"] = 20.0 * np.log10(peak / FULL_SCALE + 1e-12)
+    level["near"] = 20.0 * np.log10(near_pk / 2048.0 + 1e-12)
+    level["far"]  = 20.0 * np.log10(far_rms / 2048.0 + 1e-12)
+    ref = FULL_SCALE if absscale.get() else peak
+    db = 20.0 * np.log10(mag / ref + 1e-9)
     dr = float(dyn_db.get())
     v8 = (np.clip((db + gain_db.get() + dr) / dr, 0.0, 1.0)
           * 255.0).astype(np.uint8)

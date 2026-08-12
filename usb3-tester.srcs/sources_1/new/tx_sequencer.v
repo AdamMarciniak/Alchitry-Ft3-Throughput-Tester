@@ -73,7 +73,27 @@ module tx_sequencer #(
                                               //      raises a fault.  Keep 0 while
                                               //      DOUT is unconnected/floating.
     parameter integer N_ELEM      = 48,       // 3 branches x 16 channels
-    parameter integer LIST_DEPTH  = 64        // element-list RAM depth
+    parameter integer LIST_DEPTH  = 64,       // element-list RAM depth
+
+    // ---- chain topology -----------------------------------------------------
+    // Which ROOT switch feeds each leaf mux.  SWn is COMn->NOn (datasheet
+    // Table 1 / pin map), so these are the root NO pins the leaves hang off -
+    // NO5, NO7, NO11 on this board, NOT SW0/SW1/SW2.
+    parameter integer ROOT_SW_BR0 = 5,        // root -> BR1 (chain device 1)
+    parameter integer ROOT_SW_BR1 = 7,        // root -> BR2 (chain device 2)
+    parameter integer ROOT_SW_BR2 = 11,       // root -> BR3 (chain device 3)
+
+    // ---- static-mux bench mode ----------------------------------------------
+    // 1 = ignore the element list when building the chain word and hold one
+    // fixed root + leaf pair closed for every shot.  The FSM is untouched:
+    // same shift, same LE pulse, same settle / burst / inhibit / RX timing,
+    // same elements per frame - every element just writes the SAME word, so
+    // the switches are reloaded with the value they already have and never
+    // actually move.  Pulse and receive on one element, through one path.
+    parameter integer MUX_STATIC      = 0,    // 0 = walk the aperture (normal)
+    parameter integer MUX_STATIC_ROOT = 5,    // root switch held closed (SW5)
+    parameter integer MUX_STATIC_BR   = 0,    // leaf: 0 = BR1, 1 = BR2, 2 = BR3
+    parameter integer MUX_STATIC_CH   = 10    // leaf switch held closed (SW10)
 )(
     input  wire        clk,
     input  wire        rst,                   // synchronous, active high
@@ -188,36 +208,63 @@ module tx_sequencer #(
     //==========================================================================
     // Chain word for the selected element (sec 6).
     //   branch = e / 16      channel = e % 16
-    //   word_ROOT       = 1 << branch     (SW0 / SW1 / SW2)
-    //   word_BR[branch] = 1 << channel    the other two words are zero
+    //   word_ROOT       = 1 << ROOT_SW_BR[branch]   (SW5 / SW7 / SW11)
+    //   word_BR[branch] = 1 << channel              the other two words are zero
     // Wire order is tail first - BR3, BR2, BR1, ROOT - MSB (SW15) first inside
-    // each word.  Sending chain_word MSB first produces exactly that stream.
+    // each word.  Sending chain_word MSB first produces exactly that stream:
+    // the first bit out travels furthest, so the LAST 16 bits sent (w_root)
+    // stay in the device nearest the FPGA, which is the root mux.
     //==========================================================================
     wire [1:0]  branch    = elem_sel[5:4];
     wire [3:0]  channel   = elem_sel[3:0];
     wire [15:0] onehot_ch = 16'h0001 << channel;
 
-    wire [15:0] w_root = 16'h0001 << branch;
+    localparam [15:0] ROOT_B0   = 16'h0001 << ROOT_SW_BR0;
+    localparam [15:0] ROOT_B1   = 16'h0001 << ROOT_SW_BR1;
+    localparam [15:0] ROOT_B2   = 16'h0001 << ROOT_SW_BR2;
+    localparam [15:0] ROOT_MASK = ROOT_B0 | ROOT_B1 | ROOT_B2;
+
+    wire [15:0] w_root = (branch == 2'd0) ? ROOT_B0 :
+                         (branch == 2'd1) ? ROOT_B1 :
+                         (branch == 2'd2) ? ROOT_B2 : 16'h0000;
     wire [15:0] w_br1  = (branch == 2'd0) ? onehot_ch : 16'h0000;
     wire [15:0] w_br2  = (branch == 2'd1) ? onehot_ch : 16'h0000;
     wire [15:0] w_br3  = (branch == 2'd2) ? onehot_ch : 16'h0000;
 
-    wire [63:0] chain_word = {w_br3, w_br2, w_br1, w_root};
+    wire [63:0] walk_word = {w_br3, w_br2, w_br1, w_root};
+
+    //--------------------------------------------------------------------------
+    // Static-mux bench word: one root switch and one leaf switch, constant for
+    // every element of every frame.  Built at elaboration so it is a literal in
+    // the netlist and cannot be perturbed by the element list or the host.
+    //--------------------------------------------------------------------------
+    localparam [15:0] STATIC_ROOT_W = 16'h0001 << MUX_STATIC_ROOT;
+    localparam [15:0] STATIC_LEAF_W = 16'h0001 << MUX_STATIC_CH;
+    localparam [63:0] STATIC_WORD   =
+        {(MUX_STATIC_BR == 2) ? STATIC_LEAF_W : 16'h0000,   // BR3, sent first
+         (MUX_STATIC_BR == 1) ? STATIC_LEAF_W : 16'h0000,   // BR2
+         (MUX_STATIC_BR == 0) ? STATIC_LEAF_W : 16'h0000,   // BR1
+         STATIC_ROOT_W};                                    // ROOT, sent last
+
+    wire [63:0] chain_word = (MUX_STATIC != 0) ? STATIC_WORD : walk_word;
 
     // Invariants.  Two closed ROOT channels short two branch buses together;
     // two closed branch channels put two elements in parallel across the
     // pulser.  Both are damaging, so check before the word can reach a latch.
+    // In static mode the word is a one-hot-per-device constant by construction,
+    // and the element index no longer selects anything, so the check is moot.
     wire [15:0] w_br_all  = w_br1 | w_br2 | w_br3;
     wire [2:0]  br_nz     = {(w_br3 != 16'h0), (w_br2 != 16'h0), (w_br1 != 16'h0)};
     wire        root_1hot = (w_root  != 16'h0) && ((w_root  & (w_root  - 16'h1)) == 16'h0);
     wire        br_1hot   = (w_br_all != 16'h0) && ((w_br_all & (w_br_all - 16'h1)) == 16'h0);
-    wire        root_rng  = (w_root[15:3] == 13'h0);        // SW0..SW2 only
+    wire        root_rng  = ((w_root & ~ROOT_MASK) == 16'h0); // SW5/SW7/SW11 only
     wire        br_single = (br_nz == 3'b001) || (br_nz == 3'b010) || (br_nz == 3'b100);
     wire        br_match  = (branch == 2'd0) ? (w_br1 != 16'h0) :
                             (branch == 2'd1) ? (w_br2 != 16'h0) :
                             (branch == 2'd2) ? (w_br3 != 16'h0) : 1'b0;
-    wire        word_ok   = root_1hot && root_rng && br_1hot && br_single &&
-                            br_match  && (elem_sel < N_ELEM);
+    wire        word_ok   = (MUX_STATIC != 0) ? 1'b1 :
+                            (root_1hot && root_rng && br_1hot && br_single &&
+                             br_match  && (elem_sel < N_ELEM));
 
     //==========================================================================
     // Pin output registers.  Reset state is exactly sec 7.1:

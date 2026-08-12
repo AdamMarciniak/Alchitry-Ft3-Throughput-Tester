@@ -62,10 +62,13 @@
 # The 32-element header packed the element id into bits 20:16 and left 23:21
 # zero, so a header was identified by (word >> 21) == 0x708.  48 elements need
 # 6 bits, which takes bit 21, so the header check here spans bits 31:22
-# instead.  ctrl_decode.v / the SRC_SEQ header emitter must widen the element
-# field to elem[5:0] (bits 21:16) and keep bits 23:22 zero to match.  Both
+# instead.  ctrl_decode.v emits elem[5:0] at bits 21:16 with bits 23:22 zero to
+# match, and tfm_host.py / waterfall_host.py now use the same constants.  Both
 # sides are derived from ELEM_BITS below - set it back to 5 and this file
 # reproduces the old 32-element contract exactly.
+#
+# The element id is the one the TRANSMIT sequencer really had closed in the mux
+# tree (tx_elem, latched at tx_sync), not a free-running receive counter.
 import ctypes as C, sys, time, threading, os, struct, collections
 import numpy as np
 import moderngl
@@ -124,6 +127,73 @@ SPEED_MIN, SPEED_MAX, SPEED_DEF = 0.1, 4.0, 1.0     # replay rate vs acquisition
 # mask doubles the positive spectrum, hence the 2x).  Used as the reference
 # when auto-gain is off, so brightness is absolute instead of per-frame.
 FULL_SCALE = float(N_ELEM * 2048 * 2)
+
+# --- gated level meters + transmit-artifact background subtraction ------------
+# (same scheme as tfm_host.py - see the comments there for the reasoning)
+#   near = peak of the first fifth of the window: the artifact, i.e. the
+#          CLIPPING meter.  Keep it below 0 dBFS - subtraction is linear and
+#          cannot remove a clipped artifact.
+#   far  = RMS of everything after the near gate: the tissue detector.  Read
+#          it as a delta against the air baseline at identical settings.
+# The bg reference is BG_AVG averaged sweeps; each incoming row is re-aligned
+# to the reference off the artifact itself (the ADC free-runs against the
+# burst, so capture start jitters ~2 samples; plain subtraction would leave a
+# phase-slip residue only ~6 dB down, aligned gets ~16 dB).
+GATE_NEAR = 5
+BG_AVG    = 16
+level = {"near": -99.0, "far": -99.0}
+bg    = {"ref": None, "acc": None, "n": 0, "want": 0, "on": False}
+
+def _aligned_bg(rf, ref, g):
+    """`ref` with each row shifted onto this frame's artifact phase (integer
+    cross-correlation over +-MAXLAG in the near gate, parabolic refinement,
+    linear-interp fractional shift)."""
+    MAXLAG = 4
+    out = np.empty_like(ref)
+    lags = np.arange(-MAXLAG, MAXLAG + 1)
+    for i in range(ref.shape[0]):
+        x, r = rf[i, :g], ref[i, :g]
+        c = np.empty(lags.size, np.float64)
+        for k, L in enumerate(lags):
+            a = x[max(0,  L): g + min(0, L)]
+            b = r[max(0, -L): g - max(0, L)]
+            c[k] = np.dot(a, b)
+        k = int(np.argmax(c))
+        if c[k] <= 0.0:                     # no artifact to align on
+            out[i] = ref[i]
+            continue
+        s = float(lags[k])
+        if 0 < k < lags.size - 1:
+            d = c[k-1] - 2.0*c[k] + c[k+1]
+            if d < 0.0:
+                s += 0.5 * (c[k-1] - c[k+1]) / d
+        k0 = int(np.floor(s))
+        fr = s - k0
+        out[i] = ((1.0 - fr) * np.roll(ref[i], k0) +
+                  fr         * np.roll(ref[i], k0 + 1))
+    return out
+
+def _condition(rf, samps, live):
+    """Meters + background subtraction, applied to every frame the Hilbert
+    worker publishes (live and cine replay both pass through here, so a
+    replayed sweep gets the same treatment the live view had).  Only live
+    frames feed the reference accumulator."""
+    g = samps // GATE_NEAR
+    level["near"] = 20.0 * np.log10(float(np.abs(rf[:, :g]).max()) / 2048.0 + 1e-12)
+    level["far"]  = 20.0 * np.log10(
+        float(np.sqrt(np.mean(np.square(rf[:, g:])))) / 2048.0 + 1e-12)
+    if live and bg["want"] > 0:
+        if bg["acc"] is None or bg["acc"].shape != rf.shape:
+            bg["acc"] = np.zeros_like(rf)
+            bg["n"]   = 0
+        bg["acc"] += rf
+        bg["n"]   += 1
+        bg["want"] -= 1
+        if bg["want"] == 0:
+            bg["ref"], bg["acc"] = bg["acc"] / bg["n"], None
+    if bg["on"] and bg["ref"] is not None and bg["ref"].shape == rf.shape:
+        rf = rf - _aligned_bg(rf, bg["ref"], g)
+    return rf
 
 # element positions/normals, apex of the arc at (0, 0), +z into tissue
 _R  = PROBE_R_MM * 1e-3
@@ -514,7 +584,8 @@ def hilbert_worker():
         if rep is not None:
             samps = rep.shape[1]
             t0 = time.perf_counter()
-            out = analytic(rep.astype(np.float32), samps)
+            out = analytic(_condition(rep.astype(np.float32), samps, live=False),
+                           samps)
             perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
             with hil_lk:
                 hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
@@ -528,7 +599,7 @@ def hilbert_worker():
             samps = cfg["samps"]
             rf = raw_buf.astype(np.float32)
         t0 = time.perf_counter()
-        out = analytic(rf, samps)
+        out = analytic(_condition(rf, samps, live=True), samps)
         perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
         if state["frozen"]:             # froze mid-transform: do not stomp the
             continue                    # frame the user just paused on
@@ -1676,9 +1747,28 @@ class Main(QWidget):
                  width=96, unit="dB")
         self.cb_auto = QCheckBox("auto gain"); self.cb_auto.setChecked(True)
         self.cb_auto.setToolTip("normalise to the per-frame peak; off = absolute "
-                                "scale, use the gain slider")
+                                "scale, use the gain slider.\nNOTE: auto gain "
+                                "cancels every global gain change - use the "
+                                "near/far dBFS readouts to see real level shifts")
         self.cb_auto.toggled.connect(self.set_auto)
         r2.addWidget(self.cb_auto)
+
+        self.b_bg = QPushButton("capture bg")
+        self.b_bg.setToolTip("average %d sweeps into a transmit-artifact "
+                             "reference.\nPoint the probe at nothing (gel on "
+                             "the face, aimed into air) first.\nRecapture "
+                             "after changing TGC, pulses, or pulse→rx." % BG_AVG)
+        self.b_bg.clicked.connect(self.start_bg)
+        r2.addWidget(self.b_bg)
+
+        self.cb_bg = QCheckBox("bg subtract")
+        self.cb_bg.setToolTip("subtract the phase-aligned reference from every "
+                              "sweep (live and replay).\nRemoves ~16 dB of the "
+                              "repeatable ringdown/feedthrough artifact.\n"
+                              "Cannot remove a CLIPPED artifact - keep the "
+                              "near meter below 0 dBFS.")
+        self.cb_bg.toggled.connect(lambda v: bg.__setitem__("on", bool(v)))
+        r2.addWidget(self.cb_bg)
         r2.addStretch(1)
         r2.addSpacing(14)
         self.wininfo = QLabel(""); self.wininfo.setStyleSheet(f"color:{DIM};")
@@ -1888,6 +1978,20 @@ class Main(QWidget):
         state["auto"] = v
         self.scene.gl.update()
 
+    def start_bg(self):
+        """Arm the transmit-artifact reference capture.  The Hilbert worker
+        accumulates the next BG_AVG LIVE sweeps; _tick() watches the countdown
+        and restores the button text."""
+        if state["frozen"]:
+            return                      # nothing live to average
+        bg["acc"], bg["want"] = None, BG_AVG
+        self.b_bg.setText(f"capturing {BG_AVG}")
+
+    def clear_bg(self):
+        bg.update(ref=None, acc=None, n=0, want=0)
+        self.cb_bg.setChecked(False)
+        self.b_bg.setText("capture bg")
+
     def set_frozen(self, v):
         """FREEZE is also the entry point to the cine loop: it stops the
         recorder and takes a stable snapshot of everything still in it, so the
@@ -2009,6 +2113,7 @@ class Main(QWidget):
         # frozen on frames that are about to be discarded)
         self.b_freeze.setChecked(False)
         cine.reset()
+        self.clear_bg()                       # reference is the old window length
         send_cmd(cmd(OP_STOP), "stop")
         time.sleep(0.2)                       # residual old-size frames drain
         with buf_lk:
@@ -2111,6 +2216,13 @@ class Main(QWidget):
         if gl.tex_gen != hil["gen"] or gl.rf_tex is None:
             gl.update()
         self.scene.ov.update()
+        # background capture runs on the Hilbert worker; reflect its countdown
+        want = bg["want"]
+        txt  = f"capturing {want}" if want else "capture bg"
+        if self.b_bg.text() != txt:
+            self.b_bg.setText(txt)
+            if not want and bg["ref"] is not None:
+                self.cb_bg.setChecked(True)     # just finished: apply it
 
     def _status(self):
         gl = self.scene.gl
@@ -2120,9 +2232,15 @@ class Main(QWidget):
             self.tl.update()
             self.cine_lbl.setText(f"rec {n} f · {secs:4.1f} s · {mb:.0f} MB")
         self.wininfo.setText(
+            f"near {level['near']:+6.1f}  far {level['far']:+6.1f} dBFS"
+            f"{'  [bg]' if bg['on'] and bg['ref'] is not None else ''} · "
             f"win {cfg['samps']} samp · {cfg['win_us']:.0f} us · "
             f"grid {gl.fb_w}x{gl.fb_h} · {N_ELEM} el, {APERTURE_MM:g} mm aperture "
             f"· R {PROBE_R_MM:g} mm pitch {PITCH_MM:g} mm")
+        # near is the clipping meter: colour it when the artifact is on the rail,
+        # because a clipped artifact is one the subtraction cannot remove.
+        self.wininfo.setStyleSheet(
+            f"color:{WARN_C};" if level["near"] > -1.0 else f"color:{DIM};")
         bad = stats["drops"] or stats["resyncs"]
         self.status.setText(
             f" {stats['mbps']:6.1f} MB/s   {stats['fps']/N_ELEM:6.1f} sweeps/s"

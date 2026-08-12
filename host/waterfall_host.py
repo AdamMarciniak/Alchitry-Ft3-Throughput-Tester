@@ -46,7 +46,14 @@ SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
 FS_HZ  = 40_000_000         # AFE5804 sample rate
 
-N_ELEM   = 32
+# Elements this app displays.  Frames whose header carries an id >= N_ELEM are
+# dropped, so raise it if the pulser is walking a wider aperture than this.
+N_ELEM    = 32
+ELEM_BITS = 6                           # bits the element id occupies at 16
+ELEM_MASK = (1 << ELEM_BITS) - 1
+HDR_SHIFT = 16 + ELEM_BITS              # 22: first bit above the element field
+HDR_MAGIC = 0xE1 << (24 - HDR_SHIFT)    # 0x384: top byte 0xE1, guard bits zero
+
 C_TISSUE = 1540.0           # m/s, soft tissue - sets the depth <-> time scale
 
 DEPTH_CM_DEF = 8            # ~104 us window, close to the old fixed default
@@ -154,7 +161,7 @@ stats = {"bytes": 0, "win_bytes": 0, "t0": time.perf_counter(), "mbps": 0.0,
 def batch(fr):
     """fr: (m, frame_words) uint32, all rows verified to start with a header."""
     hdr   = fr[:, 0]
-    elems = (hdr >> 16) & 0x1F
+    elems = ((hdr >> 16) & ELEM_MASK).astype(np.int32)
     fcnt  = (hdr & 0xFFFF).astype(np.int64)
     if stats["last_fcnt"] is not None and \
        ((int(fcnt[0]) - stats["last_fcnt"]) & 0xFFFF) != 1:
@@ -164,14 +171,16 @@ def batch(fr):
 
     u = (np.ascontiguousarray(fr[:, 1:]).view(np.uint16) & 0x0FFF).astype(np.int32)
     c = np.where(u >= 2048, u - 4096, u) if mode["signed"] else u - 2048
-    raw_buf[elems] = c.astype(np.int16)     # keep full resolution; the UI
-    stats["frames"]     += fr.shape[0]      # decimates per redraw / zoom
+    keep = elems < N_ELEM                    # ignore ids the array cannot hold
+    raw_buf[elems[keep]] = c[keep].astype(np.int16)   # full resolution; the UI
+    stats["frames"]     += fr.shape[0]                # decimates per redraw/zoom
     stats["win_frames"] += fr.shape[0]
     stats["dirty"] = True
 
 def process(words):
     """Frame parser.  Fast path: back-to-back aligned frames, fully vectorized.
-    A header is 0xE1 in the top byte with bits 23:21 zero -> top 11 bits 0x708."""
+    A header is 0xE1 in the top byte with the guard bits above the element
+    field zero -> (word >> HDR_SHIFT) == HDR_MAGIC."""
     global carry
     with buf_lk:
         FW = cfg["frame_words"]
@@ -180,7 +189,7 @@ def process(words):
         while n - pos >= FW:
             nfr  = (n - pos) // FW
             hdrs = w[pos : pos + nfr*FW : FW]
-            ok   = (hdrs >> 21) == 0x708
+            ok   = (hdrs >> HDR_SHIFT) == HDR_MAGIC
             if ok.all():
                 batch(w[pos : pos + nfr*FW].reshape(nfr, FW))
                 pos += nfr * FW
@@ -191,7 +200,7 @@ def process(words):
                     pos += bad * FW
                 else:                               # lost sync: hunt for a header
                     stats["resyncs"] += 1
-                    nxt = np.nonzero((w[pos+1:] >> 21) == 0x708)[0]
+                    nxt = np.nonzero((w[pos+1:] >> HDR_SHIFT) == HDR_MAGIC)[0]
                     if nxt.size == 0:
                         pos = n
                         break

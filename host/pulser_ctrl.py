@@ -199,6 +199,180 @@ class PulserCtl:
 
 
 # =============================================================================
+# Hover help
+# =============================================================================
+# One entry per control in the panel below, keyed by its label.  These describe
+# what the FPGA actually does with the value, including the datasheet limits it
+# is clamped to - a slider that silently disagrees with the hardware is worse
+# than no slider.
+HELP = {
+"PULSER RUN":
+    "Arms the transmit sequencer (tx_sequencer.v).\n\n"
+    "OFF parks the MD1213 driver in its safe idle state (INA=0, INB=1), drops "
+    "OE and asserts MUX_CLR, which opens every switch in the mux tree.\n\n"
+    "The sequencer owns the timebase and comes up armed from power-on with no "
+    "host present.\n\n"
+    "In the SRC_SEQ apps (TFM, waterfall) the capture is SLAVED to it: each "
+    "receive window starts a fixed pulse->rx delay after a real burst. So "
+    "stopping the pulser also stops the ADC frames - no burst, no frame. The "
+    "raw scope app (SRC_ADC) is unaffected and keeps streaming.",
+
+"clr fault":
+    "Clears a latched pulser fault.\n\n"
+    "The FSM latches on shoot-through (INA high while INB low), a per-state "
+    "watchdog timeout, or an element word that fails the one-hot check. It "
+    "then sits in S_FAULT with MUX_CLR asserted and OE down until this is "
+    "sent, or the board reset button is pressed. Nothing fires in the "
+    "meantime.",
+
+"pulses":
+    "Number of +HV / -HV pulse PAIRS in each burst.\n\n"
+    "N produces N positive and N negative pulses, always returning to the "
+    "idle state between polarities and ending idle.\n\n"
+    "More cycles put more energy into the transducer but narrow the "
+    "bandwidth, which lengthens the pulse and costs axial resolution.",
+
+"width ns":
+    "Width of each +HV and each -HV pulse.\n\n"
+    "Together with the dead time this sets the transmit centre frequency:\n"
+    "    f0 = 1 / (2 x (width + dead))\n"
+    "so 100 ns width + 40 ns dead gives ~3.57 MHz.\n\n"
+    "Quantised to the 100 MHz FPGA clock, i.e. 10 ns steps. Match it to the "
+    "transducer's resonance for the largest output.",
+
+"dead ns":
+    "Idle gap between opposite polarities, with both output FETs off.\n\n"
+    "Must be longer than the TC6320 turn-off time - t_d(off) 20 ns + t_f "
+    "15 ns = 35 ns worst case - or the high- and low-side devices can conduct "
+    "at once. 40 ns is the practical floor.\n\n"
+    "This is NOT clamped in the FPGA: the combinational interlock only catches "
+    "the static case. It also forms part of f0 (see 'width ns').",
+
+"settle us":
+    "LE rising edge to the first HV edge - time allowed for the mux switches "
+    "to finish moving.\n\n"
+    "The MAX14866 specifies t_ON / t_OFF of 4 us max, and the datasheet "
+    "requires the analog node to be quiet at ground for the entire settling "
+    "time. Firing early stresses the part.\n\n"
+    "The FPGA clamps this to 4.0 us minimum regardless of what is sent.",
+
+"inhibit us":
+    "Last HV edge to the next mux chain clocking.\n\n"
+    "The MAX14866 has a transmit detector: any input above +/-2V inhibits SPI "
+    "programming for up to 4.5 us. Chain writes inside that window are "
+    "DISCARDED WITH NO ERROR - the shift register keeps its old contents and "
+    "the next shot fires the previous element. The failure is completely "
+    "silent, which is why the floor is enforced in RTL.\n\n"
+    "The FPGA clamps this to 4.5 us minimum.",
+
+"ring us":
+    "Ringdown blanking: dead time after the burst before the useful echo "
+    "window starts.\n\n"
+    "The transducer keeps ringing for some microseconds after transmit and "
+    "that energy swamps near-field echoes. Raise it until the saturated "
+    "leading edge of the trace is gone; every microsecond costs ~0.77 mm of "
+    "near-field depth.",
+
+"rx us":
+    "Echo receive window per element, measured from the end of the ringdown "
+    "blanking.\n\n"
+    "At 1540 m/s the round trip means depth_mm is about 0.77 x rx_us, so "
+    "130 us is roughly 100 mm.\n\n"
+    "Longer windows see deeper but slow the frame rate proportionally, since "
+    "every element in the frame pays it.",
+
+"elements":
+    "Elements fired per frame. The sequencer walks 0 .. N-1 in order, then "
+    "repeats.\n\n"
+    "Frame time = elements x element period, where the element period is "
+    "settle + burst + ring + rx plus a little chain overhead.\n\n"
+    "48 = the full aperture (3 leaf muxes x 16 channels).",
+
+"single element":
+    "Fire one element repeatedly instead of walking the aperture.\n\n"
+    "Writes the chosen index into slot 0 of the element list and sets the "
+    "list length to 1.\n\n"
+    "NOTE: if the bitstream was built with MUX_STATIC=1 the mux word is a "
+    "compile-time constant, so this no longer changes WHICH element fires - "
+    "it only shortens the frame to one shot.",
+
+"element":
+    "Which element to fire when 'single element' is ticked.\n\n"
+    "Index 0-47 maps to the mux tree as branch = index / 16 (leaf mux 1, 2 or "
+    "3, reached through root SW5 / SW7 / SW11) and channel = index % 16 (that "
+    "leaf's SW0-SW15).\n\n"
+    "Moving this slider sends nothing unless 'single element' is ticked.",
+}
+
+
+class _Tip:
+    """One shared hover popup, positioned under the widget it describes.
+
+    Deliberately a single reusable Toplevel rather than one per control: the
+    panel has a dozen widgets and Tk is happier with one window that moves.
+    """
+    DELAY_MS = 450
+    WRAP_PX  = 360
+
+    def __init__(self, root, FG, BG, GRID):
+        self.root, self.FG, self.BG, self.GRID = root, FG, BG, GRID
+        self.win = None
+        self.job = None
+
+    def attach(self, widget, text):
+        if not text:
+            return
+        widget.bind("<Enter>", lambda e, w=widget: self._arm(w, text), add="+")
+        widget.bind("<Leave>",      lambda e: self.hide(), add="+")
+        widget.bind("<ButtonPress>", lambda e: self.hide(), add="+")
+
+    def _arm(self, widget, text):
+        self.hide()
+        self.job = self.root.after(self.DELAY_MS,
+                                   lambda: self._show(widget, text))
+
+    def hide(self):
+        import tkinter as tk
+        if self.job is not None:
+            try:    self.root.after_cancel(self.job)
+            except tk.TclError: pass
+            self.job = None
+        if self.win is not None:
+            try:    self.win.destroy()
+            except tk.TclError: pass
+            self.win = None
+
+    def _show(self, widget, text):
+        import tkinter as tk
+        self.job = None
+        try:
+            if not widget.winfo_exists():
+                return
+            x = widget.winfo_rootx()
+            y = widget.winfo_rooty() + widget.winfo_height() + 4
+        except tk.TclError:
+            return
+
+        self.win = tk.Toplevel(self.root)
+        self.win.wm_overrideredirect(True)          # no title bar / decorations
+        self.win.configure(bg=self.GRID)
+        tk.Label(self.win, text=text, justify="left", anchor="w",
+                 wraplength=self.WRAP_PX, fg=self.FG, bg=self.BG,
+                 font=("TkDefaultFont", 8), padx=8, pady=6
+                 ).pack(padx=1, pady=1)
+
+        # Keep it on screen: nudge left if it would run off the right edge,
+        # flip above the widget if it would run off the bottom.
+        self.win.update_idletasks()
+        w, hgt = self.win.winfo_width(), self.win.winfo_height()
+        sw, sh = self.win.winfo_screenwidth(), self.win.winfo_screenheight()
+        x = max(0, min(x, sw - w - 4))
+        if y + hgt > sh:
+            y = max(0, widget.winfo_rooty() - hgt - 4)
+        self.win.wm_geometry("+%d+%d" % (int(x), int(y)))
+
+
+# =============================================================================
 # Optional Tk panel
 # =============================================================================
 def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
@@ -213,6 +387,8 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
 
     btns = tk.Frame(parent, bg=BG); btns.pack(fill="x")
     sl   = tk.Frame(parent, bg=BG); sl.pack(fill="x")
+
+    tip = _Tip(parent.winfo_toplevel(), FG, BG, GRID)
 
     armv    = tk.BooleanVar(value=ctl.arm)
     singlev = tk.BooleanVar(value=False)
@@ -245,33 +421,44 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
                      bg=BG, fg=FG, troughcolor=GRID, highlightthickness=0,
                      activebackground=GRID, font=("TkDefaultFont", 7))
         w.grid(row=row, column=col, padx=3, pady=(0, 2), sticky="w")
+        tip.attach(w, HELP.get(label))
         return var, w
 
     # --- buttons -------------------------------------------------------------
     def on_arm():
         ctl.set_arm(armv.get()); refresh()
 
-    tk.Checkbutton(btns, text="PULSER RUN", variable=armv, command=on_arm,
-                   fg=FG, bg=BG, selectcolor=BG, activebackground=BG,
-                   activeforeground=FG).pack(side="left", padx=(2, 4))
+    w_arm = tk.Checkbutton(btns, text="PULSER RUN", variable=armv, command=on_arm,
+                           fg=FG, bg=BG, selectcolor=BG, activebackground=BG,
+                           activeforeground=FG)
+    w_arm.pack(side="left", padx=(2, 4))
+    tip.attach(w_arm, HELP["PULSER RUN"])
 
     def set_arm_to(on):
         armv.set(on); ctl.set_arm(on); refresh()
 
-    tk.Button(btns, text="STOP", command=lambda: set_arm_to(False), fg=FG,
-              bg=GRID, activebackground=GRID, relief="groove").pack(side="left", padx=2)
-    tk.Button(btns, text="START", command=lambda: set_arm_to(True), fg=FG,
-              bg=GRID, activebackground=GRID, relief="groove").pack(side="left", padx=2)
-    tk.Button(btns, text="clr fault", command=ctl.clear_fault, fg=FG, bg=GRID,
-              activebackground=GRID, relief="groove").pack(side="left", padx=(2, 10))
+    w_stop = tk.Button(btns, text="STOP", command=lambda: set_arm_to(False), fg=FG,
+                       bg=GRID, activebackground=GRID, relief="groove")
+    w_stop.pack(side="left", padx=2)
+    w_run = tk.Button(btns, text="START", command=lambda: set_arm_to(True), fg=FG,
+                      bg=GRID, activebackground=GRID, relief="groove")
+    w_run.pack(side="left", padx=2)
+    w_fclr = tk.Button(btns, text="clr fault", command=ctl.clear_fault, fg=FG,
+                       bg=GRID, activebackground=GRID, relief="groove")
+    w_fclr.pack(side="left", padx=(2, 10))
+    tip.attach(w_stop, HELP["PULSER RUN"])
+    tip.attach(w_run,  HELP["PULSER RUN"])
+    tip.attach(w_fclr, HELP["clr fault"])
 
     def on_single():
         ctl.set_single_elem(elemv.get() if singlev.get() else None)
         refresh()
 
-    tk.Checkbutton(btns, text="single element", variable=singlev,
-                   command=on_single, fg=FG, bg=BG, selectcolor=BG,
-                   activebackground=BG, activeforeground=FG).pack(side="left")
+    w_single = tk.Checkbutton(btns, text="single element", variable=singlev,
+                              command=on_single, fg=FG, bg=BG, selectcolor=BG,
+                              activebackground=BG, activeforeground=FG)
+    w_single.pack(side="left")
+    tip.attach(w_single, HELP["single element"])
 
     info.pack(side="left", padx=(14, 2))
 
@@ -309,20 +496,23 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
         if singlev.get():
             ctl.set_single_elem(elemv.get()); refresh()
 
-    tk.Scale(sl, from_=0, to=N_ELEM_MAX - 1, resolution=1, orient="horizontal",
-             variable=elemv, command=elem_moved, label="element", length=128,
-             bg=BG, fg=FG, troughcolor=GRID, highlightthickness=0,
-             activebackground=GRID, font=("TkDefaultFont", 7)
-             ).grid(row=1, column=3, padx=3, pady=(0, 2), sticky="w")
+    w_elem = tk.Scale(sl, from_=0, to=N_ELEM_MAX - 1, resolution=1,
+                      orient="horizontal", variable=elemv, command=elem_moved,
+                      label="element", length=128, bg=BG, fg=FG,
+                      troughcolor=GRID, highlightthickness=0,
+                      activebackground=GRID, font=("TkDefaultFont", 7))
+    w_elem.grid(row=1, column=3, padx=3, pady=(0, 2), sticky="w")
+    tip.attach(w_elem, HELP["element"])
 
     refresh()
 
     return dict(arm=armv, n_cycles=ncyc, t_drive=tdrive, t_dead=tdead,
                 t_settle=tsettle, t_inhib=tinhib, t_ring=tring, t_rx=trx,
                 n_elem=nelem, single=singlev, elem=elemv, refresh=refresh,
+                tip=tip,
                 widgets=dict(pulses=w_ncyc, width=w_tdrive, dead=w_tdead,
                              settle=w_tsettle, inhibit=w_tinhib, ring=w_tring,
-                             rx=w_trx, elements=w_nelem))
+                             rx=w_trx, elements=w_nelem, element=w_elem))
 
 
 # =============================================================================

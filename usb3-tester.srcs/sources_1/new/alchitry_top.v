@@ -189,6 +189,11 @@ module alchitry_top #(
     wire        tgc_en;
     wire [11:0] tgc_code;
 
+    // tx_sequencer -> ctrl_decode: the capture trigger.  Declared up here
+    // because ctrl_decode is instantiated before the sequencer that drives it.
+    wire        pulse_tx_sync;
+    wire [5:0]  pulse_element;
+
     // ctrl_decode -> tx_sequencer configuration (same clk_in domain, no CDC)
     wire        pls_arm;
     wire        pls_fault_clr;
@@ -221,8 +226,11 @@ module alchitry_top #(
         .dac_run        (dac_run),
         .tgc_en         (tgc_en),
         .tgc_code       (tgc_code),
-        .pulse_active   (),              // SRC_SEQ receive sequencer, no IO
-        .pulse_elem     (),              // (distinct from the real pulser below)
+        // SRC_SEQ is slaved to the real transmit sequencer: every receive
+        // window starts a fixed seq_dly after an actual HV burst, and carries
+        // the element the mux tree really had closed.
+        .tx_sync        (pulse_tx_sync),
+        .tx_elem        (pulse_element),
 
         .pls_arm        (pls_arm),
         .pls_fault_clr  (pls_fault_clr),
@@ -265,19 +273,17 @@ module alchitry_top #(
     // Timing and arm/stop come from ctrl_decode opcodes 0x10-0x1A over the
     // FT601 control pipe.  Same clk_in domain as the decoder, so no CDC.
     //
-    // The sequencer still free-runs on its own timebase: it is not gated by
-    // `streaming` and has no handshake with the receive path, so the ADC
-    // capture is unaffected by anything the host does to the pulser, and the
-    // pulser keeps firing whether or not the host is streaming.  tx_sync is
-    // the hook for range-gating the capture once the two sides are joined up;
-    // it is deliberately still unconnected.
+    // The sequencer owns the timebase.  It is not gated by `streaming` and
+    // keeps firing whether or not the host is capturing, but the receive path
+    // is now slaved TO it: tx_sync (first HV edge) starts the SRC_SEQ receive
+    // window and pulse_element becomes the frame header's element id, so every
+    // captured window has a known time origin and a known element.  Stop the
+    // pulser and the ADC stream goes quiet - by design.
     //
     // ctrl_decode resets pls_arm to 1, so the chain free-runs from power-up
     // with no host present, exactly as it did before this control path.
     //--------------------------------------------------------------------------
-    wire        pulse_tx_sync;
     wire        pulse_busy;
-    wire [5:0]  pulse_element;
     wire        pulse_chain_ok;
     wire        pulse_fault;
     wire [3:0]  pulse_fault_code;
@@ -290,7 +296,24 @@ module alchitry_top #(
         .T_SETTLE_MIN  (400),          // 4.00 us - datasheet floor, host cannot go below
         .T_INHIBIT_MIN (450),          // 4.50 us - datasheet floor, host cannot go below
         .CHAIN_CHECK   (0),            // mux_dout floating - do not fault on it
-        .N_ELEM        (48)
+        .N_ELEM        (48),
+
+        // Root mux leaf taps: the three leaf muxes hang off root NO5/NO7/NO11,
+        // so branch b closes root SW5/SW7/SW11 - not SW0/SW1/SW2.
+        .ROOT_SW_BR0   (5),
+        .ROOT_SW_BR1   (7),
+        .ROOT_SW_BR2   (11),
+
+        // ---- BENCH MODE: single fixed element -------------------------------
+        // Set MUX_STATIC back to 0 to restore the normal aperture walk.
+        // Holds root SW5 (-> leaf mux 1) and leaf mux 1 SW10 closed for every
+        // shot: pulse and receive on the one element at ROOT.NO5 / BR1.NO10.
+        // Chain word = 64'h0000_0000_0400_0020.  Timing, frame length and the
+        // receive path are unchanged - every element just rewrites this word.
+        .MUX_STATIC      (1),
+        .MUX_STATIC_ROOT (5),          // root SW5  -> COM5/NO5, feeds leaf 1
+        .MUX_STATIC_BR   (0),          // leaf 1 = BR1 = chain device after root
+        .MUX_STATIC_CH   (10)          // leaf SW10 -> COM10/NO10
     ) u_tx (
         .clk             (clk_in),
         .rst             (rst_sys),

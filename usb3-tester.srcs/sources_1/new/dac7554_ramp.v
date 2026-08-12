@@ -4,8 +4,13 @@
 // Description: DAC7554 channel-B SPI master + sawtooth ramp generator.
 //              At init: powers down unused channels A/C/D (0xF000/F400/F600),
 //              then repeatedly ramps channel B 0 -> 4095 and wraps to 0 using
-//              write+update commands (0x9000 | code).  VOUTB drives the ADC
-//              VCNTRL attenuation pin.
+//              write+update commands (0x9000 | code).  VOUTB drives the AFE5804
+//              VCNTRL pin.
+//
+//              POLARITY: VCNTRL is a GAIN control, not an attenuation control -
+//              code 0 is minimum gain, code 4095 is maximum gain.  So a rising
+//              ramp across a receive window is correct depth compensation, and
+//              TGC min is the gain floor the near field gets.
 //
 //              Host sets the ramp speed: step_cycles = clk cycles between
 //              code increments.  0 = back-to-back SPI frames (~1.4 M steps/s,

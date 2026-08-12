@@ -11,18 +11,38 @@
 //   NOT gated by streaming/START, so pulser commands never disturb the ADC
 //   capture and the pulser keeps firing with no host attached.
 //
-//   SRC_SEQ emulates one probe scan cycle per element, 0-31 then wrapping:
-//     1. "fire" the element (pretend: pulse_active/pulse_elem drive no pins
-//        yet - reserved for the real pulser + mux hookup)
-//     2. wait seq_dly clk cycles (transmit settling / future mux switch time)
-//     3. capture seq_len ADC words while tgc_code ramps tgc_start -> max
+//   SRC_SEQ captures one receive window per REAL transmit burst.  It is slaved
+//   to tx_sequencer.v through tx_sync / tx_elem - there is no longer a pretend
+//   pulser and no free-running local element counter:
+//     1. S_ARMED: wait for tx_sync, the 1-cycle pulse tx_sequencer emits at the
+//        first HV edge of a burst.  Latch tx_elem - the element the transmit
+//        sequencer actually has closed in the mux tree - as this frame's id.
+//     2. S_DLY: wait seq_dly clk cycles.  This is now a genuine range offset
+//        measured from the first HV edge, not from an imaginary event.
+//     3. S_RX: capture seq_len ADC words while tgc_code ramps tgc_start -> max
 //        across the window; dac7554_ramp follows tgc_code so the VCA gain
 //        sweeps up over the receive window (TGC)
-//     4. snap tgc_code back to tgc_start and wait seq_gap clk cycles so the
-//        VCNTRL step can ring out before the next element fires
+//     4. S_DAMP: snap tgc_code back to tgc_start and hold off seq_gap clk
+//        cycles so the VCNTRL step can ring out before re-arming.
 //   Each window goes out the fast path as one frame:
-//     word 0          : {8'hE1, 3'b000, elem[4:0], frame_cnt[15:0]}
+//     word 0          : {8'hE1, 2'b00, elem[5:0], frame_cnt[15:0]}
 //     word 1..seq_len : packed ADC pairs (afe_stream format)
+//
+//   HEADER FORMAT: the element field is 6 bits (bits 21:16) so it spans the
+//   full 48-element aperture, and bits 23:22 are the zero guard, so the host
+//   identifies a header as (word >> 22) == 0x384.  This is the contract
+//   tfm_gl_host.py already implements via ELEM_BITS / HDR_SHIFT / HDR_MAGIC.
+//
+//   CONSEQUENCE OF SLAVING TO THE PULSER: no burst, no frame.  If the pulser
+//   is stopped (pls_arm = 0) or sits in a latched fault, SRC_SEQ produces no
+//   data at all - the ADC stream goes quiet rather than showing free-running
+//   noise.  That is the point: every frame now has a known time origin.
+//
+//   If the pulser fires faster than a window can be captured and drained
+//   (element period < seq_dly + window + seq_gap) the extra tx_sync pulses are
+//   ignored and only every Nth burst is captured.  Frames are never torn; the
+//   effective frame rate just drops.  Give the pulser an rx window at least as
+//   long as the capture window to avoid it.
 //////////////////////////////////////////////////////////////////////////////////
 
 module ctrl_decode (
@@ -51,13 +71,14 @@ module ctrl_decode (
     output wire        tgc_en,          // sequencer owns the DAC (TGC mode)
     output wire [11:0] tgc_code,        // TGC target code while tgc_en
 
-    // Pretend pulser (drives no pins yet - future pulser/mux hookup)
-    output wire        pulse_active,    // high while "firing"
-    output wire [4:0]  pulse_elem,      // element being fired / received
+    // Transmit sequencer feedback (tx_sequencer.v) - the capture trigger.
+    input  wire        tx_sync,         // 1-cycle pulse at the first HV edge
+    input  wire [5:0]  tx_elem,         // element closed in the mux tree, valid
+                                        //   from the LE latch through the burst
 
-    // Real transmit sequencer (tx_sequencer.v).  Config registers only - the
-    // sequencer free-runs on its own timebase and is not synchronised to the
-    // receive window above.
+    // Real transmit sequencer (tx_sequencer.v) config registers.  The
+    // sequencer runs on its own timebase; the receive window above is slaved
+    // to it through tx_sync, not the other way round.
     output reg         pls_arm,         // level: 0 parks the driver + clears muxes
     output reg         pls_fault_clr,   // 1-cycle pulse
     output reg  [7:0]  pls_n_cycles,
@@ -229,16 +250,14 @@ module ctrl_decode (
     // Pulse/receive sequencer (SRC_SEQ)
     //--------------------------------------------------------------------------
     localparam [2:0] S_DAMP  = 3'd0,            // DAC back at min, ring settling
-                     S_PULSE = 3'd1,
+                     S_ARMED = 3'd1,            // waiting for a real HV burst
                      S_DLY   = 3'd2,
                      S_HDR   = 3'd3,
                      S_RX    = 3'd4;
-    localparam [5:0] PULSE_CYCLES = 6'd32;      // 320 ns pretend excitation
 
     reg [2:0]  sstate;
-    reg [4:0]  elem;
+    reg [5:0]  elem;                            // latched from tx_elem at tx_sync
     reg [15:0] frame_cnt;
-    reg [5:0]  pulse_cnt;
     reg [23:0] dly_cnt;
     reg [15:0] rx_cnt;
     reg [23:0] tgc_acc;
@@ -249,40 +268,41 @@ module ctrl_decode (
     wire hdr_write = seq_run && (sstate == S_HDR) && tx_ok;
     wire rx_write  = seq_run && (sstate == S_RX)  && tx_ok && !adc_empty;
 
-    assign pulse_active = seq_run && (sstate == S_PULSE);
-    assign pulse_elem   = elem;
     assign tgc_en       = seq_run;
     assign tgc_code     = tgc_acc[23:12];
 
     wire [24:0] tgc_sum = {1'b0, tgc_acc} + {1'b0, tgc_inc};
 
     always @(posedge clk) begin
-        if (rst || !seq_run) begin              // START always begins at elem 0
+        if (rst || !seq_run) begin
             sstate    <= S_DAMP;
             dly_cnt   <= 24'd0;
-            elem      <= 5'd0;
+            elem      <= 6'd0;
             frame_cnt <= 16'd0;
-            pulse_cnt <= PULSE_CYCLES;
             tgc_acc   <= {tgc_start, 12'd0};
         end else case (sstate)
             S_DAMP: begin                       // let the DAC min-step ring out
                 dly_cnt <= dly_cnt - 1'b1;
-                if (dly_cnt == 24'd0) begin
-                    pulse_cnt <= PULSE_CYCLES;
-                    sstate    <= S_PULSE;
-                end
+                if (dly_cnt == 24'd0) sstate <= S_ARMED;
             end
-            S_PULSE: begin                      // pretend to fire the element
-                pulse_cnt <= pulse_cnt - 1'b1;
-                if (pulse_cnt == 6'd0) begin
-                    dly_cnt <= seq_dly;
-                    sstate  <= S_DLY;
-                end
+            // Armed and waiting.  tx_sync fires on the first HV edge of the
+            // burst; tx_elem has been stable since the LE latch several
+            // microseconds earlier, so it is safe to sample on this edge.
+            // Bursts that arrive in any other state are ignored - a frame is
+            // never torn to chase one.
+            S_ARMED: if (tx_sync) begin
+                elem    <= tx_elem;             // whose element this frame is
+                dly_cnt <= seq_dly;
+                sstate  <= S_DLY;
             end
-            S_DLY: begin                        // settling / future mux switch
+            S_DLY: begin                        // range offset from the HV edge
                 dly_cnt <= dly_cnt - 1'b1;
                 if (dly_cnt == 24'd0) sstate <= S_HDR;
             end
+            // The window opens when the FIFO accepts the header, so a backed-up
+            // TX FIFO delays the range gate as well as the frame.  Harmless
+            // while the host keeps up; it is the reason not to run the bus at
+            // its limit when the delays matter.
             S_HDR: if (hdr_write) begin         // frame header accepted by FIFO
                 rx_cnt <= (seq_len == 16'd0) ? 16'd1 : seq_len;
                 sstate <= S_RX;
@@ -290,7 +310,6 @@ module ctrl_decode (
             S_RX: if (rx_write) begin           // one ADC word captured
                 rx_cnt <= rx_cnt - 1'b1;
                 if (rx_cnt == 16'd1) begin
-                    elem      <= elem + 1'b1;   // 31 wraps to 0
                     frame_cnt <= frame_cnt + 1'b1;
                     tgc_acc   <= {tgc_start, 12'd0};  // gain back to minimum
                     dly_cnt   <= seq_gap;
@@ -342,8 +361,10 @@ module ctrl_decode (
 
     always @* begin
         case (src)
+            // elem is 6 bits, so the zero guard above it is 2 bits wide and a
+            // host header test is (word >> 22) == 0x384.
             SRC_SEQ: tx_din = (sstate == S_HDR)
-                            ? {8'hE1, 3'b000, elem, frame_cnt}
+                            ? {8'hE1, 2'b00, elem, frame_cnt}
                             : adc_word;
             SRC_ADC: tx_din = adc_word;
             default: case (pattern)
