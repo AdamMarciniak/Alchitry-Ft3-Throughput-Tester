@@ -22,6 +22,25 @@
 //     3. S_RX: capture seq_len ADC words while tgc_code ramps tgc_start -> max
 //        across the window; dac7554_ramp follows tgc_code so the VCA gain
 //        sweeps up over the receive window (TGC)
+//
+//   THE RANGE GATE IS NOT ALLOWED TO WAIT ON THE TX FIFO.  There used to be an
+//   S_HDR state between S_DLY and S_RX that held the window shut until the FIFO
+//   accepted the header word, so any host/bus backpressure slid the gate by the
+//   stall duration - a silent, unbounded range error, and one that `holes`
+//   cannot see because outside S_RX the ADC FIFO is drained and discarded, so
+//   nothing ever overflows to record it.  Measured on a link that had fallen
+//   back to USB 2.0 it cost ~16 us per element.
+//
+//   The fix rests on the header needing to precede the DATA, not the window:
+//   S_RX is now entered on the dly_cnt expiry alone, so adc_keep - and with it
+//   the true time origin of the capture - is deterministic.  The header rides
+//   in a `hdr_pend` flag and is written whenever the FIFO will take it, which
+//   may be after the window opened; rx_write simply holds off until it lands.
+//   Samples are not lost meanwhile because the ADC FIFO is accumulating from
+//   the instant the window opened - it is the elastic buffer for exactly this,
+//   and it holds 1024 words (~51 us).  Overrun that and samples are dropped
+//   with a sequence-tag discontinuity, which is visible on the host, rather
+//   than the gate moving, which is not.
 //     4. S_DAMP: snap tgc_code back to tgc_start and hold off seq_gap clk
 //        cycles so the VCNTRL step can ring out before re-arming.
 //   Each window goes out the fast path as one frame:
@@ -252,7 +271,9 @@ module ctrl_decode (
     localparam [2:0] S_DAMP  = 3'd0,            // DAC back at min, ring settling
                      S_ARMED = 3'd1,            // waiting for a real HV burst
                      S_DLY   = 3'd2,
-                     S_HDR   = 3'd3,
+                     // 3'd3 was S_HDR - deleted, see the note above.  Left
+                     // unused rather than renumbered so the encodings the rest
+                     // of this file compares against do not move.
                      S_RX    = 3'd4;
 
     reg [2:0]  sstate;
@@ -261,12 +282,18 @@ module ctrl_decode (
     reg [23:0] dly_cnt;
     reg [15:0] rx_cnt;
     reg [23:0] tgc_acc;
+    reg        hdr_pend;                        // header owed to the TX FIFO
 
     wire seq_run = streaming && (src == SRC_SEQ);
     wire tx_ok   = !tx_full && !tx_wr_rst_busy;
 
-    wire hdr_write = seq_run && (sstate == S_HDR) && tx_ok;
-    wire rx_write  = seq_run && (sstate == S_RX)  && tx_ok && !adc_empty;
+    // The header may go out during the delay OR after the window has opened -
+    // whichever the FIFO allows first.  Data waits for it so the frame is never
+    // torn, but the WINDOW does not.
+    wire hdr_write = seq_run && hdr_pend && tx_ok &&
+                     ((sstate == S_DLY) || (sstate == S_RX));
+    wire rx_write  = seq_run && (sstate == S_RX) && !hdr_pend &&
+                     tx_ok && !adc_empty;
 
     assign tgc_en       = seq_run;
     assign tgc_code     = tgc_acc[23:12];
@@ -279,6 +306,7 @@ module ctrl_decode (
             dly_cnt   <= 24'd0;
             elem      <= 6'd0;
             frame_cnt <= 16'd0;
+            hdr_pend  <= 1'b0;
             tgc_acc   <= {tgc_start, 12'd0};
         end else case (sstate)
             S_DAMP: begin                       // let the DAC min-step ring out
@@ -291,23 +319,30 @@ module ctrl_decode (
             // Bursts that arrive in any other state are ignored - a frame is
             // never torn to chase one.
             S_ARMED: if (tx_sync) begin
-                elem    <= tx_elem;             // whose element this frame is
-                dly_cnt <= seq_dly;
-                sstate  <= S_DLY;
+                elem     <= tx_elem;            // whose element this frame is
+                dly_cnt  <= seq_dly;
+                hdr_pend <= 1'b1;               // owed from here until written
+                sstate   <= S_DLY;
             end
-            S_DLY: begin                        // range offset from the HV edge
+            // Range offset from the HV edge.  Nothing in here may depend on the
+            // TX FIFO: the expiry of this counter IS the time origin of the
+            // capture, and if it can be stretched the whole delay model is a
+            // fiction.  The header goes out opportunistically alongside.
+            S_DLY: begin
                 dly_cnt <= dly_cnt - 1'b1;
-                if (dly_cnt == 24'd0) sstate <= S_HDR;
+                if (hdr_write) hdr_pend <= 1'b0;
+                if (dly_cnt == 24'd0) begin
+                    rx_cnt <= (seq_len == 16'd0) ? 16'd1 : seq_len;
+                    sstate <= S_RX;             // unconditional - that is the point
+                end
             end
-            // The window opens when the FIFO accepts the header, so a backed-up
-            // TX FIFO delays the range gate as well as the frame.  Harmless
-            // while the host keeps up; it is the reason not to run the bus at
-            // its limit when the delays matter.
-            S_HDR: if (hdr_write) begin         // frame header accepted by FIFO
-                rx_cnt <= (seq_len == 16'd0) ? 16'd1 : seq_len;
-                sstate <= S_RX;
-            end
-            S_RX: if (rx_write) begin           // one ADC word captured
+            // hdr_write can still fire here if the FIFO was busy through S_DLY;
+            // rx_write is held off until it does, while adc_keep (asserted on
+            // entry to S_RX) has the ADC FIFO buffering from the true window
+            // start.  seq_dly = 0 is therefore fine: the header simply lands
+            // after the window opened and costs FIFO slack, not range accuracy.
+            S_RX: if (hdr_write) hdr_pend <= 1'b0;
+            else if (rx_write) begin            // one ADC word captured
                 rx_cnt <= rx_cnt - 1'b1;
                 if (rx_cnt == 16'd1) begin
                     frame_cnt <= frame_cnt + 1'b1;
@@ -363,7 +398,10 @@ module ctrl_decode (
         case (src)
             // elem is 6 bits, so the zero guard above it is 2 bits wide and a
             // host header test is (word >> 22) == 0x384.
-            SRC_SEQ: tx_din = (sstate == S_HDR)
+            // Driven off hdr_pend, not the state: the header can now be written
+            // during S_DLY or after the window has opened, and hdr_write is the
+            // only thing that consumes it either way.
+            SRC_SEQ: tx_din = hdr_pend
                             ? {8'hE1, 2'b00, elem, frame_cnt}
                             : adc_word;
             SRC_ADC: tx_din = adc_word;

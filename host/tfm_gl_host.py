@@ -402,31 +402,175 @@ BG_AVG    = 16
 level = {"near": -99.0, "far": -99.0}
 bg    = {"ref": None, "acc": None, "n": 0, "want": 0, "on": False}
 
-def _aligned_bg(rf, ref, g):
-    """`ref` with each row shifted onto this frame's artifact phase (integer
-    cross-correlation over +-MAXLAG in the near gate, parabolic refinement,
-    linear-interp fractional shift)."""
-    MAXLAG = 4
+# --- per-element capture-start jitter -----------------------------------------
+# The alignment above was built to make the SUBTRACTION work, but the number it
+# computes is worth far more than that: it is a direct measurement of when this
+# element's capture window actually opened.
+#
+# The artifact is produced by the same HV edge that fires tx_sync, at a fixed
+# physical delay, so its position in the window IS the capture-start error.  An
+# echo at round-trip time T lands at (T - T_open)*fs; if the window opened d
+# early, the artifact AND every echo behind it both move +d*fs samples.  So the
+# artifact is an exact fiducial for the whole trace, and shifting the row back
+# by -d puts all 48 elements on one time base referenced to the burst.
+#
+# Two things displace the window, and this catches both:
+#   * the ADC free-runs against clk_in and afe_stream's FIFO is 32 bits = two
+#     samples wide, so the window can only start on a 50 ns boundary.  That is
+#     the "~2 samples" in the note above, and at 3.57 MHz it is 18.5 deg RMS of
+#     per-element phase error - which costs only 0.2 dB of coherent gain but
+#     puts the diffuse clutter floor at sigma^2/N = -27 dB.  That is 9 dB ABOVE
+#     what 70% apodization buys, i.e. the apod slider is currently masked by it.
+#   * ctrl_decode's S_HDR waits for the TX FIFO to accept the header before
+#     opening the window, so bus backpressure slides the range gate by the
+#     stall duration.  Unbounded, and invisible to the `holes` counter, which
+#     only fires when a stall outlasts the ADC FIFO's 51 us of slack.
+#
+# Correcting it needs a bg reference, and NOT the subtraction: the two are
+# independent, so the checkbox is separate.
+#
+# MAXLAG is +/-8 samples = +/-200 ns.  Wider than the ~2 samples the FIFO can
+# produce, because a backpressure slip is much larger; if a shift rails at the
+# limit the true peak is outside the window and the row is left uncorrected
+# rather than dragged to a wrong answer.
+# CYCLE SKIPPING is the trap here, and it is why there are two stages below.
+# The artifact is a modulated carrier, so correlating it against the reference
+# finds a peak every carrier period - 11.2 samples at 3.57 MHz.  A slip of 9
+# samples correlates best at -2.2 and is accepted as -2.2, confidently and
+# completely wrongly.  Carrier correlation alone can only ever resolve a
+# displacement modulo one period.
+#
+# So: a coarse ENVELOPE correlation (no carrier, no ambiguity, ~one sample of
+# resolution after smoothing) first fixes which cycle we are on, then the
+# carrier correlation refines inside it.  Rows where the two disagree by more
+# than half a period are rejected rather than guessed at.
+#
+# This bounds what the correction is good for.  The 50 ns FIFO quantisation is
+# a fifth of a carrier period and is handled exactly.  A backpressure gate slip
+# of hundreds of ns is beyond the coarse search and shows up as railed/weak -
+# detected, reported, but NOT corrected.  That one needs the S_HDR fix in RTL;
+# no amount of host arithmetic recovers a window that opened microseconds late.
+JIT_ON_DEF = False          # needs a reference first, so off at startup
+# Correlate over a FIXED window, not the near gate.  The near gate is samps/5,
+# which is 78 us at 30 cm, but the artifact is ring-down in the first ~20 us -
+# everything past it is tissue echo that varies sweep to sweep and only dilutes
+# the correlation.  Capping it makes the cost depth-independent (10.6 ms -> 1.8
+# ms at 30 cm) and slightly improves the estimate.
+JIT_GATE   = 768            # samples correlated, 19.2 us at 40 MHz
+MAXLAG     = 8              # fine (carrier) search, samples
+COARSE_DEC = 4              # envelope decimation before the coarse search
+COARSE_LAG = 16             # coarse search, in decimated samples: +-64 raw
+SUBSAMP    = 32             # phase-ramp quantisation: 1/32 samp = 0.5 deg @3.57M
+JIT_MINCORR = 0.4           # normalised peak below this = no usable artifact
+jit = {"rms_ns": 0.0, "pp_ns": 0.0, "railed": 0, "used": 0}
+
+def _coarse_shift(rf, ref, g, per):
+    """Envelope-domain displacement per element, in whole samples.
+
+    |x| smoothed over one carrier period kills the carrier (and the 2*f0 ripple
+    rectification leaves behind), so this correlation has a single peak and no
+    period ambiguity.  Decimated by COARSE_DEC because envelope detail below a
+    period is meaningless and the search is COARSE_LAG wide.  Returns NaN where
+    there is nothing to lock onto."""
+    w = max(2, int(round(per)))
+    if g <= w + 2 * COARSE_LAG * COARSE_DEC + 2:
+        return np.zeros(rf.shape[0])            # gate too short to search
+    def env(a):
+        c = np.cumsum(np.abs(a[:, :g]).astype(np.float64), axis=1)
+        return ((c[:, w:] - c[:, :-w]) / w)[:, ::COARSE_DEC]
+    x, r = env(rf), env(ref)
+    m = x.shape[1]
+    lo, hi = COARSE_LAG, m - COARSE_LAG
+    xc = x[:, lo:hi] - x[:, lo:hi].mean(axis=1, keepdims=True)
+    nlc = 2 * COARSE_LAG + 1
+    cc = np.empty((rf.shape[0], nlc))
+    for k in range(nlc):
+        seg = r[:, lo - (k - COARSE_LAG):hi - (k - COARSE_LAG)]
+        cc[:, k] = np.einsum('ij,ij->i', xc,
+                             seg - seg.mean(axis=1, keepdims=True))
+    best = cc.argmax(axis=1)
+    flat = cc.max(axis=1) <= 0.0
+    out = (best - COARSE_LAG).astype(np.float64) * COARSE_DEC
+    out[flat] = np.nan
+    return out
+
+def measure_shifts(rf, ref, g):
+    """Per-element displacement of this sweep's artifact against the reference,
+    in fractional samples.  Positive = the artifact sits LATER in the window,
+    i.e. the window opened that much EARLY.
+
+    Integer cross-correlation over +-MAXLAG in the near gate, then parabolic
+    refinement of the peak.  Returns (shift, usable, n_railed); rows whose
+    correlation is too weak or whose peak rails at the search limit come back
+    usable = False and shift = 0, because a wrong shift is worse than none.
+
+    The two rejection reasons mean different things and are counted apart:
+    weak = that element has no artifact to align on (dead, or badly coupled),
+    RAILED = the gate slipped further than +-MAXLAG, which is a bus-backpressure
+    problem and not something this correction can reach.
+
+    This is the one place the measurement lives - the subtraction and the
+    jitter correction are two consumers of the same number."""
+    n = rf.shape[0]
+    nl = 2 * MAXLAG + 1
+    # Carrier period in samples, from the receive band centre - the user sets
+    # that to the drive frequency, so it tracks a change of f0.
+    per = FS_HZ / max(state["band_f0"] * 1e6, 1e5)
+    coarse = _coarse_shift(rf, ref, g, per)
+    # Correlate a FIXED core segment against a sliding reference, rather than
+    # letting the overlap shrink with lag.  Constant length at every lag means
+    # no length bias pulling the peak toward zero, and it turns the whole thing
+    # into nl vectorised passes instead of n*nl scalar dot products.
+    core = rf[:, MAXLAG:g - MAXLAG]                     # (n, gc)
+    c = np.empty((n, nl), np.float64)
+    for k in range(nl):
+        # The REFERENCE slides back by L, so a peak at +L means this sweep's
+        # artifact sits L samples later than the reference's.  Sliding it the
+        # other way inverts the sign of everything downstream.
+        L = k - MAXLAG
+        c[:, k] = np.einsum('ij,ij->i', core,
+                            ref[:, MAXLAG - L:g - MAXLAG - L], dtype=np.float64)
+    # Normaliser for the correlation coefficient: without it a loud sweep and a
+    # quiet one are not comparable and the threshold means nothing.
+    nrm = np.sqrt(np.einsum('ij,ij->i', core, core, dtype=np.float64) *
+                  np.einsum('ij,ij->i', ref[:, MAXLAG:g - MAXLAG],
+                            ref[:, MAXLAG:g - MAXLAG], dtype=np.float64))
+    kbest = c.argmax(axis=1)
+    peak  = c[np.arange(n), kbest]
+    good  = (nrm > 0.0) & (peak >= JIT_MINCORR * np.maximum(nrm, 1e-30))
+    edge  = (kbest == 0) | (kbest == nl - 1)
+    # The coarse stage owns the cycle decision.  Out past the fine search, or
+    # disagreeing with it by more than half a period, means the carrier peak is
+    # an alias - count it railed and leave the row alone.
+    cs   = np.nan_to_num(coarse, nan=1e9)
+    slip = np.abs(cs) > MAXLAG
+    alias = np.abs((kbest - MAXLAG) - cs) > 0.5 * per
+    edge = edge | slip | alias
+    railed = int(np.count_nonzero(good & edge))
+    ok = good & ~edge
+    # Parabolic refinement, vectorised over the rows that survived.  Clipping
+    # kbest keeps the +-1 gather in range for rejected rows; their result is
+    # masked out below anyway.
+    kc = np.clip(kbest, 1, nl - 2)
+    i0 = np.arange(n)
+    cm, c0, cp = c[i0, kc - 1], c[i0, kc], c[i0, kc + 1]
+    den = cm - 2.0 * c0 + cp
+    frac = np.where(den < 0.0, 0.5 * (cm - cp) / np.where(den < 0.0, den, -1.0),
+                    0.0)
+    s = np.where(ok, (kc - MAXLAG) + frac, 0.0).astype(np.float32)
+    return s, ok, railed
+
+def _aligned_bg(ref, s, ok):
+    """`ref` with each row rolled onto this sweep's artifact phase, using the
+    shifts measure_shifts() already found.  Rows without a usable shift are
+    passed through unmoved, which is what the old code did on a dead element."""
     out = np.empty_like(ref)
-    lags = np.arange(-MAXLAG, MAXLAG + 1)
     for i in range(ref.shape[0]):
-        x, r = rf[i, :g], ref[i, :g]
-        c = np.empty(lags.size, np.float64)
-        for k, L in enumerate(lags):
-            a = x[max(0,  L): g + min(0, L)]
-            b = r[max(0, -L): g - max(0, L)]
-            c[k] = np.dot(a, b)
-        k = int(np.argmax(c))
-        if c[k] <= 0.0:                     # no artifact to align on
+        if not ok[i]:
             out[i] = ref[i]
             continue
-        s = float(lags[k])
-        if 0 < k < lags.size - 1:
-            d = c[k-1] - 2.0*c[k] + c[k+1]
-            if d < 0.0:
-                s += 0.5 * (c[k-1] - c[k+1]) / d
-        k0 = int(np.floor(s))
-        fr = s - k0
+        k0 = int(np.floor(s[i]))
+        fr = float(s[i]) - k0
         out[i] = ((1.0 - fr) * np.roll(ref[i], k0) +
                   fr         * np.roll(ref[i], k0 + 1))
     return out
@@ -456,9 +600,33 @@ def _condition(rf, samps, live):
         bg["want"] -= 1
         if bg["want"] == 0:
             bg["ref"], bg["acc"] = bg["acc"] / bg["n"], None
-    if bg["on"] and bg["ref"] is not None and bg["ref"].shape == rf.shape:
-        rf = rf - _aligned_bg(rf, bg["ref"], g)
-    return rf
+    # One measurement, up to two consumers.  Skipped entirely when neither the
+    # subtraction nor the correction wants it, so the default path is unchanged.
+    ref  = bg["ref"]
+    have = ref is not None and ref.shape == rf.shape
+    want_sub = bg["on"] and have
+    want_jit = state["jit"] and have
+    shifts = None
+    if want_sub or want_jit:
+        # The meters' near gate and the correlation window are different
+        # questions: g splits near from far, JIT_GATE bounds where the artifact
+        # actually lives.  Shallow windows fall back to whichever is smaller.
+        s, ok, railed = measure_shifts(rf, ref, min(g, JIT_GATE))
+        used = s[ok]
+        jit.update(used=int(ok.sum()), railed=int(railed),
+                   rms_ns=float(np.sqrt(np.mean(used * used))) / FS_HZ * 1e9
+                          if used.size else 0.0,
+                   pp_ns=float(used.max() - used.min()) / FS_HZ * 1e9
+                         if used.size else 0.0)
+        if want_sub:
+            rf = rf - _aligned_bg(ref, s, ok)
+        if want_jit:
+            # Only the rows with a trustworthy fiducial move; the rest keep the
+            # nominal timebase rather than being dragged somewhere arbitrary.
+            shifts = np.where(ok, s, 0.0).astype(np.float32)
+    else:
+        jit.update(used=0, railed=0, rms_ns=0.0, pp_ns=0.0)
+    return rf, shifts
 
 # --- element positions/normals ------------------------------------------------
 # Apex of the arc at (0, 0), +z into tissue.  R and pitch are live rather than
@@ -542,7 +710,7 @@ state = {"c": C_DEF, "dly_us": float(DLY_US_DEF), "accept": float(ACCEPT_DEF),
          "dyn": float(DYN_DEF), "gain": float(GAIN_DEF), "auto": True,
          "frozen": False, "depth_cm": DEPTH_CM_DEF,
          "band_on": bool(BAND_ON_DEF), "band_f0": float(BAND_F0_DEF),
-         "band_bw": float(BAND_BW_DEF)}
+         "band_bw": float(BAND_BW_DEF), "jit": bool(JIT_ON_DEF)}
 
 def band_edges():
     """Receive passband as (lo, hi) in Hz, clamped to the digitiser.  Returning
@@ -774,6 +942,7 @@ rf_avg = RfAverage()
 stats = {"bytes": 0, "win_bytes": 0, "t0": time.perf_counter(), "mbps": 0.0,
          "frames": 0, "win_frames": 0, "fps": 0.0, "drops": 0, "resyncs": 0,
          "seq_bad": 0, "seq_chk": 0,
+         "skips": 0,
          "last_fcnt": None, "alive": True, "dirty": False}
 perf  = {"gpu_ms": 0.0, "cpu_ms": 0.0, "hil_ms": 0.0}
 
@@ -901,6 +1070,16 @@ def batch(fr):
         stats["drops"] += 1
     stats["drops"] += int(np.count_nonzero((np.diff(fcnt) & 0xFFFF) != 1))
     stats["last_fcnt"] = int(fcnt[-1])
+
+    # Elements the sequencer SKIPPED.  If a capture overruns, the next tx_sync
+    # arrives while the FSM is still busy and that burst is ignored: the frame
+    # counter stays continuous (nothing was lost on the wire) so `drops` sees
+    # nothing, but the element id sequence gains a hole and that element keeps
+    # last sweep's data in raw_buf.  A stale element is decorrelated against
+    # anything that moved, which is per-frame clutter - so this is the counter
+    # that measures the boiling, and it is invisible to `drops` and `holes`.
+    de = np.diff(elems)
+    stats["skips"] += int(np.sum(de[de > 1] - 1))
 
     raw16 = np.ascontiguousarray(fr[:, 1:]).view(np.uint16)
     seq_check(raw16)
@@ -1070,7 +1249,7 @@ mm = {"buf":  np.zeros((MM_PTS, MM_COLS), np.float32),
 
 # Endpoints in metres, like the calipers, so the line stays pinned to the
 # tissue through zoom, pan, resize and depth changes.
-mline = {"on": False, "a": None, "b": None}
+mline = {"on": False, "a": None, "b": None, "err": None}
 
 # What the synthesiser reads: motion energy, and where along the line it is.
 audio_fb = {"amp": 0.0, "pos": 0.5}
@@ -1130,6 +1309,140 @@ def mline_sample(an, samps, a, b, npts=MM_PTS):
         mag  = mag * np.power(np.clip(cf, 0.0, 1.0), state["cf"])
     return mag.astype(np.float32)
 
+#===============================================================================
+# reverberation scan
+#===============================================================================
+# Multiple reflections are PERIODIC in range, and that is the only property
+# that separates them from everything else in the image.  A layer at depth d
+# that bounces off the probe face comes back at 2d, 3d, 4d...; two layers dz
+# apart ring at dz spacing.  So a strong peak in the autocorrelation of the
+# range profile, at some lag L, says "something in this image repeats every
+# L mm" - and tissue does not do that.
+#
+# Three things make it read cleanly rather than being buried:
+#
+#   * dB, not linear.  Each bounce multiplies the amplitude by the same
+#     reflection coefficient, so the multiples decay geometrically and only the
+#     first one or two survive a linear autocorrelation.  In dB the decay is a
+#     straight line and every multiple carries equal weight.
+#   * cubic detrend.  Attenuation and the TGC ramp are a smooth trend in dB; if
+#     left in they produce a huge triangular pedestal that swamps the peaks.  A
+#     low-order polynomial removes them without touching periodicity at any lag.
+#   * average over radial lines.  Speckle decorrelates laterally within a
+#     resolution cell, so averaging drives it down as 1/sqrt(lines), while
+#     reverberation is laterally extended and stays put.  This is what turns a
+#     hint into a peak.
+#
+# Radial because that is the propagation direction: on a convex array the rays
+# fan out from the centre of curvature at (0, -R), not straight down.
+# 24 lines, not 12: measured against synthetic speckle, doubling the lines took
+# detection of a strong multiple from 38% to 68% and dropped false positives to
+# zero, for 55 ms a scan.  Sensitivity is bought almost entirely here.
+RVB_LINES  = 24             # radial lines averaged
+RVB_PTS    = 512            # samples along each line
+RVB_MIN_MM = 2.0            # shortest period worth reporting
+RVB_MAXFRAC = 0.45          # longest lag examined, as a fraction of the span
+# Harmonics summed by the comb.  Physically motivated: each bounce costs the
+# reflection coefficient twice, so only 3-5 orders ever clear the speckle.
+# Summing every harmonic that fits (the obvious choice) adds pure noise terms
+# for short periods and buries them - 10 mm goes from undetected to 3.7 sigma
+# just by capping this at 4.
+RVB_MAXORD = 4
+# Thresholds calibrated against the measured null, NOT assumed from Gaussian
+# statistics: ~220 candidate lags are scanned and the best taken, so the naive
+# 3 sigma fires on 12% of pure-speckle images.  Over 60 speckle-only trials the
+# z-max distribution was median 2.4, 95th 3.4, max 3.8.  Hence 3.5 to report at
+# all (~0-4% false alarm) and 4.5 before calling it strong.
+#
+# Be aware this detector is SPECIFIC, not sensitive: at 3.5 it catches a strong
+# multiple (-6 dB/bounce) about two thirds of the time and a -9 dB/bounce one
+# only ~10%.  A peak means something; a null means little, so the text below
+# says so rather than declaring the image clean.
+RVB_Z_REPORT = 3.5
+RVB_Z_STRONG = 4.5
+
+def reverb_rays(z0, z1, n_lines):
+    """(a, b) endpoints of n_lines rays, z0..z1 metres along each radius."""
+    R    = geom["R_mm"] * 1e-3
+    half = (N_ELEM - 1) * 0.5 * geom["pitch_mm"] / geom["R_mm"]   # radians
+    th   = np.linspace(-half, half, n_lines)
+    fx, fz = R * np.sin(th), R * (np.cos(th) - 1.0)   # the probe face
+    ux, uz = np.sin(th), np.cos(th)                   # outward radial unit
+    return [((fx[i] + z0*ux[i], fz[i] + z0*uz[i]),
+             (fx[i] + z1*ux[i], fz[i] + z1*uz[i])) for i in range(n_lines)]
+
+def _autocorr(x):
+    n  = x.size
+    nf = next_fast_len(2 * n)
+    X  = np.fft.rfft(x, nf)
+    r  = np.fft.irfft(X * np.conj(X), nf)[:n]
+    return r / max(float(r[0]), 1e-30)
+
+def reverb_scan(an, samps):
+    """Beamform a fan of radial lines and hunt for periodicity in range.
+
+    Returns a dict for the dialog to draw, or None if there is nothing to look
+    at.  Runs off the UI timer at a few Hz, not per sweep - it is a diagnostic,
+    and RVB_LINES beamformed lines is far too much work for the frame budget."""
+    if an is None or samps <= 0:
+        return None
+    # Start past the ring-down: that end of the window is transmit artifact, and
+    # its own decay is a trend, not a reverberation.
+    z0 = max(state["c"] * (state["dly_us"] * 1e-6) / 2.0, 4e-3) + 3e-3
+    z1 = zmax_now()
+    if z1 <= z0 + 5e-3:
+        return None
+    prof = np.zeros(RVB_PTS, np.float64)
+    acc  = np.zeros(RVB_PTS, np.float64)
+    used = 0
+    for a, b in reverb_rays(z0, z1, RVB_LINES):
+        mag = mline_sample(an, samps, a, b, RVB_PTS)
+        if not np.any(mag > 0.0):
+            continue
+        db = 20.0 * np.log10(mag.astype(np.float64) + 1e-9)
+        prof += db
+        k = np.arange(RVB_PTS, dtype=np.float64)
+        db = db - np.polyval(np.polyfit(k, db, 3), k)     # kill the trend
+        acc  += _autocorr(db)
+        used += 1
+    if not used:
+        return None
+    prof /= used
+    acc  /= used
+
+    span_mm = (z1 - z0) * 1e3
+    step_mm = span_mm / (RVB_PTS - 1)
+    lag_mm  = np.arange(RVB_PTS) * step_mm
+    lo = max(int(np.ceil(RVB_MIN_MM / step_mm)), 2)
+    hi = int(RVB_PTS * RVB_MAXFRAC)
+    peaks = []
+    if hi > lo + 4:
+        seg = acc[lo:hi]
+        # Robust baseline.  mean/std would be inflated by the very peaks being
+        # hunted - a short period puts six harmonics inside the search range,
+        # which drags the threshold up above them and hides itself.
+        base = float(np.median(seg))
+        sig  = 1.4826 * float(np.median(np.abs(seg - base))) or 1e-9
+        # Comb score.  Reverberation is DEFINED by repeating at 2L, 3L, ..., so
+        # score a candidate period by its whole harmonic series instead of one
+        # lag.  Dividing by sqrt(count) keeps unit noise variance whatever
+        # number of harmonics fit, so short and long periods compete fairly;
+        # testing lags independently under-detects exactly the short periods a
+        # probe-face multiple produces.  Speckle has no harmonics and gains
+        # nothing here, which is what widens the gap.
+        z = np.zeros(hi - lo)
+        for m in range(lo, hi):
+            h = np.arange(m, acc.size, m)[:RVB_MAXORD]
+            z[m - lo] = (acc[h] - base).sum() / (np.sqrt(h.size) * sig)
+        for i in range(1, z.size - 1):
+            if z[i] > z[i-1] and z[i] >= z[i+1] and z[i] > RVB_Z_REPORT:
+                peaks.append((float(lag_mm[lo + i]), float(seg[i]), float(z[i])))
+        peaks.sort(key=lambda t: -t[2])
+        peaks = peaks[:4]
+    return {"z0_mm": z0 * 1e3, "z1_mm": z1 * 1e3, "prof": prof.astype(np.float32),
+            "lag_mm": lag_mm.astype(np.float32), "acc": acc.astype(np.float32),
+            "lo": lo, "hi": hi, "peaks": peaks, "lines": used}
+
 def mm_reset():
     """Line moved (or depth changed): the history no longer describes one place."""
     with mm_lk:
@@ -1183,8 +1496,8 @@ def hilbert_worker():
         if rep is not None:
             samps = rep.shape[1]
             t0 = time.perf_counter()
-            out = analytic(_condition(rep.astype(np.float32), samps, live=False),
-                           samps)
+            cond, sh = _condition(rep.astype(np.float32), samps, live=False)
+            out = analytic(cond, samps, sh)
             perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
             with hil_lk:
                 hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
@@ -1202,7 +1515,8 @@ def hilbert_worker():
         # loop can be re-averaged (or not) at replay time.
         rf = rf_avg.push(rf)
         t0 = time.perf_counter()
-        out = analytic(_condition(rf, samps, live=True), samps)
+        cond, sh = _condition(rf, samps, live=True)
+        out = analytic(cond, samps, sh)
         perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
         if state["frozen"]:             # froze mid-transform: do not stomp the
             continue                    # frame the user just paused on
@@ -1214,7 +1528,13 @@ def hilbert_worker():
             try:
                 mm_push(mline_sample(out, samps, a, b))
             except Exception as e:      # a bad line must never kill the worker
+                # Disarming silently is worse than the original fault: the
+                # checkbox stays ticked over a dead strip and every drag falls
+                # through to the caliper tool, so it presents as "M-mode does
+                # nothing" with the real error only on stdout, where a GUI user
+                # never sees it.  Hand it to _tick to surface.
                 print(f"[m-mode: {e}]")
+                mline["err"] = str(e)
                 mline["on"] = False
         with hil_lk:
             hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
@@ -1264,21 +1584,100 @@ def _hilb_mask(nfft, lo_hz, hi_hz):
         wgt *= r((f - lo_hz) / t) * r((hi_hz - f) / t)
     return wgt.astype(np.float32)      # float32 keeps the multiply in complex64
 
+# --- sub-sample time shift ----------------------------------------------------
+# A shift of d samples is exp(-2j*pi*k*d/nfft) on the spectrum, so correcting a
+# measured displacement s means multiplying by exp(+2j*pi*k*s/nfft).  Building
+# that (48, nfft) array per frame costs 12 ms at 8 cm and 45 ms at 30 cm - far
+# too slow - so the shift is split:
+#
+#   integer part   -> np.roll on the real trace before the FFT (a memory move)
+#   fractional part-> one of SUBSAMP precomputed ramps, selected per element
+#
+# 1/32 of a sample is 0.39 ns, i.e. 0.5 deg at 3.57 MHz, against the ~18 deg
+# RMS being corrected.  Measured cost of the table path is 0.6 ms at 8 cm and
+# 1.8 ms at 30 cm, and the table itself is 1-4 MB rebuilt only when nfft moves.
+#
+# The roll wraps a few samples around the window edge.  That is the same
+# approximation _aligned_bg has always made, and it lands in the ring-down at
+# one end and past the deepest echo at the other.
+# NB: not `_ramp` - that name is already the half-Hann apodization helper used
+# by the numpy beamformer transcription, and shadowing it breaks M-mode.
+_fracramp = {"nfft": 0, "tbl": None}
+
+def _frac_ramps(nfft):
+    """tbl[j] delays by j/SUBSAMP of a sample.  DELAY, i.e. the same direction
+    as the np.roll that handles the integer part - the two have to compose, and
+    getting this sign backwards costs a full sample of error on the fractional
+    remainder while leaving integer shifts looking perfect."""
+    if _fracramp["nfft"] != nfft:
+        j = np.arange(SUBSAMP, dtype=np.float64) / SUBSAMP
+        k = np.arange(nfft, dtype=np.float64)
+        _fracramp.update(nfft=nfft,
+                     tbl=np.exp((-2j * np.pi / nfft) *
+                                np.outer(j, k)).astype(np.complex64))
+    return _fracramp["tbl"]
+
+_roll_buf = {"shape": None, "buf": None}
+
+def _roll_rows(rf, k0):
+    """Per-row circular shift into a cached buffer.  np.roll + np.stack would
+    move ~9 MB per frame at 30 cm (roll concatenates, stack copies again); two
+    slice assignments into a buffer that is allocated once does it in one."""
+    if _roll_buf["shape"] != rf.shape:
+        _roll_buf.update(shape=rf.shape, buf=np.empty_like(rf))
+    out = _roll_buf["buf"]
+    for i in range(rf.shape[0]):
+        k = int(k0[i])
+        if k == 0:
+            out[i] = rf[i]
+        elif k > 0:
+            out[i, :k] = rf[i, -k:]
+            out[i, k:] = rf[i, :-k]
+        else:
+            out[i, k:] = rf[i, :-k]
+            out[i, :k] = rf[i, -k:]
+    return out
+
+def _split_shift(s):
+    """s -> (integer roll, fractional table index), with the rounding carried
+    into the integer part so index SUBSAMP can never be selected."""
+    k0 = np.floor(s).astype(np.int32)
+    j  = np.rint((s - k0) * SUBSAMP).astype(np.int32)
+    k0 += j // SUBSAMP                  # frac rounded up to a whole sample
+    return k0, j % SUBSAMP
+
 _hilb = {"key": None, "wgt": None}
-def analytic(rf, samps):
+def analytic(rf, samps, shifts=None):
     """(N, samps) real -> (N, samps, 2) float32 interleaved re/im.
 
     The only per-frame CPU work in the whole pipeline (~6 ms for 48 elements
     with numpy, ~3 ms with scipy installed).  Everything else is on the GPU.
 
     The mask is cached on (length, passband), so dragging the band sliders
-    rebuilds one array per change and the steady state is unchanged."""
+    rebuilds one array per change and the steady state is unchanged.
+
+    `shifts`, if given, is the per-element capture-start displacement in
+    samples from measure_shifts(); each row is moved back by -shift so all 48
+    land on one timebase referenced to the transmit burst."""
     nfft = next_fast_len(samps)
     key  = (nfft,) + band_edges()      # read the band ONCE: the UI thread moves
     if _hilb["key"] != key:            # it, and key and mask must agree
         _hilb.update(key=key, wgt=_hilb_mask(*key))
+    if shifts is not None:
+        k0, j = _split_shift(-np.asarray(shifts, dtype=np.float64))
+        if np.any(k0):
+            rf = _roll_rows(rf, k0)
     X = _fft(rf, n=nfft, axis=1, **_FFT_KW)
     X *= _hilb["wgt"]
+    if shifts is not None:
+        # Per-element, so it cannot broadcast; the loop avoids materialising a
+        # (48, nfft) gather, which at 30 cm would be 6 MB of traffic per frame.
+        # The mask has already zeroed k > nfft/2, so the ramp only has to be
+        # correct on the positive half - which it is, by construction.
+        tbl = _frac_ramps(nfft)
+        for i in range(X.shape[0]):
+            if j[i]:
+                X[i] *= tbl[j[i]]
     an = _ifft(X, axis=1, **_FFT_KW)[:, :samps]
     out = np.empty((N_ELEM, samps, 2), dtype=np.float32)
     out[..., 0] = an.real
@@ -2187,6 +2586,154 @@ class CaptureView(MeasureCanvas):
                        max(0.8, k * CAP_SCALE), self.hot)
         p.end()
 
+class ReverbPlot(QWidget):
+    """Two stacked panels: the mean range profile, and its autocorrelation.
+
+    The profile is there so a peak can be checked by eye - real reverberation
+    shows as evenly spaced bands in the top panel at the spacing the bottom
+    panel calls out, and if they are not visible up there the peak is not
+    reverberation however tall it is."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.data = None
+        self.setMinimumSize(560, 380)
+
+    def _axes(self, p, r, title):
+        p.fillRect(r, QColor(PLOT_BG))
+        p.setPen(QPen(QColor(FRAME_C))); p.drawRect(r)
+        p.setPen(QPen(QColor(DIM))); p.setFont(QFont("Consolas", 8))
+        p.drawText(r.adjusted(6, 3, -6, 0), Qt.AlignLeft | Qt.AlignTop, title)
+
+    def paintEvent(self, ev):
+        p = QPainter(self)
+        p.fillRect(self.rect(), QColor(BG))
+        d = self.data
+        w, h = self.width(), self.height()
+        top = QRectF(8, 8, w - 16, h * 0.42 - 12)
+        bot = QRectF(8, h * 0.42 + 4, w - 16, h * 0.58 - 12)
+        if d is None:
+            self._axes(p, top, "range profile")
+            self._axes(p, bot, "autocorrelation")
+            p.setPen(QPen(QColor(DIM)))
+            p.drawText(self.rect(), Qt.AlignCenter, "waiting for a sweep…")
+            p.end(); return
+
+        # -- range profile, dB vs depth ---------------------------------------
+        self._axes(p, top, f"mean range profile, {d['lines']} radial lines "
+                           f"({d['z0_mm']:.0f}–{d['z1_mm']:.0f} mm)")
+        y = d["prof"]
+        y0, y1 = float(y.min()), float(y.max())
+        rng = max(y1 - y0, 1e-6)
+        pts = [QPointF(top.left() + top.width() * i / (y.size - 1),
+                       top.bottom() - (top.height() - 18) * (y[i] - y0) / rng - 4)
+               for i in range(y.size)]
+        p.setPen(QPen(QColor(MEAS_C), 1)); p.drawPolyline(QPolygonF(pts))
+        # Mark the harmonics of the strongest period, so the eye can check them
+        # against the bands rather than taking the autocorrelation on trust.
+        if d["peaks"]:
+            L = d["peaks"][0][0]
+            span = d["z1_mm"] - d["z0_mm"]
+            p.setPen(QPen(QColor(OK_C), 1, Qt.DashLine))
+            k = 1
+            while k * L < span:
+                x = top.left() + top.width() * (k * L) / span
+                p.drawLine(QPointF(x, top.top() + 14), QPointF(x, top.bottom()))
+                k += 1
+
+        # -- autocorrelation ---------------------------------------------------
+        self._axes(p, bot, "autocorrelation of the detrended dB profile")
+        a, lag = d["acc"], d["lag_mm"]
+        lo, hi = d["lo"], d["hi"]
+        seg, ls = a[lo:hi], lag[lo:hi]
+        if seg.size > 2:
+            amax = max(float(np.abs(seg).max()), 1e-6)
+            def X(v): return bot.left() + bot.width() * (v - ls[0]) / max(ls[-1] - ls[0], 1e-9)
+            def Y(v): return bot.center().y() + 10 - (bot.height() * 0.36) * v / amax
+            p.setPen(QPen(QColor(FRAME_C), 1))
+            p.drawLine(QPointF(bot.left(), Y(0)), QPointF(bot.right(), Y(0)))
+            pts = [QPointF(X(ls[i]), Y(seg[i])) for i in range(seg.size)]
+            p.setPen(QPen(QColor(MLINE_C), 1)); p.drawPolyline(QPolygonF(pts))
+            p.setFont(QFont("Consolas", 8))
+            for j, (L, v, z) in enumerate(d["peaks"]):
+                if not (ls[0] <= L <= ls[-1]):
+                    continue
+                col = QColor(WARN_C if j == 0 else DIM)
+                p.setPen(QPen(col, 1))
+                p.drawLine(QPointF(X(L), Y(0)), QPointF(X(L), Y(v)))
+                p.drawText(QPointF(X(L) + 3, Y(v) - 3), f"{L:.1f} mm  {z:.1f}o")
+            p.setPen(QPen(QColor(DIM)))
+            for frac in (0.0, 0.25, 0.5, 0.75, 1.0):
+                mm = ls[0] + frac * (ls[-1] - ls[0])
+                p.drawText(QPointF(X(mm) - 12, bot.bottom() - 3), f"{mm:.0f}")
+        p.end()
+
+class ReverbDialog(QDialog):
+    """Live reverberation scan.  Non-modal and self-refreshing so it can sit
+    open while the probe is moved - which is how you use it: a real multiple
+    tracks the layer spacing as you press, speckle does not."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("reverberation scan")
+        self.setStyleSheet(parent.styleSheet() if parent else "")
+        v = QVBoxLayout(self); v.setContentsMargins(8, 8, 8, 8); v.setSpacing(6)
+        self.plot = ReverbPlot(self); v.addWidget(self.plot, 1)
+        self.lbl = QLabel(""); self.lbl.setWordWrap(True)
+        self.lbl.setStyleSheet(f"color:{DIM};")
+        v.addWidget(self.lbl)
+        self.t = QTimer(self); self.t.timeout.connect(self.refresh)
+        self.t.start(400)                   # 2.5 Hz: a scan is ~55 ms
+        self.resize(660, 460)
+        self.refresh()
+
+    def refresh(self):
+        if not self.isVisible():
+            return
+        with hil_lk:
+            an, samps = hil["data"], hil["samps"]
+        try:
+            d = reverb_scan(an, samps)
+        except Exception as e:                  # never let a diagnostic crash
+            self.lbl.setText(f"scan failed: {e}")   # the app it is diagnosing
+            return
+        self.plot.data = d
+        self.plot.update()
+        if d is None:
+            self.lbl.setText("no sweep to analyse yet.")
+            return
+        if not d["peaks"]:
+            # Deliberately not "the image is clean".  Calibration says this test
+            # misses a -9 dB/bounce multiple ~90% of the time, so a null is weak
+            # evidence and saying otherwise would send him down the wrong path.
+            self.lbl.setText(
+                f"No periodic structure above {RVB_Z_REPORT:.1f} sigma.\n"
+                "This test is specific but NOT sensitive - it only reliably "
+                "catches strong multiples, so this does not rule reverberation "
+                "out. It does mean reverb is unlikely to be the DOMINANT term, "
+                "so weigh grating lobes (lower f0), wall aberration (raise "
+                "coh), and sweep-time motion (hold your breath) first.")
+            self.lbl.setStyleSheet(f"color:{DIM};")
+            return
+        L, v, z = d["peaks"][0]
+        rest = ("  also " + ", ".join(f"{q[0]:.1f} mm" for q in d["peaks"][1:])
+                if len(d["peaks"]) > 1 else "")
+        harm = [q[0] for q in d["peaks"][1:] if abs(q[0] - 2*L) < 0.15 * L]
+        strong = z >= RVB_Z_STRONG
+        self.lbl.setText(
+            f"{'STRONG' if strong else 'Suggestive'}: period {L:.1f} mm "
+            f"({z:.1f} sigma).{rest}\n"
+            + ("A 2x harmonic is present too, which is what a genuine multiple "
+               "looks like. " if harm else
+               "No 2x harmonic, so this could equally be layered anatomy. ")
+            + "Confirm it before believing it: the dashed marks above should "
+              "land on real bands, and a 2-3 cm water or gel standoff should "
+              "CHANGE the spacing - a probe-face multiple moves with the "
+              "standoff, tissue structure does not.")
+        self.lbl.setStyleSheet(f"color:{WARN_C if strong else FG};")
+
+    def closeEvent(self, ev):
+        self.t.stop()
+        super().closeEvent(ev)
+
 class CaptureDialog(QDialog):
     def __init__(self, cap, on_change, parent=None):
         super().__init__(parent)
@@ -2944,9 +3491,57 @@ class Main(QWidget):
             "reads the averaged data, so stepping 1 -> 8 measures how\nmuch of "
             "your deep signal was noise: ~9 dB drop means it was all noise.")
 
+        self.cb_jit = QCheckBox("de-jitter")
+        self.cb_jit.setChecked(JIT_ON_DEF)
+        self.cb_jit.setToolTip(
+            "put all 48 elements on one timebase using the transmit artifact as "
+            "a fiducial.\n\nThe artifact is made by the same HV edge that fires "
+            "tx_sync, at a fixed delay,\nso where it sits in the window IS the "
+            "capture-start error - and every echo\nbehind it is displaced by the "
+            "same amount. Shifting each row back by that\namount removes the "
+            "error from the coherent sum.\n\nCatches both sources: the ADC "
+            "free-runs against clk_in and the sample FIFO is\ntwo samples wide, "
+            "so the window can only open on a 50 ns boundary (~18 deg\nRMS at "
+            "3.57 MHz, which puts the clutter floor at -27 dB - ABOVE what 70%\n"
+            "apod buys); and S_HDR slides the range gate under bus backpressure, "
+            "which\nthe holes counter cannot see at all.\n\nNEEDS A BACKGROUND "
+            "REFERENCE - press 'capture bg' first. Independent of\n'bg subtract'; "
+            "either can be on without the other.\n\nWorks best at avg 1: the "
+            "averager blends sweeps that were each displaced\ndifferently, so a "
+            "shift measured after it is already a compromise.")
+        self.cb_jit.toggled.connect(self.set_jit)
+        row.addWidget(self.cb_jit)
+
+        b_rvb = QPushButton("reverb scan")
+        b_rvb.setToolTip(
+            "hunt for MULTIPLE REFLECTIONS by looking for periodicity in "
+            "range.\n\nA layer that bounces off the probe face repeats at 2x, "
+            "3x, 4x its depth;\ntwo layers ring at their spacing. Tissue has no "
+            "such period, so a peak in\nthe autocorrelation of the range "
+            "profile is the signature - nothing else in\nthe image is "
+            "periodic.\n\nWorks on the dB profile (multiples decay "
+            "geometrically, so in dB they all\ncount equally), detrended to "
+            "remove attenuation and TGC, averaged over 12\nradial lines to push "
+            "speckle down.\n\nOpens live - leave it up while you press, and "
+            "confirm any peak with a 2-3 cm\nwater or gel standoff: a "
+            "probe-face multiple moves, tissue does not.")
+        b_rvb.clicked.connect(self.open_reverb)
+        row.addWidget(b_rvb)
+
         self.rx_lbl = QLabel(""); self.rx_lbl.setStyleSheet(f"color:{DIM};")
         row.addWidget(self.rx_lbl)
+        self.jit_lbl = QLabel(""); self.jit_lbl.setStyleSheet(f"color:{DIM};")
+        row.addWidget(self.jit_lbl)
         row.addStretch(1)
+
+    def set_jit(self, v):
+        state["jit"] = bool(v)
+        self._refresh_rx()
+
+    def open_reverb(self):
+        dlg = ReverbDialog(self)
+        self.dialogs.append(dlg)
+        dlg.show()
 
     def set_band_on(self, v):
         state["band_on"] = bool(v)
@@ -3497,6 +4092,7 @@ class Main(QWidget):
                 + ("band %.1f-%.1f MHz  " % tuple(f / 1e6 for f in band_edges())
                    if state["band_on"] else "")
                 + (f"avg {rf_avg.n} sw  " if rf_avg.n > 1 else "")
+                + (f"de-jit {jit['rms_ns']:.1f} ns rms  " if state["jit"] else "")
                 + f"t0 {state['t0_ns']:+.0f} ns  "
                 f"R {geom['R_mm']:.1f} mm  pitch {geom['pitch_mm']:.4f} mm  "
                 f"dyn {state['dyn']:.0f} dB  gain {state['gain']:+.0f} dB  "
@@ -3586,6 +4182,15 @@ class Main(QWidget):
         self.scene.ov.update()
         if mline["on"]:
             self.mstrip.update()
+        # The worker disarms M-mode if mline_sample throws.  Follow it with the
+        # checkbox so the UI cannot claim M-mode is on while drags are going to
+        # the caliper tool, and say why.
+        if self.cb_mm.isChecked() and not mline["on"]:
+            self.cb_mm.setChecked(False)
+            if mline["err"]:
+                self.status.setText(f" M-mode disabled: {mline['err']}")
+                self.status.setStyleSheet(f"color:{WARN_C};")
+                mline["err"] = None
         # background capture runs on the Hilbert worker; reflect its countdown
         want = bg["want"]
         txt  = f"capturing {want}" if want else "capture bg"
@@ -3609,6 +4214,27 @@ class Main(QWidget):
             ("band %.1f-%.1f MHz" % (lo / 1e6, hi / 1e6)
              if state["band_on"] else "band off")
             + (f" · avg {rf_avg.depth()}/{rf_avg.n}" if rf_avg.n > 1 else ""))
+        # The jitter number is a MEASUREMENT, so show it whenever it is being
+        # taken - the spread is worth reading even with the correction off, and
+        # railed rows are the tell that a gate slip exceeded the search window.
+        if bg["ref"] is None:
+            self.jit_lbl.setText("· jitter: no ref")
+            self.jit_lbl.setStyleSheet(f"color:{DIM};")
+        elif not jit["used"]:
+            self.jit_lbl.setText("· jitter: no artifact")
+            self.jit_lbl.setStyleSheet(f"color:{WARN_C};")
+        else:
+            # `used` matters as much as `railed`: an element that MISSED its
+            # burst has no artifact where one is expected, so it fails the
+            # confidence gate and drops out of `used` without ever being
+            # counted as railed.  Showing only railed hides exactly that case.
+            self.jit_lbl.setText(
+                f"· jitter {jit['rms_ns']:.1f} ns rms, {jit['pp_ns']:.0f} ns p-p"
+                f" · {jit['used']}/{N_ELEM} used"
+                + (f", {jit['railed']} railed" if jit["railed"] else "")
+                + ("  [corrected]" if state["jit"] else ""))
+            self.jit_lbl.setStyleSheet(
+                f"color:{WARN_C if jit['railed'] else DIM};")
         self.wininfo.setText(
             f"near {level['near']:+6.1f}  far {level['far']:+6.1f} dBFS"
             f"{'  [bg]' if bg['on'] and bg['ref'] is not None else ''} · "
@@ -3624,12 +4250,14 @@ class Main(QWidget):
         # Non-zero holes with zero drops = traces are being time-corrupted
         # without any frame being lost, which is what flickering dark patches
         # deeper in the window look like.
-        bad = stats["drops"] or stats["resyncs"] or stats["seq_bad"]
+        bad = (stats["drops"] or stats["resyncs"] or stats["seq_bad"]
+               or stats["skips"])
         self.status.setText(
             f" {stats['mbps']:6.1f} MB/s   {stats['fps']/N_ELEM:6.1f} sweeps/s"
             f"   frames {stats['frames']}   drops {stats['drops']}"
             f"   resyncs {stats['resyncs']}"
             f"   holes {stats['seq_bad']}/{stats['seq_chk']}"
+            f"   skips {stats['skips']}"
             f"   |  gpu {perf['gpu_ms']:.2f} ms   ui {perf['cpu_ms']:.2f} ms"
             f"   hilbert {perf['hil_ms']:.1f} ms ({FFT_LIB}, off-thread)"
             + ("" if stats["alive"] else "   *** STREAM STOPPED ***"))
