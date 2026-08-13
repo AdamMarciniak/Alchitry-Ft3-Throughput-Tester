@@ -1,13 +1,25 @@
 # waterfall_host.py
-#   python waterfall_host.py            -> live 32-element pulse/receive waterfall
+#   python waterfall_host.py            -> live 48-element pulse/receive waterfall
 #   python waterfall_host.py signed     -> treat samples as 12-bit two's complement
 #
-# Drives the FPGA pulse/receive sequencer (SRC_SEQ).  Per element 0-31 the
+# Drives the FPGA pulse/receive sequencer (SRC_SEQ).  Per element 0-47 the
 # FPGA: waits the damp gap (DAC ring-out after the previous window's TGC
-# snap back to min), "fires" the element (pretend - no pulser IO yet), waits
-# the pulse->receive delay, then captures one TGC-ramped receive window and
+# snap back to min), fires that element through the mux tree, waits the
+# pulse->receive delay, then captures one TGC-ramped receive window and
 # streams it back tagged with the element id.  Raw-DLL host, same structure
 # as scope_host.py: control writes on pipe 0x02, overlapped read ring on 0x82.
+#
+# THIS IS THE ARRAY-GEOMETRY DIAGNOSTIC.  It shows the RF before any
+# beamforming, so it is where you check that the aperture is wired the way
+# tfm_gl_host.py assumes.  Press a fingertip (or a wire target in a water cup)
+# against one spot on the probe face:
+#   - a single bright column that MOVES SMOOTHLY as you slide along the face
+#     means the element order is right
+#   - a bright column that JUMPS AROUND means tx_sequencer.v's mux_code() table
+#     is wrong, and no amount of beamformer tuning will fix the image
+#   - a point target should trace a smooth hyperbola across the columns.  If it
+#     is smooth but the beamformed image is still speckly, the order is fine
+#     and PROBE_R_MM / PITCH_MM in tfm_gl_host.py are the suspects.
 #
 # Wire format (ctrl_decode.v SRC_SEQ), all little-endian 32-bit words:
 #   word 0             : 0xE1<<24 | elem<<16 | frame_count      (frame header)
@@ -42,13 +54,16 @@ OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
+OP_PLS_TRX = 0x17           # pulser's OWN receive window, clk cycles
 SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
 FS_HZ  = 40_000_000         # AFE5804 sample rate
 
 # Elements this app displays.  Frames whose header carries an id >= N_ELEM are
 # dropped, so raise it if the pulser is walking a wider aperture than this.
-N_ELEM    = 32
+# The sequencer walks 48 (ctrl_decode.v resets pls_list_len to 48); at 32 this
+# silently threw away the last third of the aperture.
+N_ELEM    = 48
 ELEM_BITS = 6                           # bits the element id occupies at 16
 ELEM_MASK = (1 << ELEM_BITS) - 1
 HDR_SHIFT = 16 + ELEM_BITS              # 22: first bit above the element field
@@ -112,6 +127,16 @@ mode = {"signed": any(a.lower().startswith("sig") for a in sys.argv[1:])}
 
 def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
 
+# The pulser fires on its own timebase, so its receive window has to cover our
+# whole capture cycle or the NEXT element's burst lands inside this frame - see
+# the long note in tfm_gl_host.py.  Sized from the capture cycle; the pulser's
+# other stages only add margin.
+PLS_RX_MARGIN_US = 10
+
+def send_pls_rx(dly_us, gap_us):
+    us = cfg["win_us"] + float(dly_us) + float(gap_us) + PLS_RX_MARGIN_US
+    send_cmd(cmd(OP_PLS_TRX, us_to_cycles(us)), "pls_t_rx")
+
 def send_seq_config(lo, hi, dly_us, gap_us):
     """Push the full sequencer timing/TGC setup for the current window length."""
     inc = max(0, ((hi - lo) * 4096) // cfg["win_words"])
@@ -120,6 +145,7 @@ def send_seq_config(lo, hi, dly_us, gap_us):
     send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us)), "seq_gap")
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
+    send_pls_rx(dly_us, gap_us)
 
 # --- bring-up ----------------------------------------------------------------
 print("locking RX window (0xA5A55A5A)...")
@@ -156,7 +182,31 @@ carry   = np.empty(0, dtype=np.uint32)
 
 stats = {"bytes": 0, "win_bytes": 0, "t0": time.perf_counter(), "mbps": 0.0,
          "frames": 0, "win_frames": 0, "fps": 0.0, "drops": 0, "resyncs": 0,
+         "seq_bad": 0, "seq_chk": 0,
          "last_fcnt": None, "alive": True, "dirty": False}
+
+def seq_check(raw16):
+    """Look for holes INSIDE a receive window.
+
+    afe_stream.v tags every 12-bit sample with a 4-bit rolling counter in the
+    top nibble, and when the ADC FIFO backs up it drops whole sample pairs
+    SILENTLY (afe_stream.v: `wpush <= !wfull`).  The FIFO is 1024 words deep -
+    about 51 us of slack - and a receive window at 8 cm is ~104 us, so a stall
+    longer than that punches a time hole into the middle of a trace.  The frame
+    still arrives with the right length and the right header, so frame_count is
+    continuous and 'frame drops' stays at zero: the sequence tag is the ONLY
+    evidence.  Symptom is exactly this - the early part of the window is right
+    (surface echo at the correct depth) and everything after the hole is
+    shifted, varying frame to frame.
+
+    Checked on one frame per USB chunk: near enough free, and a fault happening
+    often enough to see as flicker will show up within a second."""
+    if raw16.shape[0] == 0:
+        return
+    t = (raw16[0] >> 12).astype(np.int16)        # tag counts +1 per SAMPLE
+    d = np.diff(t)
+    stats["seq_bad"] += int(np.count_nonzero((d != 1) & (d != -15)))
+    stats["seq_chk"] += 1
 
 def batch(fr):
     """fr: (m, frame_words) uint32, all rows verified to start with a header."""
@@ -169,7 +219,9 @@ def batch(fr):
     stats["drops"] += int(np.count_nonzero((np.diff(fcnt) & 0xFFFF) != 1))
     stats["last_fcnt"] = int(fcnt[-1])
 
-    u = (np.ascontiguousarray(fr[:, 1:]).view(np.uint16) & 0x0FFF).astype(np.int32)
+    raw16 = np.ascontiguousarray(fr[:, 1:]).view(np.uint16)
+    seq_check(raw16)
+    u = (raw16 & 0x0FFF).astype(np.int32)
     c = np.where(u >= 2048, u - 4096, u) if mode["signed"] else u - 2048
     keep = elems < N_ELEM                    # ignore ids the array cannot hold
     raw_buf[elems[keep]] = c[keep].astype(np.int16)   # full resolution; the UI
@@ -262,7 +314,7 @@ LUT = (np.stack([np.clip(_t*3, 0, 1), np.clip(_t*3-1, 0, 1),
 def clamp(v, a, b): return max(a, min(b, v))
 
 root = tk.Tk()
-root.title("pulse/receive waterfall - 32 elements  (F11: fullscreen)")
+root.title(f"pulse/receive waterfall - {N_ELEM} elements  (F11: fullscreen)")
 root.configure(bg=BG)
 
 bar1 = tk.Frame(root, bg=BG); bar1.pack(fill="x", padx=6, pady=(4, 0))
@@ -302,8 +354,14 @@ def send_tgc(_v=None):
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
 
-def send_dly(_v=None): send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us.get())), "seq_dly")
-def send_gap(_v=None): send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us.get())), "seq_gap")
+# both move the end of the capture cycle, so both resize the pulser window too
+def send_dly(_v=None):
+    send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us.get())), "seq_dly")
+    send_pls_rx(dly_us.get(), gap_us.get())
+
+def send_gap(_v=None):
+    send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us.get())), "seq_gap")
+    send_pls_rx(dly_us.get(), gap_us.get())
 
 def apply_depth(_ev=None):
     """Depth changes the frame size: stop, drain, swap buffers, reconfigure."""
@@ -575,12 +633,18 @@ def update():
         stats["dirty"] = False
         render_img()
         render_trace()
+    # "sample holes" counts ADC samples dropped INSIDE a window (seq_check).
+    # Non-zero here and zero frame drops = the traces are being time-corrupted
+    # without losing any frames, which is what flickering dark patches deeper in
+    # the window look like.
     status.config(
         text=f" {stats['mbps']:6.1f} MB/s   {stats['fps']/N_ELEM:6.1f} sweeps/s"
              f"   frames {stats['frames']}   frame drops {stats['drops']}"
              f"   resyncs {stats['resyncs']}"
+             f"   sample holes {stats['seq_bad']}/{stats['seq_chk']} chk"
              + ("" if stats["alive"] else "   *** STREAM STOPPED ***"),
-        fg="#7f8" if (stats["drops"] == 0 and stats["resyncs"] == 0) else "#fa5")
+        fg="#7f8" if (stats["drops"] == 0 and stats["resyncs"] == 0
+                      and stats["seq_bad"] == 0) else "#fa5")
     root.after(33, update)
 
 root.after(100, update)

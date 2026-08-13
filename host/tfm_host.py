@@ -40,14 +40,17 @@ OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
+OP_PLS_TRX = 0x17           # pulser's OWN receive window, clk cycles
 SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
 FS_HZ  = 40_000_000         # AFE5804 sample rate
 
 # Elements this app reconstructs.  Frames whose header carries an id >= N_ELEM
 # are dropped, so if the pulser is walking a wider aperture than this, raise it
-# (and the geometry below follows).  See tfm_gl_host.py for the 48-element case.
-N_ELEM    = 32
+# (and the geometry below follows).  The sequencer walks 48 (ctrl_decode.v
+# resets pls_list_len to 48); at 32 this silently threw away the last third of
+# the aperture.  See tfm_gl_host.py for the element-id contract.
+N_ELEM    = 48
 ELEM_BITS = 6                           # bits the element id occupies at 16
 ELEM_MASK = (1 << ELEM_BITS) - 1
 HDR_SHIFT = 16 + ELEM_BITS              # 22: first bit above the element field
@@ -123,6 +126,16 @@ mode = {"signed": any(a.lower().startswith("sig") for a in sys.argv[1:])}
 
 def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
 
+# The pulser fires on its own timebase, so its receive window has to cover our
+# whole capture cycle or the NEXT element's burst lands inside this frame - see
+# the long note in tfm_gl_host.py.  Sized from the capture cycle; the pulser's
+# other stages only add margin.
+PLS_RX_MARGIN_US = 10
+
+def send_pls_rx(dly_us, gap_us):
+    us = cfg["win_us"] + float(dly_us) + float(gap_us) + PLS_RX_MARGIN_US
+    send_cmd(cmd(OP_PLS_TRX, us_to_cycles(us)), "pls_t_rx")
+
 def send_seq_config(lo, hi, dly_us, gap_us):
     """Push the full sequencer timing/TGC setup for the current window length."""
     inc = max(0, ((hi - lo) * 4096) // cfg["win_words"])
@@ -131,6 +144,7 @@ def send_seq_config(lo, hi, dly_us, gap_us):
     send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us)), "seq_gap")
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
+    send_pls_rx(dly_us, gap_us)
 
 # --- bring-up ----------------------------------------------------------------
 print("locking RX window (0xA5A55A5A)...")
@@ -440,10 +454,12 @@ _repacing = lambda: None
 
 def send_dly(_v=None):
     send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us.get())), "seq_dly")
+    send_pls_rx(dly_us.get(), gap_us.get())
     _repacing()
 
 def send_gap(_v=None):
     send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us.get())), "seq_gap")
+    send_pls_rx(dly_us.get(), gap_us.get())
     _repacing()
 
 def relut(_ev=None):

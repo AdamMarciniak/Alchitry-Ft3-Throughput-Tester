@@ -1,0 +1,874 @@
+<title>Pulse / receive sequencing</title>
+<style>
+/* ============================================================ tokens */
+:root{
+  --bg:#E7EBEA; --surface:#F8FAF9; --surface2:#EEF2F1; --sunk:#DFE5E4;
+  --line:#C7D1CF; --line2:#B2BFBD;
+  --ink:#0F1718; --ink2:#48575A; --ink3:#71807F;
+  --pos:#B4441B; --pos-f:#F0DACF; --pos-e:#DFBBA9;
+  --neg:#10666F; --neg-f:#D3E4E5; --neg-e:#A9CBCE;
+  --rx:#4A4E93;  --rx-f:#DCDDEE;  --rx-e:#B9BCDC;
+  --mux:#8A6D1F; --mux-f:#EBE2C8; --mux-e:#D6C79B;
+  --idle:#66757A; --idle-f:#E2E8E7; --idle-e:#C6D0CE;
+  --warn:#9E2B2B; --warn-f:#F0D8D6;
+  --grid:#D5DDDB; --shadow:0 1px 2px rgba(16,30,32,.07),0 8px 24px -14px rgba(16,30,32,.30);
+  --font-head:"Charter","Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
+  --font-body:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"Cascadia Mono",Consolas,"SF Mono",ui-monospace,"Roboto Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1315; --surface:#141C1E; --surface2:#1A2325; --sunk:#101819;
+    --line:#2A3739; --line2:#3A4A4C;
+    --ink:#DBE5E3; --ink2:#9AA9A8; --ink3:#758483;
+    --pos:#E4733F; --pos-f:#3A231A; --pos-e:#6B3D24;
+    --neg:#41B5C1; --neg-f:#122E32; --neg-e:#1F5158;
+    --rx:#9095E4;  --rx-f:#22243F;  --rx-e:#3C3F6B;
+    --mux:#D2AB40; --mux-f:#332A13; --mux-e:#5C4A1E;
+    --idle:#8FA3A7; --idle-f:#1D2729; --idle-e:#33403F;
+    --warn:#E06B6B; --warn-f:#33191A;
+    --grid:#212D2F; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1315; --surface:#141C1E; --surface2:#1A2325; --sunk:#101819;
+  --line:#2A3739; --line2:#3A4A4C;
+  --ink:#DBE5E3; --ink2:#9AA9A8; --ink3:#758483;
+  --pos:#E4733F; --pos-f:#3A231A; --pos-e:#6B3D24;
+  --neg:#41B5C1; --neg-f:#122E32; --neg-e:#1F5158;
+  --rx:#9095E4;  --rx-f:#22243F;  --rx-e:#3C3F6B;
+  --mux:#D2AB40; --mux-f:#332A13; --mux-e:#5C4A1E;
+  --idle:#8FA3A7; --idle-f:#1D2729; --idle-e:#33403F;
+  --warn:#E06B6B; --warn-f:#33191A;
+  --grid:#212D2F; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -16px rgba(0,0,0,.8);
+}
+
+/* ============================================================ base */
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--font-body); font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1200px; margin:0 auto; padding:32px 24px 96px; display:flex; flex-direction:column; gap:44px}
+h1,h2,h3{font-family:var(--font-head); font-weight:600; text-wrap:balance; margin:0; line-height:1.2}
+h1{font-size:clamp(30px,4.2vw,46px); letter-spacing:-.015em}
+h2{font-size:25px; letter-spacing:-.01em}
+h3{font-size:17px}
+p{margin:0}
+a{color:var(--rx)}
+.eyebrow{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--ink3);
+}
+.prose{max-width:68ch; color:var(--ink2)}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+code{font-family:var(--font-mono); font-size:.88em; background:var(--surface2); border:1px solid var(--line);
+     border-radius:4px; padding:.06em .32em; color:var(--ink)}
+section{display:flex; flex-direction:column; gap:18px}
+.sechead{display:flex; flex-direction:column; gap:7px; border-top:1px solid var(--line2); padding-top:14px}
+.sechead .num{font-family:var(--font-mono); font-size:11px; color:var(--ink3); letter-spacing:.18em}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:9px; box-shadow:var(--shadow)}
+:focus-visible{outline:2px solid var(--rx); outline-offset:2px; border-radius:3px}
+
+/* ============================================================ header */
+header{display:flex; flex-direction:column; gap:16px}
+.title-rule{height:3px; background:linear-gradient(90deg,var(--pos) 0 22%,var(--neg) 22% 44%,var(--mux) 44% 62%,var(--rx) 62% 100%); border-radius:2px}
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:1px; background:var(--line);
+       border:1px solid var(--line); border-radius:8px; overflow:hidden}
+.fact{background:var(--surface); padding:11px 14px; display:flex; flex-direction:column; gap:2px}
+.fact b{font-family:var(--font-mono); font-size:19px; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.fact span{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink3)}
+
+/* ============================================================ pipeline */
+.pipe{display:flex; flex-direction:column; gap:10px}
+.pipe-row{display:flex; align-items:stretch; gap:0; overflow-x:auto; padding-bottom:4px}
+.stage{
+  flex:1 1 0; min-width:132px; background:var(--surface); border:1px solid var(--line);
+  border-radius:7px; padding:9px 11px; display:flex; flex-direction:column; gap:3px;
+  cursor:pointer; text-align:left; font:inherit; color:inherit; transition:border-color .15s,background .15s;
+}
+.stage:hover{border-color:var(--line2); background:var(--surface2)}
+.stage[aria-pressed="true"]{border-color:currentColor}
+.stage .nm{font-weight:600; font-size:13.5px}
+.stage .sub{font-family:var(--font-mono); font-size:10.5px; color:var(--ink3); letter-spacing:.02em}
+.stage .src{font-family:var(--font-mono); font-size:10px; color:var(--ink3); opacity:.8}
+.arrow{flex:0 0 26px; display:grid; place-items:center; color:var(--ink3)}
+.arrow svg{width:16px; height:16px}
+.tx-tint{color:var(--pos)} .rx-tint{color:var(--rx)} .mux-tint{color:var(--mux)}
+.stage-note{
+  border-left:3px solid var(--line2); padding:8px 0 8px 13px; color:var(--ink2); font-size:14px; min-height:44px;
+}
+
+/* ============================================================ controls */
+.panel{display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,300px); gap:0}
+@media (max-width:900px){.panel{grid-template-columns:1fr}}
+.ctrls{padding:16px 18px; display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:13px 22px}
+.ctrl{display:flex; flex-direction:column; gap:3px}
+.ctrl .lab{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.ctrl .lab em{font-style:normal; font-family:var(--font-mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink3)}
+.ctrl .lab b{font-family:var(--font-mono); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums}
+.ctrl .cyc{font-family:var(--font-mono); font-size:10.5px; color:var(--ink3)}
+input[type=range]{width:100%; accent-color:var(--rx); height:18px; margin:0}
+.derived{border-left:1px solid var(--line); background:var(--surface2); padding:16px 18px; display:flex; flex-direction:column; gap:9px}
+@media (max-width:900px){.derived{border-left:0; border-top:1px solid var(--line)}}
+.drow{display:flex; justify-content:space-between; gap:12px; align-items:baseline; font-size:13px}
+.drow span{color:var(--ink3); font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase}
+.drow b{font-family:var(--font-mono); font-weight:600; font-variant-numeric:tabular-nums}
+.warnbox{background:var(--warn-f); border:1px solid var(--warn); color:var(--warn); border-radius:6px;
+         padding:7px 10px; font-size:12.5px; display:none}
+.warnbox.on{display:block}
+
+/* ============================================================ chart */
+.chartcard{padding:14px 12px 8px; overflow-x:auto}
+svg.chart{display:block; width:100%; min-width:660px; height:auto; font-family:var(--font-mono)}
+.lane-label{font-size:10.5px; fill:var(--ink2); letter-spacing:.04em}
+.lane-sub{font-size:9px; fill:var(--ink3)}
+.seg-label{font-size:10px; font-weight:600; letter-spacing:.02em}
+.tick-lab{font-size:9.5px; fill:var(--ink3)}
+.seg{cursor:pointer}
+.seg rect{transition:opacity .12s}
+.seg:hover rect.body{opacity:.75}
+.dim{opacity:.34}
+.caption{font-size:12.5px; color:var(--ink3); padding:2px 6px 6px; max-width:80ch}
+
+/* ============================================================ playbar */
+.playbar{display:flex; flex-wrap:wrap; align-items:center; gap:9px; padding:11px 14px; border-top:1px solid var(--line)}
+button.btn{
+  font:inherit; font-size:13px; background:var(--surface2); color:var(--ink); border:1px solid var(--line2);
+  border-radius:6px; padding:5px 13px; cursor:pointer; transition:background .15s
+}
+button.btn:hover{background:var(--sunk)}
+button.btn.primary{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+.stepnow{font-family:var(--font-mono); font-size:12px; color:var(--ink3); margin-left:auto; font-variant-numeric:tabular-nums}
+
+/* ============================================================ ledger */
+.ledger{display:flex; flex-direction:column; border-radius:9px; overflow:hidden}
+.lrow{
+  display:grid; grid-template-columns:26px 74px 122px minmax(0,1fr) 96px; gap:12px; align-items:baseline;
+  padding:9px 14px; border-bottom:1px solid var(--line); background:var(--surface);
+  cursor:pointer; text-align:left; font:inherit; color:inherit; border-left:3px solid transparent;
+}
+.lrow:last-child{border-bottom:0}
+.lrow:hover{background:var(--surface2)}
+.lrow.active{background:var(--surface2); border-left-color:currentColor}
+.lrow .ix{font-family:var(--font-mono); font-size:11px; color:var(--ink3)}
+.lrow .who{font-family:var(--font-mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase}
+.lrow .st{font-family:var(--font-mono); font-size:12.5px; font-weight:600}
+.lrow .tx{font-size:13.5px; color:var(--ink2)}
+.lrow .dur{font-family:var(--font-mono); font-size:12px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink2)}
+@media (max-width:720px){
+  .lrow{grid-template-columns:24px 60px 1fr; row-gap:3px}
+  .lrow .tx{grid-column:1/-1} .lrow .dur{grid-column:3; text-align:left}
+}
+
+/* ============================================================ tables & misc */
+.tblwrap{overflow-x:auto; border:1px solid var(--line); border-radius:9px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:620px; font-size:13.5px}
+th{
+  text-align:left; font-family:var(--font-mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink3); font-weight:500; padding:9px 13px; border-bottom:1px solid var(--line2); white-space:nowrap;
+}
+td{padding:8px 13px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+td.st{font-family:var(--font-mono); font-size:12.5px; color:var(--ink); white-space:nowrap; font-weight:600}
+td.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--ink)}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.bits{display:flex; flex-direction:column; gap:8px}
+.bitrow{display:flex; width:100%; border:1px solid var(--line2); border-radius:6px; overflow:hidden; min-width:0}
+.bit{padding:7px 6px; text-align:center; font-family:var(--font-mono); font-size:11.5px; border-right:1px solid var(--line2);
+     display:flex; flex-direction:column; gap:2px; overflow:hidden}
+.bit:last-child{border-right:0}
+.bit i{font-style:normal; font-size:9px; color:var(--ink3); letter-spacing:.06em}
+.bit b{font-weight:600; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rules{display:flex; flex-direction:column; gap:9px; margin:0; padding:0; list-style:none}
+.rules li{display:grid; grid-template-columns:auto 1fr; gap:11px; align-items:baseline; color:var(--ink2); font-size:14px}
+.rules .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--pos)}
+.legend{display:flex; flex-wrap:wrap; gap:6px 16px; padding:0 6px 8px}
+.lg{display:flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:10.5px; color:var(--ink3); letter-spacing:.05em}
+.sw{width:11px; height:11px; border-radius:3px; border:1px solid}
+footer{color:var(--ink3); font-size:12.5px; border-top:1px solid var(--line2); padding-top:14px; font-family:var(--font-mono)}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<div class="wrap">
+
+<!-- ==================================================== header -->
+<header>
+  <div class="eyebrow">usb3-tester &middot; pulser branch &middot; 100&nbsp;MHz sequencer clock</div>
+  <h1>One element, start to finish</h1>
+  <div class="title-rule"></div>
+  <p class="prose">
+    The transmit sequencer owns the timebase. It walks the aperture element by element &mdash; shift the mux chain,
+    latch it, settle, fire a bipolar burst &mdash; and the receive side is <em>slaved to it</em>: the single-cycle
+    <code>tx_sync</code> pulse at the first HV edge is what arms the acquisition window and stamps the element id into
+    the frame header. Stop the pulser and the ADC stream goes quiet, by design. Everything below is drawn from the RTL
+    in <span class="mono">tx_sequencer.v</span>, <span class="mono">ctrl_decode.v</span>, <span class="mono">afe_rx.v</span>
+    and <span class="mono">afe_stream.v</span>; the sliders apply the same clamps the hardware does.
+  </p>
+  <div class="facts" id="facts"></div>
+</header>
+
+<!-- ==================================================== 1 signal path -->
+<section>
+  <div class="sechead">
+    <div class="num">01 / SIGNAL PATH</div>
+    <h2>Two chains that meet at the probe</h2>
+    <p class="prose">Transmit runs left to right through the mux tree to one element; the echo comes back on a single
+    fixed receive path, so nothing downstream of the tree changes as the aperture walks. Click a stage for what it does.</p>
+  </div>
+
+  <div class="pipe">
+    <div class="eyebrow tx-tint">Transmit</div>
+    <div class="pipe-row" id="pipe-tx"></div>
+    <div class="eyebrow rx-tint" style="margin-top:6px">Receive</div>
+    <div class="pipe-row" id="pipe-rx"></div>
+    <div class="stage-note" id="stage-note">The pulser free-runs from power-up: <code>ctrl_decode</code> resets
+      <code>pls_arm</code> to 1 and <code>continuous</code> is tied high, so the chain fires with no host attached.</div>
+  </div>
+</section>
+
+<!-- ==================================================== 2 timeline -->
+<section>
+  <div class="sechead">
+    <div class="num">02 / THE ELEMENT PERIOD</div>
+    <h2>What happens between two bursts</h2>
+    <p class="prose">
+      Time zero is the first HV edge &mdash; the same instant <code>tx_sync</code> fires. The chart is one full element
+      period, drawn to scale from the values below. The important shape: the pulser's receive window is long, and the
+      chain shift for the <em>next</em> element is deliberately buried inside it, early, where the echo is
+      ringdown-dominated anyway.
+    </p>
+  </div>
+
+  <div class="card panel">
+    <div class="ctrls" id="ctrls"></div>
+    <div class="derived" id="derived"></div>
+  </div>
+  <div class="warnbox" id="warnbox"></div>
+
+  <div class="card chartcard">
+    <div class="legend" id="legend"></div>
+    <svg class="chart" id="chart" role="img" aria-label="Timing chart of one element period"></svg>
+    <p class="caption" id="chartcap"></p>
+    <div class="playbar">
+      <button class="btn primary" id="play">▶ Walk the sequence</button>
+      <button class="btn" id="prev">◀ Prev</button>
+      <button class="btn" id="next">Next ▶</button>
+      <span class="stepnow" id="stepnow"></span>
+    </div>
+  </div>
+
+  <div class="card chartcard">
+    <div class="eyebrow" style="padding:2px 6px 8px">Zoom &middot; the burst itself</div>
+    <svg class="chart" id="zoom" role="img" aria-label="Zoomed view of the bipolar burst"></svg>
+    <p class="caption" id="zoomcap"></p>
+  </div>
+</section>
+
+<!-- ==================================================== 3 ledger -->
+<section>
+  <div class="sechead">
+    <div class="num">03 / STEP BY STEP</div>
+    <h2>Every step, in time order</h2>
+    <p class="prose">Transmit and receive steps merged onto one clock. Click any row to move the playhead; the arrow
+    keys step through it.</p>
+  </div>
+  <div class="ledger card" id="ledger"></div>
+</section>
+
+<!-- ==================================================== 4 FSMs -->
+<section>
+  <div class="sechead">
+    <div class="num">04 / STATE MACHINES</div>
+    <h2>The full state tables</h2>
+    <p class="prose">The steps above are the steady-state loop. These are all the states, including the ones you only
+    pass through at power-up or on a fault.</p>
+  </div>
+
+  <div class="two">
+    <div style="display:flex; flex-direction:column; gap:10px">
+      <div class="eyebrow tx-tint">tx_sequencer.v &middot; transmit FSM</div>
+      <div class="tblwrap"><table>
+        <thead><tr><th>State</th><th>Duration</th><th>What it does</th></tr></thead>
+        <tbody id="tx-fsm"></tbody>
+      </table></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+      <div class="eyebrow rx-tint">ctrl_decode.v &middot; SRC_SEQ receive FSM</div>
+      <div class="tblwrap"><table>
+        <thead><tr><th>State</th><th>Duration</th><th>What it does</th></tr></thead>
+        <tbody id="rx-fsm"></tbody>
+      </table></div>
+      <div class="eyebrow" style="margin-top:8px">Fault codes &middot; latched, CLR held, OE dropped</div>
+      <div class="tblwrap"><table>
+        <thead><tr><th>Code</th><th>Name</th><th>Trip condition</th></tr></thead>
+        <tbody id="faults"></tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================== 5 frame -->
+<section>
+  <div class="sechead">
+    <div class="num">05 / WHAT COMES BACK</div>
+    <h2>One receive window is one frame on the bus</h2>
+    <p class="prose">Every window is a header word followed by <span class="mono" id="fw"></span> packed data words on the
+    fast pipe. The host finds frame boundaries by testing <code>(word &gt;&gt; 22) == 0x384</code>.</p>
+  </div>
+  <div class="two">
+    <div class="bits">
+      <div class="eyebrow">Word 0 &middot; frame header</div>
+      <div class="bitrow">
+        <div class="bit" style="flex:8; background:var(--pos-f)"><i>31:24</i><b>0xE1</b></div>
+        <div class="bit" style="flex:2; background:var(--idle-f)"><i>23:22</i><b>00 guard</b></div>
+        <div class="bit" style="flex:6; background:var(--mux-f)"><i>21:16</i><b>elem[5:0]</b></div>
+        <div class="bit" style="flex:16; background:var(--rx-f)"><i>15:0</i><b>frame_cnt</b></div>
+      </div>
+      <p class="prose" style="font-size:13.5px">
+        <code>elem</code> is the <em>aperture position</em> latched from <code>tx_elem</code> at <code>tx_sync</code>
+        &mdash; 0 is the left-most element, 47 the right-most. <code>mux_code()</code> in the sequencer is the only
+        place the connector's scrambled wiring is described, so the host can index its geometry table with this field
+        directly.
+      </p>
+    </div>
+    <div class="bits">
+      <div class="eyebrow">Words 1..N &middot; two samples per word</div>
+      <div class="bitrow">
+        <div class="bit" style="flex:4; background:var(--idle-f)"><i>31:28</i><b>seq n+1</b></div>
+        <div class="bit" style="flex:12; background:var(--rx-f)"><i>27:16</i><b>sample n+1</b></div>
+        <div class="bit" style="flex:4; background:var(--idle-f)"><i>15:12</i><b>seq n</b></div>
+        <div class="bit" style="flex:12; background:var(--rx-f)"><i>11:0</i><b>sample n</b></div>
+      </div>
+      <p class="prose" style="font-size:13.5px">
+        Older sample in the low half, so a little-endian <code>uint16</code> view on the host is already in time order.
+        The 4-bit sequence tag counts per <em>sample</em> and pairs are dropped whole if the FIFO backs up &mdash; a drop
+        shows up as a discontinuity, never as a torn word.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================== 6 rules -->
+<section>
+  <div class="sechead">
+    <div class="num">06 / THE RULES THE SEQUENCE EXISTS TO OBEY</div>
+    <h2>Why the states are shaped this way</h2>
+  </div>
+  <div class="card" style="padding:16px 20px">
+    <ul class="rules" id="rules"></ul>
+  </div>
+</section>
+
+<footer id="foot"></footer>
+</div>
+
+<script>
+"use strict";
+/* ================================================================= model */
+const CLK = 100e6, NS_CYC = 10, FS = 40e6;
+const SPI_HALF = 5, CHAIN_BITS = 64;
+const SHIFT_US   = CHAIN_BITS * 2 * SPI_HALF * NS_CYC / 1000;  // 640 cyc = 6.4 us
+const TCS_US     = 2  * NS_CYC / 1000;                          // T_CS    = 20 ns
+const LE_LOW_US  = 5  * NS_CYC / 1000;                          // T_LE_LOW= 50 ns
+const SETTLE_MIN = 400, INHIB_MIN = 450;                        // cycles, datasheet floors
+const N_ELEM = 48, MARGIN_US = 10;                              // PLS_RX_MARGIN_US in the host
+
+const P = {ncyc:2, drive:100, dead:40, settle:5, inhib:4.5, ring:3, depth:8, dly:5, gap:50};
+
+const nsCyc = ns => Math.max(1, Math.round(ns / NS_CYC));
+const usCyc = us => Math.max(1, Math.round(us * CLK / 1e6));
+const fmt = us => us >= 1 ? us.toFixed(us < 10 ? 2 : 1) + " µs"
+                          : (us * 1000).toFixed(us * 1000 < 100 ? 0 : 0) + " ns";
+
+function derive(){
+  const d = {};
+  d.driveCyc = nsCyc(P.drive);  d.driveNs = d.driveCyc * NS_CYC;
+  d.deadCyc  = nsCyc(P.dead);   d.deadNs  = d.deadCyc  * NS_CYC;
+  d.settleCyc = Math.max(SETTLE_MIN, usCyc(P.settle));  d.settleUs = d.settleCyc / 100;
+  d.inhibCyc  = Math.max(INHIB_MIN,  usCyc(P.inhib));   d.inhibUs  = d.inhibCyc  / 100;
+  d.f0 = 1e9 / (2 * (d.driveNs + d.deadNs));
+  d.burstUs = P.ncyc * 2 * (d.driveNs + d.deadNs) / 1000;
+  // host: depth -> capture window (tfm_gl_host.depth_to_words / set_cfg)
+  d.winWords = Math.max(320, Math.min(0xFFFF, Math.floor((2*P.depth/100/1540) * FS / 2)));
+  d.samps = 2 * d.winWords;  d.winUs = d.samps / FS * 1e6;  d.frameWords = d.winWords + 1;
+  d.trxUs = d.winUs + P.dly + P.gap + MARGIN_US;            // send_pls_rx()
+  d.rxWinUs = P.ring + d.trxUs;                             // rx_tmr load = t_ring + t_rx
+  d.periodUs = d.burstUs + d.rxWinUs + TCS_US + LE_LOW_US + d.settleUs;
+  d.waitrxUs = d.rxWinUs - d.inhibUs - SHIFT_US;            // remainder of the window
+  d.frameMs = N_ELEM * d.periodUs / 1000;  d.fps = 1000 / d.frameMs;
+  d.prfKHz = 1000 / d.periodUs;
+  d.mbps = d.frameWords * 4 * (1000/d.periodUs) * 1000 / 1e6;
+  d.depthCoverUs = d.winUs;  d.rangeCm = 1540 * (d.winUs*1e-6) / 2 * 100;
+  return d;
+}
+
+/* ================================================================= segments */
+function segments(d){
+  const B = d.burstUs, tx = [], rx = [];
+  const push = (a,id,st,t0,len,tint,txt) => a.push({id,st,t0,len,tint,txt,lane:a===tx?"TX":"RX"});
+
+  push(tx,"burst","S_FIRE_P … S_DEAD_B",0,B,"pos",
+    `The burst: ${P.ncyc} cycle${P.ncyc>1?"s":""} of +HV → idle → −HV → idle. Exactly one of ina/inb changes at every transition, every polarity change routes through idle for t_dead, and the burst always ends parked in idle. tx_sync pulses on the very first edge.`);
+  push(tx,"inhibit","S_INHIBIT",B,d.inhibUs,"idle",
+    `MAX14866 transmit-detector lockout. SPI writes landing in this window are discarded silently — no error, and the next shot would fire into a stale element — so the sequencer simply does not clock the chain here. Floored at 4.50 µs; the host cannot go below it.`);
+  push(tx,"shift","S_SHIFT",B+d.inhibUs,SHIFT_US,"mux",
+    `64 chain bits at 10 MHz for the NEXT element, MSB first, tail device first (BR3, BR2, BR1, ROOT). LE stays high the whole time so the switches do not move. DOUT is sampled on each rising edge and returns the previous word — a free loopback check. This sits early in the receive window on purpose: the echo here is ringdown.`);
+  const wr = Math.max(0, d.waitrxUs);
+  push(tx,"waitrx","S_WAITRX",B+d.inhibUs+SHIFT_US,wr,"idle",
+    `Nothing but waiting out the rest of the previous element's receive window. The new word is sitting in the shift register; the switches still hold the old element.`);
+  const tTcs = B + d.rxWinUs;
+  push(tx,"tcs","S_TCS",tTcs,TCS_US,"mux",
+    `t_CS guard: 20 ns from the last chain clock rising edge to LE falling.`);
+  push(tx,"latch","S_LATCH",tTcs+TCS_US,LE_LOW_US,"mux",
+    `LE low for 50 ns. This is the instant the switches actually move and element_current updates — the one moment in the whole period when the aperture changes.`);
+  push(tx,"settle","S_SETTLE",tTcs+TCS_US+LE_LOW_US,d.settleUs,"neg",
+    `t_ON / t_OFF. The switches are still moving; the analog node must be quiet at ground for this entire interval, so nothing else is allowed to happen here. Floored at 4.00 µs.`);
+  push(tx,"burst2","S_FIRE_P (next)",d.periodUs,Math.max(B,d.periodUs*0.004),"pos",
+    `The next element's burst — one full element period later.`);
+
+  push(rx,"armed","S_ARMED → latch",0,Math.max(d.periodUs*0.002,0.02),"rx",
+    `tx_sync arrives. SRC_SEQ latches tx_elem as this frame's element id. tx_elem has been stable since the LE latch several microseconds earlier, so sampling it on this edge is safe. A tx_sync in any other state is ignored — a frame is never torn to chase one.`);
+  push(rx,"dly","S_DLY",0,P.dly,"idle",
+    `seq_dly: the range offset, counted from the first HV edge. This is what decides where sample 0 sits in depth, so it is a genuine time origin, not a guess.`);
+  push(rx,"hdr","S_HDR",P.dly,Math.max(d.periodUs*0.0025,0.01),"mux",
+    `Write the header word {0xE1, 00, elem[5:0], frame_cnt}. The window opens when the TX FIFO accepts it — a backed-up FIFO delays the range gate as well as the frame, which is the reason not to run the bus at its limit when the delays matter.`);
+  push(rx,"rx","S_RX",P.dly,d.winUs,"rx",
+    `Capture ${d.winWords} ADC words = ${d.samps} samples at 40 MSPS. While it runs, tgc_acc ramps and dac7554_ramp follows tgc_code, so the VCA gain sweeps up across the window — TGC. Words come from the async FIFO the LVDS domain fills.`);
+  push(rx,"damp","S_DAMP",P.dly+d.winUs,P.gap,"idle",
+    `Snap the TGC code back to its start value and hold off seq_gap so that VCNTRL step can ring out before re-arming.`);
+  push(rx,"rearm","S_ARMED (waiting)",P.dly+d.winUs+P.gap,Math.max(0,d.periodUs-(P.dly+d.winUs+P.gap)),"idle",
+    `Armed and idle, waiting for the next tx_sync. This slack is why the pulser's t_rx is set to window + delay + gap + 10 µs of margin: if the pulser fired faster than a window can be captured and drained, extra bursts would simply be ignored and only every Nth would be imaged.`);
+  return {tx, rx};
+}
+
+/* ================================================================= chart */
+const LANES = [
+  {k:"txstate", nm:"TX state",     sub:"tx_sequencer", h:26, type:"band"},
+  {k:"muxclk",  nm:"mux_clk/din",  sub:"10 MHz, 64 b", h:20, type:"act",  tint:"mux"},
+  {k:"muxle",   nm:"mux_le",       sub:"active low",   h:20, type:"le"},
+  {k:"hv",      nm:"ina / inb",    sub:"HV drive",     h:20, type:"hv"},
+  {k:"txsync",  nm:"tx_sync",      sub:"1 cycle",      h:18, type:"tick"},
+  {k:"rxwin",   nm:"rx_tmr",       sub:"pulser window",h:20, type:"win"},
+  {k:"rxstate", nm:"RX state",     sub:"SRC_SEQ",      h:26, type:"band"},
+  {k:"usb",     nm:"fast pipe",    sub:"frame out",    h:20, type:"usb"},
+  {k:"tgc",     nm:"tgc_code",     sub:"VCA gain",     h:24, type:"tgc"}
+];
+const W = 1000, L = 108, R = 18, PW = W - L - R;
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+let D, SEG, STEPS, cur = 0, timer = null;
+
+function tintVars(t){ return {c:`var(--${t})`, f:`var(--${t}-f)`, e:`var(--${t}-e)`}; }
+
+function renderChart(){
+  const x = t => L + Math.max(0, Math.min(1, t / D.periodUs)) * PW;
+  const MINW = 2.4;
+  let y = 16, out = "", lanes = {};
+  for (const ln of LANES){ lanes[ln.k] = y; y += ln.h + 10; }
+  const H = y + 30;
+
+  // grid + axis
+  const step = niceStep(D.periodUs);
+  for (let t = 0; t <= D.periodUs + 1e-9; t += step){
+    const xx = x(t);
+    out += `<line x1="${xx}" y1="10" x2="${xx}" y2="${y-4}" stroke="var(--grid)" stroke-width="1"/>`;
+    out += `<text class="tick-lab" x="${xx}" y="${y+11}" text-anchor="middle">${t.toFixed(t<10?1:0)}</text>`;
+  }
+  out += `<text class="tick-lab" x="${L}" y="${y+24}" text-anchor="start">microseconds from the first HV edge</text>`;
+
+  // lane labels + baselines
+  for (const ln of LANES){
+    const ly = lanes[ln.k];
+    out += `<text class="lane-label" x="${L-10}" y="${ly+ln.h*0.55}" text-anchor="end">${ln.nm}</text>`;
+    out += `<text class="lane-sub" x="${L-10}" y="${ly+ln.h*0.55+11}" text-anchor="end">${ln.sub}</text>`;
+    out += `<line x1="${L}" y1="${ly+ln.h+4}" x2="${W-R}" y2="${ly+ln.h+4}" stroke="var(--line)" stroke-width="1"/>`;
+  }
+
+  // ---- state bands
+  const band = (segs, key) => {
+    let s = "";
+    // shortest last, so minimum-width markers stay visible on top of the wide bands
+    for (const g of [...segs].sort((a,b)=>b.len-a.len)){
+      if (g.id === "burst2") continue;
+      const v = tintVars(g.tint), x0 = x(g.t0), w = Math.max(MINW, x(g.t0+g.len) - x0);
+      const active = STEPS[cur] && STEPS[cur].id === g.id;
+      const ly = lanes[key];
+      s += `<g class="seg${active?"":" "}" data-id="${g.id}" style="color:${v.c}">`
+        +  `<title>${esc(g.st)} — ${fmt(g.len)}</title>`
+        +  `<rect class="body" x="${x0}" y="${lanes[key]}" width="${w}" height="${LANES.find(l=>l.k===key).h}" `
+        +  `fill="${v.f}" stroke="${active?v.c:v.e}" stroke-width="${active?2:1}" rx="3"/>`;
+      if (w > 46) s += `<text class="seg-label" x="${x0+w/2}" y="${ly+LANES.find(l=>l.k===key).h*0.65}" `
+        + `text-anchor="middle" fill="${v.c}">${esc(shortName(g.st))}</text>`;
+      s += `</g>`;
+    }
+    return s;
+  };
+  out += band(SEG.tx, "txstate");
+  out += band(SEG.rx, "rxstate");
+
+  // ---- mux chain activity
+  {const g = SEG.tx.find(s=>s.id==="shift"), ly = lanes.muxclk, h = LANES.find(l=>l.k==="muxclk").h;
+   const x0 = x(g.t0), w = Math.max(3, x(g.t0+g.len)-x0);
+   out += `<rect x="${x0}" y="${ly+3}" width="${w}" height="${h-6}" fill="var(--mux-f)" stroke="var(--mux)" rx="2"/>`;
+   out += `<text class="seg-label" x="${x0+w+7}" y="${ly+h*0.72}" fill="var(--mux)">64 clocks · ${fmt(SHIFT_US)}</text>`;}
+
+  // ---- mux_le : high, dips low for 50 ns after t_CS
+  {const ly = lanes.muxle, h = LANES.find(l=>l.k==="muxle").h, hi = ly+4, lo = ly+h-2;
+   const g = SEG.tx.find(s=>s.id==="latch"), a = x(g.t0), b = Math.max(a+2.2, x(g.t0+g.len));
+   out += `<path d="M${L} ${hi} H${a} V${lo} H${b} V${hi} H${W-R}" fill="none" stroke="var(--mux)" stroke-width="1.6"/>`;
+   const far = a > W*0.55;   // near the right edge the label has to hang to the left
+   out += `<text class="seg-label" x="${far?a-8:b+7}" y="${lo}" text-anchor="${far?"end":"start"}" `
+       +  `fill="var(--mux)">LE low ${fmt(LE_LOW_US)} — switches move here</text>`;}
+
+  // ---- HV drive markers
+  {const ly = lanes.hv, h = LANES.find(l=>l.k==="hv").h, mid = ly+h/2;
+   out += `<line x1="${L}" y1="${mid}" x2="${W-R}" y2="${mid}" stroke="var(--line2)" stroke-width="1" stroke-dasharray="3 4"/>`;
+   for (const id of ["burst","burst2"]){
+     const g = SEG.tx.find(s=>s.id===id); if(!g) continue;
+     const x0 = x(g.t0), w = Math.max(3, x(g.t0+D.burstUs)-x0);
+     out += `<rect x="${x0}" y="${ly+1}" width="${w}" height="${h-2}" fill="var(--pos)" rx="1.5"/>`;
+   }
+   out += `<text class="seg-label" x="${x(0)+8}" y="${ly+h-4}" fill="var(--pos)">burst ${fmt(D.burstUs)} — drawn wider than scale</text>`;}
+
+  // ---- tx_sync ticks
+  {const ly = lanes.txsync, h = LANES.find(l=>l.k==="txsync").h;
+   for (const t of [0, D.periodUs]){
+     out += `<path d="M${x(t)} ${ly+h} v${-h+3}" stroke="var(--pos)" stroke-width="2"/>`
+         +  `<circle cx="${x(t)}" cy="${ly+3}" r="3" fill="var(--pos)"/>`;
+   }
+   out += `<text class="seg-label" x="${x(0)+9}" y="${ly+9}" fill="var(--pos)">t = 0</text>`;}
+
+  // ---- pulser rx window
+  {const ly = lanes.rxwin, h = LANES.find(l=>l.k==="rxwin").h;
+   const x0 = x(D.burstUs), x1 = x(D.burstUs + D.rxWinUs);
+   out += `<rect x="${x0}" y="${ly+3}" width="${Math.max(3,x1-x0)}" height="${h-6}" fill="var(--neg-f)" stroke="var(--neg)" rx="3"/>`;
+   const rg = x(D.burstUs + P.ring);
+   out += `<rect x="${x0}" y="${ly+3}" width="${Math.max(2,rg-x0)}" height="${h-6}" fill="var(--neg-e)"/>`;
+   out += `<text class="seg-label" x="${(x0+x1)/2}" y="${ly+h*0.72}" text-anchor="middle" fill="var(--neg)">`
+       +  `t_ring ${fmt(P.ring)} + t_rx ${fmt(D.trxUs)} = ${fmt(D.rxWinUs)}</text>`;}
+
+  // ---- usb frame out
+  {const ly = lanes.usb, h = LANES.find(l=>l.k==="usb").h;
+   const hd = x(P.dly), x1 = x(P.dly + D.winUs);
+   out += `<rect x="${hd}" y="${ly+3}" width="${Math.max(2.4,x1-hd)}" height="${h-6}" fill="var(--rx-f)" stroke="var(--rx)" rx="3"/>`;
+   out += `<rect x="${hd}" y="${ly+3}" width="3" height="${h-6}" fill="var(--rx)"/>`;
+   out += `<text class="seg-label" x="${(hd+x1)/2}" y="${ly+h*0.72}" text-anchor="middle" fill="var(--rx)">`
+       +  `1 header + ${D.winWords} words = ${D.frameWords*4} bytes</text>`;}
+
+  // ---- tgc ramp
+  {const ly = lanes.tgc, h = LANES.find(l=>l.k==="tgc").h, base = ly+h-2, top = ly+2;
+   const a = x(P.dly), b = x(P.dly + D.winUs), c = x(P.dly + D.winUs + P.gap);
+   out += `<path d="M${L} ${base} H${a} L${b} ${top} V${base} H${W-R}" fill="none" stroke="var(--rx)" stroke-width="1.6"/>`;
+   out += `<text class="seg-label" x="${b+7}" y="${top+9}" fill="var(--rx)">snap to min, damp ${fmt(P.gap)}</text>`;}
+
+  // ---- playhead
+  if (STEPS[cur]){
+    const s = STEPS[cur], px = x(s.t0);
+    out += `<line x1="${px}" y1="8" x2="${px}" y2="${y-2}" stroke="var(--ink)" stroke-width="1.5"/>`
+        +  `<path d="M${px-5} 8 h10 l-5 7 z" fill="var(--ink)"/>`;
+  }
+
+  const svg = document.getElementById("chart");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = out;
+  svg.querySelectorAll(".seg").forEach(g => g.addEventListener("click", () => {
+    const i = STEPS.findIndex(s => s.id === g.dataset.id); if (i >= 0) setStep(i);
+  }));
+}
+function shortName(s){ return s.replace(/^S_/,"").replace(/ ….*/,"…").replace(/ \(.*\)/,""); }
+function niceStep(span){
+  const raw = span / 9, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  return [1,2,2.5,5,10].map(m=>m*p).find(v=>v>=raw) || 10*p;
+}
+
+/* ================================================================= zoom */
+function renderZoom(){
+  const per = D.driveNs + D.deadNs, total = P.ncyc * 2 * per;
+  const pad = Math.max(40, total*0.12), span = total + 2*pad;
+  const W2 = 1000, L2 = 108, R2 = 18, PW2 = W2-L2-R2, H2 = 208;
+  const x = ns => L2 + (ns + pad) / span * PW2;
+  let out = "";
+  const rows = [
+    {nm:"pulse_ina", sub:"active high", y:24},
+    {nm:"pulse_inb", sub:"active low",  y:80},
+    {nm:"element",   sub:"HV at probe", y:136}
+  ];
+  for (const r of rows){
+    out += `<text class="lane-label" x="${L2-10}" y="${r.y+16}" text-anchor="end">${r.nm}</text>`
+        +  `<text class="lane-sub" x="${L2-10}" y="${r.y+28}" text-anchor="end">${r.sub}</text>`;
+  }
+  // build phase list: +HV, dead, -HV, dead ...
+  let t = 0; const phases = [];
+  for (let i=0;i<P.ncyc;i++){
+    phases.push({k:"p", t0:t, t1:t+D.driveNs}); t += D.driveNs;
+    phases.push({k:"d", t0:t, t1:t+D.deadNs});  t += D.deadNs;
+    phases.push({k:"n", t0:t, t1:t+D.driveNs}); t += D.driveNs;
+    phases.push({k:"d", t0:t, t1:t+D.deadNs});  t += D.deadNs;
+  }
+  const hi=r=>r+4, lo=r=>r+40;
+  // ina: high during +HV
+  let pa = `M${x(-pad)} ${lo(24)}`, pb = `M${x(-pad)} ${hi(80)}`, pc = `M${x(-pad)} ${(136+22)}`;
+  for (const ph of phases){
+    if (ph.k==="p") pa += ` H${x(ph.t0)} V${hi(24)} H${x(ph.t1)} V${lo(24)}`;
+    if (ph.k==="n") pb += ` H${x(ph.t0)} V${lo(80)} H${x(ph.t1)} V${hi(80)}`;
+    if (ph.k==="p") pc += ` H${x(ph.t0)} V${136+4} H${x(ph.t1)} V${136+22}`;
+    if (ph.k==="n") pc += ` H${x(ph.t0)} V${136+40} H${x(ph.t1)} V${136+22}`;
+  }
+  pa += ` H${x(total+pad)}`; pb += ` H${x(total+pad)}`; pc += ` H${x(total+pad)}`;
+  // shaded phase blocks
+  for (const ph of phases){
+    if (ph.k==="d") continue;
+    const c = ph.k==="p" ? "var(--pos-f)" : "var(--neg-f)";
+    out += `<rect x="${x(ph.t0)}" y="18" width="${x(ph.t1)-x(ph.t0)}" height="${H2-58}" fill="${c}" opacity=".55"/>`;
+  }
+  out += `<line x1="${L2}" y1="${136+22}" x2="${W2-R2}" y2="${136+22}" stroke="var(--line2)" stroke-dasharray="3 4"/>`;
+  out += `<path d="${pa}" fill="none" stroke="var(--pos)" stroke-width="2"/>`;
+  out += `<path d="${pb}" fill="none" stroke="var(--neg)" stroke-width="2"/>`;
+  out += `<path d="${pc}" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+  // measures
+  const p0 = phases[0], d0 = phases[1];
+  out += `<text class="seg-label" x="${(x(p0.t0)+x(p0.t1))/2}" y="14" text-anchor="middle" fill="var(--pos)">t_drive ${D.driveNs} ns</text>`;
+  out += `<text class="seg-label" x="${(x(d0.t0)+x(d0.t1))/2}" y="${H2-26}" text-anchor="middle" fill="var(--idle)">t_dead ${D.deadNs}</text>`;
+  out += `<path d="M${x(0)} ${H2-16} H${x(2*per)}" stroke="var(--ink3)" stroke-width="1"/>`
+      +  `<path d="M${x(0)} ${H2-20} v8 M${x(2*per)} ${H2-20} v8" stroke="var(--ink3)" stroke-width="1"/>`
+      +  `<text class="tick-lab" x="${(x(0)+x(2*per))/2}" y="${H2-4}" text-anchor="middle">one cycle = ${(2*per).toFixed(0)} ns → f0 ${(D.f0/1e6).toFixed(2)} MHz</text>`;
+  out += `<path d="M${x(0)} 18 v${H2-58}" stroke="var(--pos)" stroke-width="1.2" stroke-dasharray="2 3"/>`
+      +  `<text class="seg-label" x="${x(0)+5}" y="${H2-46}" fill="var(--pos)">tx_sync</text>`;
+  const svg = document.getElementById("zoom");
+  svg.setAttribute("viewBox", `0 0 ${W2} ${H2}`);
+  svg.innerHTML = out;
+  document.getElementById("zoomcap").textContent =
+    `Safe idle is ina=0, inb=1. Only one of the two ever changes at a transition, and every polarity change passes ` +
+    `through idle for t_dead — an unconditional combinational interlock between the output registers and the pins ` +
+    `blocks ina & ~inb regardless of what the FSM asks for, and latches fault code 4 if it is ever seen. ` +
+    `Edges quantise to the 10 ns sequencer clock, which is why ${P.drive} ns of drive becomes ${D.driveNs} ns.`;
+}
+
+/* ================================================================= ledger */
+function buildSteps(){
+  const all = [...SEG.tx.filter(s=>s.id!=="burst2"), ...SEG.rx];
+  all.sort((a,b)=> a.t0 - b.t0 || (a.lane==="TX"?-1:1));
+  return all;
+}
+function renderLedger(){
+  document.getElementById("ledger").innerHTML = STEPS.map((s,i)=>`
+    <button class="lrow${i===cur?" active":""}" data-i="${i}" style="color:var(--${s.tint})">
+      <span class="ix">${String(i+1).padStart(2,"0")}</span>
+      <span class="who">${s.lane}</span>
+      <span class="st">${esc(shortName(s.st))}</span>
+      <span class="tx">${esc(s.txt)}</span>
+      <span class="dur">${s.len>0?fmt(s.len):"1 cyc"}</span>
+    </button>`).join("");
+  document.querySelectorAll(".lrow").forEach(b=>b.addEventListener("click",()=>setStep(+b.dataset.i)));
+}
+function setStep(i){
+  cur = (i + STEPS.length) % STEPS.length;
+  document.querySelectorAll(".lrow").forEach((b,j)=>b.classList.toggle("active", j===cur));
+  const s = STEPS[cur];
+  document.getElementById("stepnow").textContent =
+    `${String(cur+1).padStart(2,"0")}/${STEPS.length}  ·  ${s.lane} ${shortName(s.st)}  ·  t = ${fmt(s.t0)}`;
+  const row = document.querySelector(`.lrow[data-i="${cur}"]`);
+  if (row) row.scrollIntoView({block:"nearest", behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto":"smooth"});
+  renderChart();
+}
+
+/* ================================================================= controls */
+const CTRLS = [
+  {k:"ncyc",  lab:"pulses",  min:1, max:16, step:1,  unit:"", cyc:v=>`${v} +/− pair${v>1?"s":""}`},
+  {k:"drive", lab:"t_drive", min:10,max:500,step:10, unit:"ns",cyc:v=>`${nsCyc(v)} cyc`},
+  {k:"dead",  lab:"t_dead",  min:10,max:200,step:10, unit:"ns",cyc:v=>`${nsCyc(v)} cyc`},
+  {k:"settle",lab:"t_settle",min:4, max:40, step:.5, unit:"µs",cyc:v=>`${Math.max(SETTLE_MIN,usCyc(v))} cyc · floor 4.00`},
+  {k:"inhib", lab:"t_inhibit",min:4.5,max:40,step:.5,unit:"µs",cyc:v=>`${Math.max(INHIB_MIN,usCyc(v))} cyc · floor 4.50`},
+  {k:"ring",  lab:"t_ring",  min:0, max:50, step:.5, unit:"µs",cyc:v=>`${usCyc(v)} cyc blanking`},
+  {k:"depth", lab:"depth",   min:2, max:40, step:1,  unit:"cm",cyc:v=>`sets seq_len and t_rx`},
+  {k:"dly",   lab:"seq_dly", min:0, max:200,step:5,  unit:"µs",cyc:v=>`${usCyc(v)} cyc range offset`},
+  {k:"gap",   lab:"seq_gap", min:0, max:400,step:10, unit:"µs",cyc:v=>`${usCyc(v)} cyc damp`}
+];
+function renderCtrls(){
+  document.getElementById("ctrls").innerHTML = CTRLS.map(c=>`
+    <div class="ctrl">
+      <label class="lab" for="c-${c.k}"><em>${c.lab}</em><b id="v-${c.k}"></b></label>
+      <input type="range" id="c-${c.k}" min="${c.min}" max="${c.max}" step="${c.step}" value="${P[c.k]}">
+      <span class="cyc" id="y-${c.k}"></span>
+    </div>`).join("");
+  CTRLS.forEach(c=>{
+    const el = document.getElementById("c-"+c.k);
+    el.addEventListener("input", ()=>{ P[c.k] = +el.value; update(); });
+  });
+}
+function renderReadouts(){
+  CTRLS.forEach(c=>{
+    document.getElementById("v-"+c.k).textContent =
+      (c.step<1 ? P[c.k].toFixed(1) : P[c.k]) + (c.unit?" "+c.unit:"");
+    document.getElementById("y-"+c.k).textContent = c.cyc(P[c.k]);
+  });
+  const rows = [
+    ["centre freq", (D.f0/1e6).toFixed(2)+" MHz"],
+    ["burst length", fmt(D.burstUs)],
+    ["capture window", `${D.winWords} words · ${fmt(D.winUs)}`],
+    ["imaged range", D.rangeCm.toFixed(1)+" cm"],
+    ["pulser rx window", fmt(D.rxWinUs)],
+    ["element period", fmt(D.periodUs)],
+    ["PRF", (D.prfKHz).toFixed(2)+" kHz"],
+    ["frame · 48 elem", D.frameMs.toFixed(2)+" ms · "+D.fps.toFixed(0)+" fps"],
+    ["bus rate", D.mbps.toFixed(1)+" MB/s"]
+  ];
+  document.getElementById("derived").innerHTML =
+    `<div class="eyebrow" style="margin-bottom:2px">Derived</div>` +
+    rows.map(([a,b])=>`<div class="drow"><span>${a}</span><b>${b}</b></div>`).join("");
+
+  const wb = document.getElementById("warnbox");
+  const msgs = [];
+  if (D.waitrxUs < 0) msgs.push(
+    `t_inhibit + the 6.4 µs chain shift (${fmt(D.inhibUs+SHIFT_US)}) no longer fit inside the receive window ` +
+    `(${fmt(D.rxWinUs)}). S_WAITRX collapses to zero and the element period is set by the shift, not by the echo.`);
+  if (P.dly + D.winUs + P.gap > D.rxWinUs) msgs.push(
+    `The acquisition window no longer fits inside the pulser's t_rx: bursts would arrive while SRC_SEQ is still ` +
+    `draining, and only every Nth would be captured.`);
+  wb.className = "warnbox" + (msgs.length ? " on" : "");
+  wb.textContent = msgs.join("  ");
+
+  document.getElementById("facts").innerHTML = [
+    ["100 MHz","sequencer clock"], ["40 MSPS","12-bit AFE5804"], ["48","aperture elements"],
+    [(D.f0/1e6).toFixed(2)+" MHz","burst centre"], [fmt(D.periodUs).replace(" ",""),"per element"],
+    [D.fps.toFixed(0)+" fps","full aperture"]
+  ].map(([a,b])=>`<div class="fact"><b>${a}</b><span>${b}</span></div>`).join("");
+
+  document.getElementById("chartcap").textContent =
+    `One element period: ${fmt(D.periodUs)} from HV edge to HV edge, ${D.periodUs>0?(48*D.periodUs/1000).toFixed(2):0} ms ` +
+    `for all 48. The burst is ${fmt(D.burstUs)} — about ${(D.burstUs/D.periodUs*100).toFixed(2)}% of the period — so ` +
+    `it is drawn at a minimum width here and to scale in the zoom below. Click any band to move the playhead.`;
+  document.getElementById("fw").textContent = D.winWords;
+}
+
+/* ================================================================= static content */
+const PIPE_TX = [
+  ["Host","FT601 control pipe","pulser_ctrl.py","mux",
+   "Opcodes 0x10–0x1A: burst shape, the inter-stage waits, the element list, arm/stop. They are config registers only — the sequencer runs on its own timebase and is not gated by streaming, so pulser commands never disturb a capture."],
+  ["ctrl_decode","32-bit command words","ctrl_decode.v","mux",
+   "Decodes the host command stream out of the RX FIFO into registers, and hosts the SRC_SEQ receive FSM. Same clk_in domain as the sequencer, so there is no CDC between control and transmit."],
+  ["tx_sequencer","16-state FSM","tx_sequencer.v","pos",
+   "Owns the timebase and every pin that can move HV. Enforces the electrical rules: one signal changes per transition, polarity always via idle, LE high for all 64 clocks, OE raised once per arm."],
+  ["MAX14866 tree","root + 3 leaf muxes","64-bit chain","mux",
+   "Four devices daisy-chained. One root switch (SW5/SW7/SW11) selects a branch, one leaf switch selects the channel. mux_code() maps aperture position → (branch, channel); the connector wiring is scrambled and this table is the only place that is described."],
+  ["MD1213 / TC6320","bipolar HV driver","pulse_ina/inb/oe","pos",
+   "ina active high drives +HV, inb active low drives −HV. Idle is ina=0, inb=1. The board carries a discrete gate-level interlock as well as the one in the FPGA fabric; neither substitutes for the other."],
+  ["Element","1 of 48","probe","pos",
+   "Exactly one element is connected to the pulser at a time. Two closed root channels would short two branch buses; two closed leaf channels would put two elements in parallel across the pulser. Both are checked before the word can reach a latch."]
+];
+const PIPE_RX = [
+  ["AFE5804","LVDS serial","240 MHz LCLK","rx",
+   "40 MSPS, 12 bits, serialised at 480 Mbps on OUT1 with a 40 MHz frame clock alongside it. VCA gain follows VCNTRL from the DAC7554 ramp — that is the TGC control."],
+  ["afe_rx","ISERDESE2 ×2","afe_rx.v","rx",
+   "BUFIO gives the 240 MHz bit clock, BUFR÷3 the 80 MHz CLKDIV. DDR ×6 deserialisation, IDELAYE2 taps on both lanes for the eye scan. FCLK high half is the first 6 bits, low half the last — two CLKDIV cycles assemble one 12-bit sample."],
+  ["afe_stream","tag + pack","afe_stream.v","rx",
+   "Adds a 4-bit rolling sequence tag per sample and packs two samples into one 32-bit word, older sample in the low half. An async FIFO (1024 deep ≈ 51 µs of slack) crosses from the 80 MHz sample domain to clk_in."],
+  ["SRC_SEQ","5-state FSM","ctrl_decode.v","rx",
+   "Waits for tx_sync, latches the element id, delays seq_dly, emits the header, then captures seq_len words while the TGC ramps. No burst means no frame — the stream goes quiet rather than showing free-running noise."],
+  ["TX FIFO","2048 × 32","BRAM, clk_ft","idle",
+   "Deep buffer so the 100 MHz side can run ahead of the bus. Sequencer frames bypass the word limit: a frame is never cut short."],
+  ["Host","FT601 fast pipe","tfm_gl_host.py","mux",
+   "Finds frames by testing (word >> 22) == 0x384, then beamforms. ~300 MB/s gapless on this link."]
+];
+function renderPipes(){
+  const chev = `<span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l5 5-5 5"/></svg></span>`;
+  const draw = (arr, id) => document.getElementById(id).innerHTML = arr.map((s,i)=>
+    `<button class="stage ${s[3]==="pos"?"tx-tint":s[3]==="rx"?"rx-tint":"mux-tint"}" data-note="${esc(s[4])}" aria-pressed="false">
+       <span class="nm">${s[0]}</span><span class="sub">${s[1]}</span><span class="src">${s[2]}</span>
+     </button>` + (i<arr.length-1?chev:"")).join("");
+  draw(PIPE_TX,"pipe-tx"); draw(PIPE_RX,"pipe-rx");
+  document.querySelectorAll(".stage").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll(".stage").forEach(o=>o.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    const n = document.getElementById("stage-note");
+    n.textContent = b.dataset.note;
+    n.style.borderLeftColor = getComputedStyle(b).color;
+  }));
+}
+
+const TX_FSM = [
+  ["S_RST","200 ns","CLR asserted, every switch open, driver parked at ina=0 / inb=1, OE low. Entered at power-up, on reset, and whenever arm goes away — a clean disarm, not a latched fault."],
+  ["S_SELFT","6.4 µs","Shift 64 zeros out and read 64 back. LE never pulses here, so the switches stay open whatever the result. After POR the chain registers are zero, so this is a free confirmation that all four parts are alive."],
+  ["S_ARMW","until arm","Parked, waiting for arm. ctrl_decode resets pls_arm to 1, so this passes straight through on a cold boot."],
+  ["S_OEW","1 ms","OE raised once — never per pulse — then wait for the 10 nF gate coupling caps to settle (τ 100–500 µs)."],
+  ["S_READY","until start","Armed and idle. list_ptr forced to 0 and given a cycle to land, so the chain word is guaranteed to describe element 0 before the first shift is issued."],
+  ["S_SHIFT","6.4 µs","64 bits at 10 MHz for the next element. LE stays high. Overlaps the previous receive window."],
+  ["S_WAITRX","remainder","Wait out the rest of the previous receive window. Also the drain path at the end of a non-continuous frame."],
+  ["S_TCS","20 ns","t_CS guard from the last chain clock edge to LE falling."],
+  ["S_LATCH","50 ns","LE low. The switches move here and element_current updates."],
+  ["S_SETTLE","≥ 4 µs","t_ON / t_OFF. Analog node quiet at ground; nothing else may happen."],
+  ["S_FIRE_P","t_drive","ina 0→1: idle → +HV. tx_sync pulses on entry to the first one."],
+  ["S_DEAD_A","t_dead","ina 1→0: +HV → idle."],
+  ["S_FIRE_N","t_drive","inb 1→0: idle → −HV."],
+  ["S_DEAD_B","t_dead","inb 0→1: −HV → idle. Then either the next cycle, or load rx_tmr and go to S_INHIBIT."],
+  ["S_INHIBIT","≥ 4.5 µs","MAX14866 SPI lockout after HV. Frame counter increments here on the last element."],
+  ["S_FAULT","until cleared","CLR held, OE dropped, driver parked. The shift register keeps its contents, so recovery needs one LE pulse and no reload."]
+];
+const RX_FSM = [
+  ["S_DAMP","seq_gap","TGC code back at its start value, VCNTRL step ringing out. Entered on reset and after every completed frame."],
+  ["S_ARMED","until tx_sync","Waiting for a real HV burst. tx_elem is latched on the tx_sync edge as this frame's element id."],
+  ["S_DLY","seq_dly","Range offset, counted from the first HV edge."],
+  ["S_HDR","1 word","Header accepted by the TX FIFO. The window opens on that write, so FIFO backpressure delays the range gate too."],
+  ["S_RX","seq_len words","Capture, one word per two samples, TGC ramping across the window. On the last word: frame_cnt++, TGC snaps to min, seq_gap loaded."]
+];
+const FAULTS = [
+  ["1","FC_ELEMENT","Element index out of range, or the chain word is not one-hot per device — checked before the word can reach a latch."],
+  ["2","FC_CHAIN","mux_dout loopback mismatch. Disabled by CHAIN_CHECK=0 while DOUT is unconnected."],
+  ["3","FC_WATCHDOG","A transmit state exceeded 200 ms."],
+  ["4","FC_SHOOT","The interlock saw ina & ~inb. Should be impossible; latched if it ever happens."]
+];
+const RULES = [
+  ["interlock","ina & ~inb is shoot-through. An unconditional LUT between the output registers and the pins blocks it and cannot be bypassed by the FSM. Only one of the two ever changes per clock edge, so the LUT cannot glitch on its own."],
+  ["settle floor","Below 4.00 µs the switches have not finished moving when HV arrives and the analog node is not at ground. The clamp lives in the sequencer, not the host: a bad value over USB must not be able to break the part."],
+  ["inhibit floor","Below 4.50 µs the MAX14866 transmit detector is still inhibiting SPI — chain writes are discarded with no error and the next shot fires into a stale element. Silent failure, hence a hard floor."],
+  ["one element","One root switch and one leaf switch closed, ever. Two roots short two branch buses together; two leaves put two elements in parallel across the pulser."],
+  ["oe is an arm","pulse_oe is raised once per arm and gated by arm & ~fault & ~shoot_through — it is never toggled per pulse."],
+  ["known origin","Slaving the receive side to tx_sync is what makes every window have a known time origin and a known element. The cost is that a stopped or faulted pulser produces no data at all."]
+];
+function renderTables(){
+  document.getElementById("tx-fsm").innerHTML = TX_FSM.map(r=>
+    `<tr><td class="st">${r[0]}</td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  document.getElementById("rx-fsm").innerHTML = RX_FSM.map(r=>
+    `<tr><td class="st">${r[0]}</td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  document.getElementById("faults").innerHTML = FAULTS.map(r=>
+    `<tr><td class="num">${r[0]}</td><td class="st">${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  document.getElementById("rules").innerHTML = RULES.map(r=>
+    `<li><span class="k">${r[0]}</span><span>${r[1]}</span></li>`).join("");
+  document.getElementById("legend").innerHTML = [
+    ["pos","transmit / HV"],["mux","mux chain"],["neg","settle & pulser window"],
+    ["rx","receive / acquisition"],["idle","waiting"]
+  ].map(([t,l])=>`<span class="lg"><span class="sw" style="background:var(--${t}-f); border-color:var(--${t})"></span>${l}</span>`).join("");
+  document.getElementById("foot").textContent =
+    "Generated from tx_sequencer.v · ctrl_decode.v · afe_rx.v · afe_stream.v · alchitry_top.v · host/pulser_ctrl.py · host/tfm_gl_host.py";
+}
+
+/* ================================================================= driver */
+function update(){
+  D = derive();
+  SEG = segments(D);
+  const keep = STEPS ? STEPS[cur] && STEPS[cur].id : null;
+  STEPS = buildSteps();
+  if (keep){ const i = STEPS.findIndex(s=>s.id===keep); cur = i<0?0:i; }
+  renderReadouts(); renderChart(); renderZoom(); renderLedger();
+  const s = STEPS[cur];
+  document.getElementById("stepnow").textContent =
+    `${String(cur+1).padStart(2,"0")}/${STEPS.length}  ·  ${s.lane} ${shortName(s.st)}  ·  t = ${fmt(s.t0)}`;
+}
+function togglePlay(){
+  const b = document.getElementById("play");
+  if (timer){ clearInterval(timer); timer = null; b.textContent = "▶ Walk the sequence"; return; }
+  b.textContent = "❙❙ Pause";
+  timer = setInterval(()=>setStep(cur+1), 1900);
+}
+renderCtrls(); renderPipes(); renderTables(); update();
+document.getElementById("play").addEventListener("click", togglePlay);
+document.getElementById("next").addEventListener("click", ()=>setStep(cur+1));
+document.getElementById("prev").addEventListener("click", ()=>setStep(cur-1));
+addEventListener("keydown", e=>{
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight"){ setStep(cur+1); e.preventDefault(); }
+  if (e.key === "ArrowLeft"){ setStep(cur-1); e.preventDefault(); }
+});
+</script>

@@ -2,6 +2,8 @@
 #   python tfm_gl_host.py            -> live GPU TFM B-mode with calipers
 #   python tfm_gl_host.py signed     -> treat samples as 12-bit two's complement
 #   python tfm_gl_host.py sim        -> no hardware; synthetic phantom (UI testing)
+#   python tfm_gl_host.py flip       -> start with the array mirrored L/R
+#                                       (also a checkbox; see ELEM_UNIFORM_FLIP)
 #
 # Same acquisition path as tfm_host.py (SRC_SEQ: the FPGA fires elements 0..N-1
 # in turn and streams back one TGC-ramped receive window per fire, tagged with
@@ -53,8 +55,10 @@
 # live one - zoom, sound speed, dynamic range, gain, calipers and CAPTURE all
 # work on the past exactly as they do on the present.
 #
-# Geometry: convex array, 60 mm radius, 0.5 mm pitch, apex at (0, 0), elements
-# pointing radially outward; monostatic (tx == rx), i.e. classic SAFT.
+# Geometry: CH6-2 convex array, 67.5 mm radius, 0.3375 mm pitch, apex at (0, 0),
+# elements pointing radially outward; monostatic (tx == rx), i.e. classic SAFT.
+# We drive the CENTRE 48 of the probe's 192 elements, so the sub-aperture stays
+# symmetric about x = 0 and _th below needs no offset term.
 #
 # ---------------------------------------------------------------------------
 # WIRE FORMAT NOTE (N_ELEM = 48)
@@ -67,8 +71,29 @@
 # sides are derived from ELEM_BITS below - set it back to 5 and this file
 # reproduces the old 32-element contract exactly.
 #
-# The element id is the one the TRANSMIT sequencer really had closed in the mux
-# tree (tx_elem, latched at tx_sync), not a free-running receive counter.
+# ---------------------------------------------------------------------------
+# ELEMENT ID CONTRACT
+# ---------------------------------------------------------------------------
+# The id in the header is the one the TRANSMIT sequencer really had closed in
+# the mux tree (tx_elem, latched at tx_sync), not a free-running receive
+# counter, and it is an APERTURE POSITION: one end of the probe is 0 and the
+# other is N_ELEM-1.  So it indexes the element geometry directly - header id i
+# is the element at row i of elem_uniform() - and a sweep arrives with the id
+# ascending 0..N_ELEM-1, which is what batch() splits cine snapshots on.
+#
+# The probe's 48 elements are NOT wired to the mux tree in array order (the
+# connector scrambles them across the three leaf muxes, and within each mux the
+# NO pins are out of order too).  That permutation lives entirely in
+# tx_sequencer.v's mux_code() table, which is applied on the FPGA between the
+# element list and the chain word.  Nothing on this side needs to know it: keep
+# the two in step by leaving positions here and hardware addresses there.
+#
+# WHICH end is 0 is the one thing the table cannot settle - see the "flip L/R"
+# toggle at ELEM_UNIFORM_FLIP below.
+#
+# All 48 elements transmit through the shared HV driver and receive through the
+# same single AFE channel, so the receive path is identical for every one of
+# them - only the mux tree moves between shots.
 import ctypes as C, sys, time, threading, os, struct, collections
 import numpy as np
 import moderngl
@@ -79,8 +104,18 @@ from PySide6.QtGui import (QSurfaceFormat, QImage, QPixmap, QPainter, QPen,
                            QShortcut, QKeySequence)
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QSlider, QPushButton,
                                QCheckBox, QHBoxLayout, QVBoxLayout, QScrollArea,
-                               QFrame, QDialog, QFileDialog, QSizePolicy)
+                               QFrame, QDialog, QFileDialog, QSizePolicy,
+                               QLineEdit)
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
+
+# PulserCtl is UI-agnostic - it only wants (send_cmd, cmd) - so the transmit
+# settings are shared with tfm_host.py verbatim.  build_pulser_panel is NOT:
+# it is Tk, and this host is Qt, so the panel is rebuilt below in _pulser_row().
+# HELP is the same tooltip text either way, which is the part worth not forking.
+from pulser_ctrl import (PulserCtl, HELP as PLS_HELP, N_ELEM_MAX,
+                         T_SETTLE_MIN_US, T_INHIBIT_MIN_US,
+                         ns_to_cyc as pls_ns_to_cyc,
+                         us_to_cyc as pls_us_to_cyc)
 
 #===============================================================================
 # constants shared with the FPGA
@@ -94,6 +129,7 @@ OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
+OP_PLS_TRX = 0x17           # pulser's OWN receive window, clk cycles
 SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
 FS_HZ  = 40_000_000         # AFE5804 sample rate
@@ -107,9 +143,158 @@ assert N_ELEM <= 1 << ELEM_BITS
 
 C_DEF    = 1540.0           # m/s, soft tissue
 
-PROBE_R_MM   = 60.0         # convex radius of curvature
-PITCH_MM     = 0.5          # element pitch along the arc
+# CH6-2, derived from the probe face rather than a datasheet: the rubber
+# measures 62.32 mm end to end in a straight line (chord c) with the apex
+# 7.62 mm proud of the ends (sagitta s), so
+#     R   = (c^2/4 + s^2) / 2s              = 67.52 mm
+#     arc = 2R * asin(c / 2R)               = 64.79 mm  (55.0 deg total)
+#     pitch = arc / 192                     = 0.3375 mm
+# The chord is measured over the rubber, which overhangs the active elements by
+# a fraction of a mm per side, so R is biased slightly high and pitch slightly
+# high with it.  Both are within ~1% - well inside what the wire-target
+# calibration can trim out, and far closer than the 60 mm / 0.5 mm that were
+# here before (those put the edge element 3.8 mm out of place).
+PROBE_R_MM   = 67.52        # convex radius of curvature
+PITCH_MM     = 0.3375       # element pitch along the arc
 ACCEPT_DEF   = 30           # element acceptance half-angle, degrees
+
+# --- t0: fixed round-trip offset the delay model does not know about ----------
+# The lens and matching layer are real propagation the beamformer never sees
+# (~1 mm of silicone near 1000 m/s is ~1 us one way, so ~2 us round trip), and
+# the tx-start-to-capture-start offset is only known to the FPGA to a cycle.
+# Both land as one constant added to every path, so one number absorbs them.
+#
+# This is RECONSTRUCTION ONLY - unlike the pulse->rx slider, which commands
+# OP_SEQ_DLY and moves the acquisition window, t0 moves nothing on the FPGA.
+# That is what makes it safe to trim against a wire target: the RF is
+# untouched, so it works while frozen and on replayed cine.
+#
+# Positive t0 = echoes arrive LATER than the geometry predicts, so the sampler
+# is pushed further into the window.  40 MHz sampling is a 25 ns bin and a
+# quarter wavelength at 3.5 MHz is ~70 ns, so 10 ns steps are finer than either.
+T0_NS_DEF, T0_NS_MIN, T0_NS_MAX, T0_NS_STEP = 0.0, -2000, 4000, 10
+# --- apodization --------------------------------------------------------------
+# Tukey fraction: 0 = rect (the old hard-edged behaviour), 1 = full Hann.  One
+# number drives BOTH tapered edges, because the aperture is truncated by two
+# different things depending on depth and neither may be a step:
+#
+#   * shallow: the acceptance cone cuts the aperture, and which elements fall
+#     inside it changes from pixel to pixel.  A binary test makes an element
+#     wink in or out between adjacent pixels, and the sum steps by that whole
+#     element - that is what draws the faint arcs through the near field.
+#   * deep: the cone is wider than the array, so the physical array end is the
+#     truncation.  A rect window there puts the first sidelobe at -13 dB.
+#
+# Monostatic SAFT is unusually exposed to the second one.  A conventional
+# tx-focus/rx-focus machine multiplies two aperture patterns, so a rect window
+# lands near -26 dB two-way; SAFT sums a single aperture at doubled wavenumber,
+# so it keeps the full one-way sidelobe level while it gains the 2x resolution.
+# Sidelobes are the price SAFT pays for that resolution, and they show up as
+# haze filling in anechoic structure.
+#
+# Simulated point target at 40 mm, 3.57 MHz, this array.  "clutter" is energy
+# beyond 2x the main lobe, i.e. the haze; "loss" is the signal the taper costs:
+#
+#     apod    FWHM    clutter    loss
+#       0%   0.68mm   -12.5dB   -0.4dB     <- rect, clutter swamps a 50 dB view
+#      50%   0.86mm   -23.6dB   -2.7dB
+#      70%   0.96mm   -35.7dB   -3.9dB     <- the knee
+#      80%   1.01mm   -41.4dB   -4.6dB
+#     100%   1.09mm   -46.6dB   -6.2dB     <- full Hann, 60% wider main lobe
+#
+# 70% is the default: 23 dB of clutter for 41% of the main lobe, and past ~80%
+# the curve flattens while the signal keeps draining away.  It IS a real 3.9 dB
+# of SNR, so on deep or weak targets back it off - hence the slider.
+APOD_DEF = 0.7
+
+# --- coherence factor ---------------------------------------------------------
+# Apodization is the only clutter control a plain delay-and-sum beamformer has,
+# and its knee is around -36 dB (the table above).  The coherence factor is the
+# cheap way past that: instead of asking how much energy summed at a pixel, it
+# asks how much of that energy was actually IN PHASE across the aperture, and
+# scales the pixel by the answer.
+#
+#     CF = |sum w_i s_i|^2 / ( (sum w_i) * (sum w_i |s_i|^2) )
+#
+# Both sums carry the same apodization weights, so a perfectly coherent pixel -
+# every element agreeing - gives CF = 1 whatever the taper is, and Cauchy-
+# Schwarz bounds CF to [0, 1].  Fully incoherent contributions give
+# sum(w^2)/(sum w)^2, i.e. one over the effective element count: about -34 dB
+# across 48 elements, on top of whatever the apodization already bought.
+#
+# CF_DEF is the EXPONENT, not a blend: 0 disables it (the shader multiplies by
+# CF^0 = 1 and nothing changes), 1 is the standard factor, and above 1 is more
+# aggressive - each unit is roughly another 34 dB on fully incoherent energy.
+#
+# It defaults OFF because it changes what the image MEANS, in three ways worth
+# knowing before turning it up:
+#
+#   * brightness stops being proportional to backscatter.  CF is a detection
+#     aid, not a measurement, and full_scale() no longer describes the level
+#     that reaches the screen, so the 'auto' gain reference only holds in the
+#     relative sense.
+#   * speckle is only partially coherent, so tissue speckle darkens along with
+#     the clutter.  The image looks cleaner and loses texture that speckle
+#     carries; that is a real trade, not a free win.
+#   * it is unforgiving of per-element phase error.  Residual geometry error or
+#     capture-start jitter lands on the TARGET as well as on the clutter around
+#     it, so CF suppresses a defocused point target too.
+#
+# That last one makes it an instrument as well as a filter: if turning CF up
+# dims the wire rather than the arc around it, the aperture is not yet in phase
+# and the geometry is worth another pass.  Swept against pitch with CF at 1, the
+# peak is far sharper than the envelope alone.
+CF_DEF = 0.0
+
+# --- receive bandpass ---------------------------------------------------------
+# The Hilbert mask has to zero the negative half of the spectrum anyway, so
+# shaping a passband into the same array is free: one extra multiply on a
+# spectrum that is already in hand, no second FFT.  Without it the envelope
+# carries the AFE's noise across the whole 0-20 MHz Nyquist span while the echo
+# only ever occupies the probe's band, and every hertz of the difference is
+# pure noise power - keeping B of the 20 MHz throws away 10*log10(20/B) dB of
+# it.  4.0 +/- 2.5 MHz is 6.0 dB for nothing, on a CH6-2 whose two-way response
+# is inside 2-6 MHz to begin with.
+#
+# It only pays where the image is NOISE-limited, which is the deep end.  The
+# near field is clutter-limited - real echoes in the right band - and will not
+# move, which is also how you tell the two apart: if the far field cleans up and
+# the near field does not, the deep haze was electronic.
+#
+# The skirts are raised cosines rather than a brick wall, and that is not
+# cosmetic.  A hard spectral edge rings in time, and time-domain ringing on a
+# monostatic reconstruction back-projects along the isochrone as exactly the
+# arcs the filter is here to reduce.  BAND_TAPER is the fraction of the
+# passband spent on the two skirts together.
+#
+# Range resolution is c/2B, so the passband is also a resolution floor: 5 MHz
+# is 0.15 mm, well inside the ~0.4 mm the two-cycle pulse already gives, but
+# narrowing much past ~2 MHz starts costing real axial detail.  Centre it on
+# the pulser's f0 (the readout in the transmit row) rather than on 4 MHz if you
+# move the drive frequency far.
+BAND_ON_DEF = True
+BAND_F0_DEF, BAND_BW_DEF = 4.0, 5.0     # MHz, centre and full width
+BAND_TAPER = 0.35                       # of the width, split over both skirts
+
+# --- sweep averaging ----------------------------------------------------------
+# Coherent (pre-Hilbert) boxcar over the last M sweeps.  The echo repeats sweep
+# to sweep and the noise does not, so the mean gains sqrt(M) on anything
+# uncorrelated: M = 8 is 9 dB, the biggest single lever on the deep noise floor
+# short of dropping f0.
+#
+# COHERENT is the whole point.  Averaging magnitudes after the beamformer only
+# smooths speckle - by then the noise has been rectified into a positive bias,
+# and no amount of averaging removes a bias.  Averaging the RF while it still
+# has a sign lets the noise cancel against itself.
+#
+# The cost is motion.  M sweeps at ~130 sweeps/s is M * 7.7 ms of integration,
+# so 8 is ~60 ms and anything moving inside that window smears.  Phantoms and
+# static tissue take M as high as it goes; anything pulsatile wants 1-4.
+#
+# The far dBFS meter reads the AVERAGED data, which makes it a direct readout
+# of how much of the deep signal was noise: step M from 1 to 8 and a
+# noise-dominated far field drops ~9 dB while real tissue barely moves.
+AVG_DEF, AVG_MAX = 1, 16
 
 DEPTH_CM_DEF = 8            # ~104 us window
 DLY_US_DEF   = 5            # pulse -> receive settling
@@ -119,14 +304,87 @@ DYN_DEF, GAIN_DEF = 50, 0
 
 ZOOM_MIN, ZOOM_MAX = 1.0, 24.0
 
-CINE_SECONDS = 20.0         # how far back the loop reaches
-CINE_MB      = 1024         # ...and the ceiling on what that is allowed to cost
+# The ring is bounded by BOTH of these, so raising the seconds alone does
+# nothing once the byte ceiling binds - it just silently keeps fewer seconds.
+# Cost is ~47 MB/s at 8 cm and rises with depth (the window grows faster than
+# the frame rate falls), so 40 s needs:
+#
+#      4 cm  1.3 GB      16 cm  2.4 GB      40 cm  2.8 GB
+#      8 cm  1.9 GB      30 cm  2.7 GB
+#
+# 2 GB buys the full 40 s out to ~10 cm - which covers the default 8 cm working
+# depth - and clamps to ~29 s at 16 cm and ~17 s at 40 cm rather than failing.
+# Raise CINE_MB if you want the deep end too; the readout reports what is
+# actually held, so a short loop at depth is visible rather than silent.
+CINE_SECONDS = 40.0         # how far back the loop reaches
+CINE_MB      = 2048         # ...and the ceiling on what that is allowed to cost
 SPEED_MIN, SPEED_MAX, SPEED_DEF = 0.1, 4.0, 1.0     # replay rate vs acquisition
 
 # |sum of N analytic signals| if every element were rail-to-rail (the Hilbert
 # mask doubles the positive spectrum, hence the 2x).  Used as the reference
 # when auto-gain is off, so brightness is absolute instead of per-frame.
-FULL_SCALE = float(N_ELEM * 2048 * 2)
+#
+# Apodization removes signal, so the reference has to shrink with it or the
+# image just dims when you move the slider and "absolute" stops meaning
+# anything.  A Tukey(a) tapers a fraction `a` of the aperture with a half-Hann
+# of mean 0.5, so its own mean is (1 - a) + a/2 = 1 - a/2.  Only the index
+# window is accounted for here: the angular taper depends on the pixel, and at
+# any depth worth calibrating against the cone is wider than the array and it
+# is flat at 1.0 anyway.
+def full_scale(apod=None):
+    a = APOD_DEF if apod is None else apod
+    return float(n_alive() * 2048 * 2) * (1.0 - 0.5 * a)
+
+# --- dead elements ------------------------------------------------------------
+# Elements that receive nothing (open probe element, connector pin, or joint).
+# They contribute only noise, so summing them costs SNR and drags the level
+# meters, and their geometry is still perfectly good - so this is a RENDER-TIME
+# mask, not a change to the acquisition:
+#
+#   * the FPGA keeps firing them.  Dropping them from the element list would
+#     shorten the sweep and change the frame timing, and a "dead" element that
+#     is really a discarded mux write (see t_inhibit) would then never get the
+#     chance to come back.
+#   * raw_buf and the cine recording keep their real data, so a recording made
+#     now is still honest if the list turns out to be wrong.
+#   * the mask indexes APERTURE POSITION, i.e. the header id and the RF texture
+#     row.  That is the physical element, so it is NOT affected by "flip L/R" -
+#     flip mirrors the geometry against the rows, it does not renumber them.
+#
+# Override on the command line:  python tfm_gl_host.py dead=1,3,4,23,25,46
+# or edit the box in the control row while running.
+DEAD_DEF = "1,3,4,23,25,46"
+
+def parse_dead(s):
+    """Accept '1,3, 4' / '1 3 4' / empty.  Silently drops anything out of range
+    so a typo in the box cannot take the window down."""
+    out = set()
+    for tok in str(s).replace(",", " ").split():
+        try:
+            v = int(tok)
+        except ValueError:
+            continue
+        if 0 <= v < N_ELEM:
+            out.add(v)
+    return out
+
+dead = {"set": set(), "gen": 0}
+
+def n_alive():
+    return max(1, N_ELEM - len(dead["set"]))
+
+def alive_mask():
+    m = np.ones(N_ELEM, dtype=np.float32)
+    d = dead["set"]                 # one read: rebound, never mutated in place
+    if d:
+        m[sorted(d)] = 0.0
+    return m
+
+def set_dead(s):
+    new = parse_dead(s)
+    if new != dead["set"]:
+        dead["set"] = new           # rebind, so readers never see a half-edit
+        dead["gen"] += 1            # makes the GL side re-upload, like geom["gen"]
 
 # --- gated level meters + transmit-artifact background subtraction ------------
 # (same scheme as tfm_host.py - see the comments there for the reasoning)
@@ -179,9 +437,16 @@ def _condition(rf, samps, live):
     replayed sweep gets the same treatment the live view had).  Only live
     frames feed the reference accumulator."""
     g = samps // GATE_NEAR
-    level["near"] = 20.0 * np.log10(float(np.abs(rf[:, :g]).max()) / 2048.0 + 1e-12)
+    # Meter only the elements the beamformer actually uses.  A dead element is
+    # noise with no echo in it, so leaving it in pulls the far RMS down and
+    # makes the tissue reading look worse than the image it produced.  (near is
+    # a max, so it is already immune - kept symmetric so the two always
+    # describe the same set of elements.)
+    d = dead["set"]                 # one read: the UI thread rebinds this
+    m = rf[sorted(set(range(N_ELEM)) - d)] if d else rf
+    level["near"] = 20.0 * np.log10(float(np.abs(m[:, :g]).max()) / 2048.0 + 1e-12)
     level["far"]  = 20.0 * np.log10(
-        float(np.sqrt(np.mean(np.square(rf[:, g:])))) / 2048.0 + 1e-12)
+        float(np.sqrt(np.mean(np.square(m[:, g:])))) / 2048.0 + 1e-12)
     if live and bg["want"] > 0:
         if bg["acc"] is None or bg["acc"].shape != rf.shape:
             bg["acc"] = np.zeros_like(rf)
@@ -195,15 +460,51 @@ def _condition(rf, samps, live):
         rf = rf - _aligned_bg(rf, bg["ref"], g)
     return rf
 
-# element positions/normals, apex of the arc at (0, 0), +z into tissue
-_R  = PROBE_R_MM * 1e-3
-_th = (np.arange(N_ELEM) - (N_ELEM - 1) / 2.0) * (PITCH_MM / PROBE_R_MM)
-EX  = (_R * np.sin(_th)).astype(np.float32)              # lateral, m
-EZ  = (_R * (np.cos(_th) - 1.0)).astype(np.float32)      # <= 0: edges curve back
-ENX = np.sin(_th).astype(np.float32)                     # outward normals
-ENZ = np.cos(_th).astype(np.float32)
-ELEM_UNIFORM = np.stack([EX, EZ, ENX, ENZ], axis=1).astype(np.float32)   # (N, 4)
-APERTURE_MM  = (N_ELEM - 1) * PITCH_MM
+# --- element positions/normals ------------------------------------------------
+# Apex of the arc at (0, 0), +z into tissue.  R and pitch are live rather than
+# frozen at import: both are measured off the probe face to ~1%, and 1% of
+# pitch is half a wavelength of round-trip error at the aperture edge, which is
+# exactly the sort of thing you tune by watching a wire target sharpen.  `gen`
+# ticks on every rebuild so the GL side knows to re-upload the uniform.
+geom = {"R_mm": PROBE_R_MM, "pitch_mm": PITCH_MM, "gen": 0}
+
+ELEM_UNIFORM = ELEM_UNIFORM_FLIP = None
+APERTURE_MM  = 0.0
+
+def rebuild_geometry():
+    global ELEM_UNIFORM, ELEM_UNIFORM_FLIP, APERTURE_MM
+    R   = geom["R_mm"] * 1e-3
+    _th = ((np.arange(N_ELEM) - (N_ELEM - 1) / 2.0)
+           * (geom["pitch_mm"] / geom["R_mm"]))
+    ex  = (R * np.sin(_th)).astype(np.float32)           # lateral, m
+    ez  = (R * (np.cos(_th) - 1.0)).astype(np.float32)   # <= 0: edges curve back
+    enx = np.sin(_th).astype(np.float32)                 # outward normals
+    enz = np.cos(_th).astype(np.float32)
+    ELEM_UNIFORM = np.stack([ex, ez, enx, enz], axis=1).astype(np.float32)  # (N,4)
+    # see the array-direction note below: reversing the rows is an exact mirror
+    ELEM_UNIFORM_FLIP = np.ascontiguousarray(ELEM_UNIFORM[::-1])
+    APERTURE_MM = (N_ELEM - 1) * geom["pitch_mm"]
+    geom["gen"] += 1
+
+# --- array direction ----------------------------------------------------------
+# Which end of the probe the FPGA calls position 0.  tx_sequencer.v's mux_code()
+# table was written from a connector drawing, so the aperture order is trusted
+# but its DIRECTION is not: if the drawing was read from the far side, the whole
+# image comes back mirrored about x = 0 and nothing else looks wrong.
+#
+# _th is symmetric about zero, so EX[N-1-i] == -EX[i], ENX[N-1-i] == -ENX[i] and
+# EZ / ENZ are unchanged under the reversal.  Reversing the rows is therefore
+# EXACTLY a mirror of the array - no resampling, no approximation - and doing it
+# here rather than on the ingest path leaves the wire ids ascending 0..N-1,
+# which is what batch() splits sweeps on.  Flipping the ids instead would make
+# every sample look like a sweep boundary.  (The reversal lives in
+# rebuild_geometry above, since it has to be redone whenever R or pitch moves.)
+rebuild_geometry()
+
+flip = {"on": False}            # True = position 0 is the RIGHT-hand element
+
+def elem_uniform():
+    return ELEM_UNIFORM_FLIP if flip["on"] else ELEM_UNIFORM
 
 ML, MR, MT, MB = 58, 18, 26, 36     # image margins on screen (axis gutters), px
 CAP_SCALE  = 2                      # capture render scale vs on-screen image
@@ -212,10 +513,14 @@ THUMB_H    = 92
 BG, PLOT_BG, FRAME_C = "#101418", "#0a0e12", "#33505f"
 FG, DIM, OK_C, WARN_C = "#9ab", "#5c7080", "#77ff88", "#ffaa55"
 MEAS_C, MEAS_HOT = "#ffd24a", "#ff8c3a"
+MLINE_C = "#4dffd2"         # M-line: deliberately not caliper yellow
 
 argv = [a.lower() for a in sys.argv[1:]]
 mode = {"signed": any(a.startswith("sig") for a in argv)}
 FORCE_SIM = any(a.startswith("sim") for a in argv)
+flip["on"] = any(a.startswith("flip") for a in argv)    # startup array direction
+set_dead(next((a.split("=", 1)[1] for a in argv if a.startswith("dead=")),
+              DEAD_DEF))                                # dead=  (empty) uses none
 
 #===============================================================================
 # window sizing / view state
@@ -233,8 +538,21 @@ set_cfg(depth_to_words(DEPTH_CM_DEF))
 
 # live UI state read by the render thread / shader uniforms
 state = {"c": C_DEF, "dly_us": float(DLY_US_DEF), "accept": float(ACCEPT_DEF),
+         "apod": float(APOD_DEF), "cf": float(CF_DEF), "t0_ns": float(T0_NS_DEF),
          "dyn": float(DYN_DEF), "gain": float(GAIN_DEF), "auto": True,
-         "frozen": False, "depth_cm": DEPTH_CM_DEF}
+         "frozen": False, "depth_cm": DEPTH_CM_DEF,
+         "band_on": bool(BAND_ON_DEF), "band_f0": float(BAND_F0_DEF),
+         "band_bw": float(BAND_BW_DEF)}
+
+def band_edges():
+    """Receive passband as (lo, hi) in Hz, clamped to the digitiser.  Returning
+    the full (0, FS/2) is what 'bandpass off' looks like downstream, so nothing
+    below has to special-case the checkbox."""
+    if not state["band_on"]:
+        return 0.0, FS_HZ / 2.0
+    half = 0.5 * state["band_bw"] * 1e6
+    return (max(0.0, state["band_f0"] * 1e6 - half),
+            min(FS_HZ / 2.0, state["band_f0"] * 1e6 + half))
 
 # visible window into the scene: zoom factor plus the centre it is about
 view = {"zoom": 1.0, "cx": 0.0, "cz": None}
@@ -297,6 +615,50 @@ def cmd(op, payload=0):
 
 def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
 
+# --- the pulser's receive window must cover ours ------------------------------
+# The transmit sequencer runs on its OWN timebase: it fires the next element
+# t_settle + burst + (t_ring + t_rx) later regardless of what the capture side
+# is doing.  The depth slider only ever resized the CAPTURE window, so the two
+# drifted apart, with two distinct failure modes:
+#
+#   capture cycle (dly + win + gap) > element period
+#       -> the sequencer is still in S_DAMP when the next tx_sync arrives, that
+#          burst is ignored, and the frame rate halves.  Harmless but slow; at
+#          the 8 cm default this was already happening (159 us vs 139 us).
+#
+#   dly + win > element period
+#       -> the capture window is still open when the NEXT element transmits, so
+#          the burst and its ringdown land INSIDE the frame.  It sits at the
+#          same delay in every element's window, which means the beamformer
+#          sums it coherently into bright arcs across the image.  With stock
+#          timing this started at 10.3 cm and got worse with depth: 20 cm swept
+#          in one extra burst, 40 cm three.
+#
+# So size the pulser's t_rx from the capture cycle instead.  The other terms in
+# the element period (t_settle, the burst, t_ring, t_CS, LE) are all positive
+# and add ~9 us of extra margin, so ignoring them here is conservative - and it
+# avoids duplicating the whole FSM timing model in this host, where pulser_ctrl
+# could change those parameters underneath us anyway.
+PLS_RX_MARGIN_US = 10       # slack on top of dly + window + gap
+
+# The transmit settings, shared with tfm_host.py.  t_rx is the one field this
+# host does NOT expose: the panel below has no "rx us" slider, because the rule
+# above owns it and a manual slider would just fight the depth control.
+pulser = PulserCtl(send_cmd, cmd)
+
+def pulser_rx_us(dly_us, gap_us):
+    return cfg["win_us"] + float(dly_us) + float(gap_us) + PLS_RX_MARGIN_US
+
+def send_pls_rx(dly_us, gap_us):
+    """Resize the pulser's receive window to cover ours.
+
+    Routed through PulserCtl rather than sending OP_PLS_TRX straight out, so
+    ctl.t_rx_us stays truthful - element_period_us() and frame_ms() are derived
+    from it, and those drive the pacing warning.  Writing the opcode behind the
+    object's back would leave both reading a stale default.
+    """
+    pulser.set_t_rx_us(pulser_rx_us(dly_us, gap_us))
+
 def send_seq_config(lo, hi, dly_us, gap_us):
     """Push the full sequencer timing/TGC setup for the current window length."""
     inc = max(0, ((hi - lo) * 4096) // cfg["win_words"])
@@ -305,6 +667,7 @@ def send_seq_config(lo, hi, dly_us, gap_us):
     send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us)), "seq_gap")
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
+    send_pls_rx(dly_us, gap_us)
 
 bufs = views = ovs = got = None
 if HW:
@@ -332,7 +695,20 @@ if HW:
     for i in range(NBUF):
         d3.FT_InitializeOverlapped(h, C.byref(ovs[i]))
         queue(i)
+    # Transmit settings last, and arming is the last thing push_all does.  The
+    # pulser owns the timebase - SRC_SEQ is slaved to tx_sync - so no frames can
+    # flow until HV bursts do, and t_rx is already correct because
+    # send_seq_config above ran send_pls_rx into the same PulserCtl.
+    pulser.push_all()
+    print(pulser.summary())
     send_cmd(cmd(OP_START), "start")        # ring armed first, THEN start
+else:
+    # No FPGA, so send_seq_config never ran and PulserCtl still holds the stock
+    # t_rx default rather than one sized to the capture window.  Sync it anyway
+    # (send_cmd is a no-op without hardware) so the derived element period and
+    # the pacing guard describe the same machine the rest of the UI does -
+    # otherwise simulation raises a PACING warning that is purely an artifact.
+    send_pls_rx(DLY_US_DEF, GAP_US_DEF)
 
 #===============================================================================
 # shared state: reader thread <-> render
@@ -341,8 +717,63 @@ buf_lk  = threading.Lock()
 raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)  # full-res windows
 carry   = np.empty(0, dtype=np.uint32)
 
+class RfAverage:
+    """Boxcar mean of the last N sweeps of RAW int16 RF - see AVG_DEF.
+
+    Kept as a running int32 sum with the tail subtracted rather than a mean
+    over a held window, so a push is two passes over one frame instead of N
+    whatever the depth is.  int32 is exact for this: 16 sweeps of int16 peaks
+    at 2^19, nowhere near the type, so the sum never drifts however long the
+    machine runs (a float32 accumulator would not survive an afternoon).
+
+    The divisor is how many sweeps are actually held, not N, so the average
+    ramps in over the first N sweeps instead of showing a dark frame."""
+    def __init__(self):
+        self.lk  = threading.Lock()
+        self.n   = int(AVG_DEF)
+        self.q   = collections.deque()
+        self.sum = None
+
+    def set_n(self, n):
+        # No reset: shrinking just drops the oldest frames on the next push and
+        # growing keeps what it has, so dragging the slider stays continuous.
+        with self.lk:
+            self.n = max(1, min(int(n), AVG_MAX))
+
+    def reset(self):
+        """Discard the history.  Anything that breaks continuity between
+        sweeps - a depth change, or resuming from a freeze onto a scene that
+        may have moved - has to call this or the first frame back is a blend of
+        two different scenes."""
+        with self.lk:
+            self.q.clear()
+            self.sum = None
+
+    def depth(self):
+        with self.lk:
+            return len(self.q)
+
+    def push(self, frame):
+        """int16 (N, samps) -> float32 (N, samps) mean.  `frame` is retained,
+        so it must be a copy the caller will not write again."""
+        with self.lk:
+            if self.n <= 1:
+                self.q.clear(); self.sum = None
+                return frame.astype(np.float32)
+            if self.sum is None or self.sum.shape != frame.shape:
+                self.q.clear()
+                self.sum = np.zeros(frame.shape, dtype=np.int32)
+            self.sum += frame
+            self.q.append(frame)
+            while len(self.q) > self.n:
+                self.sum -= self.q.popleft()
+            return self.sum.astype(np.float32) / len(self.q)
+
+rf_avg = RfAverage()
+
 stats = {"bytes": 0, "win_bytes": 0, "t0": time.perf_counter(), "mbps": 0.0,
          "frames": 0, "win_frames": 0, "fps": 0.0, "drops": 0, "resyncs": 0,
+         "seq_bad": 0, "seq_chk": 0,
          "last_fcnt": None, "alive": True, "dirty": False}
 perf  = {"gpu_ms": 0.0, "cpu_ms": 0.0, "hil_ms": 0.0}
 
@@ -434,6 +865,31 @@ class Cine:
 cine = Cine()
 _prev_elem = -1             # last element id seen, for sweep-boundary detection
 
+def seq_check(raw16):
+    """Look for holes INSIDE a receive window.
+
+    afe_stream.v tags every 12-bit sample with a 4-bit rolling counter in the
+    top nibble, and when the ADC FIFO backs up it drops whole sample pairs
+    SILENTLY (afe_stream.v: `wpush <= !wfull`).  That FIFO is 1024 words deep -
+    about 51 us of slack - while a receive window at 8 cm is ~104 us, so a
+    stall longer than the slack punches a time hole into the middle of a trace.
+
+    The frame still arrives with the right length and the right header, so
+    frame_count stays continuous and 'drops' stays at zero.  The sequence tag
+    is the ONLY evidence.  The signature is distinctive: everything before the
+    hole is at the correct depth, everything after it is shifted, and the shift
+    changes from frame to frame - i.e. flickering dark patches deeper in the
+    window while the surface echo stays put.
+
+    Checked on one frame per USB chunk: near enough free, and a fault happening
+    often enough to see as flicker shows up within a second."""
+    if raw16.shape[0] == 0:
+        return
+    t = (raw16[0] >> 12).astype(np.int16)        # tag counts +1 per SAMPLE
+    d = np.diff(t)
+    stats["seq_bad"] += int(np.count_nonzero((d != 1) & (d != -15)))
+    stats["seq_chk"] += 1
+
 def batch(fr):
     """fr: (m, frame_words) uint32, all rows verified to start with a header."""
     global _prev_elem
@@ -446,7 +902,9 @@ def batch(fr):
     stats["drops"] += int(np.count_nonzero((np.diff(fcnt) & 0xFFFF) != 1))
     stats["last_fcnt"] = int(fcnt[-1])
 
-    u = (np.ascontiguousarray(fr[:, 1:]).view(np.uint16) & 0x0FFF).astype(np.int32)
+    raw16 = np.ascontiguousarray(fr[:, 1:]).view(np.uint16)
+    seq_check(raw16)
+    u = (raw16 & 0x0FFF).astype(np.int32)
     c = np.where(u >= 2048, u - 4096, u) if mode["signed"] else u - 2048
     c = c.astype(np.int16)
     keep = elems < N_ELEM                   # ignore ids the array cannot hold
@@ -529,9 +987,21 @@ def reader():
 
 def sim_reader():
     """Synthetic phantom so the UI can be exercised without the FPGA: a handful
-    of point scatterers plus noise, re-rendered at ~30 sweeps/s."""
+    of point scatterers plus noise, re-rendered at ~30 sweeps/s.
+
+    The scatterers are placed against the array's TRUE geometry - the module
+    constants - not against `geom`, which is what the sliders drag around.
+    Keeping the two apart is the point: mistune R, pitch, c or t0 and the
+    simulated targets smear exactly the way real ones do, so the wire-target
+    calibration can be rehearsed with no probe attached.  Truth here has no
+    lens delay, so t0 is correct at 0.
+    """
     scat = [(0.000, 0.020), (0.010, 0.034), (-0.013, 0.048),
             (0.005, 0.062), (-0.004, 0.013), (0.017, 0.075)]
+    _R  = PROBE_R_MM * 1e-3
+    _th = (np.arange(N_ELEM) - (N_ELEM - 1) / 2.0) * (PITCH_MM / PROBE_R_MM)
+    tx  = (_R * np.sin(_th)).astype(np.float32)
+    tz  = (_R * (np.cos(_th) - 1.0)).astype(np.float32)
     while stats["alive"]:
         with buf_lk:
             samps, c = cfg["samps"], state["c"]
@@ -539,7 +1009,7 @@ def sim_reader():
         a = np.zeros((N_ELEM, samps), np.float32)
         dly_s = state["dly_us"] * 1e-6
         for (sx, sz) in scat:
-            d   = np.hypot(sx - EX, sz - EZ).astype(np.float32)
+            d   = np.hypot(sx - tx, sz - tz).astype(np.float32)
             tof = (2.0 * d / c - dly_s)[:, None]
             dt  = t - tof
             a  += 900.0 * np.exp(-(dt / 2.5e-7) ** 2) * np.cos(2*np.pi*5e6 * dt)
@@ -563,6 +1033,135 @@ def sim_reader():
         time.sleep(1.0 / 30.0)
 
 threading.Thread(target=reader if HW else sim_reader, daemon=True).start()
+
+#===============================================================================
+# M-mode
+#===============================================================================
+# A segment drawn on the B-mode, resampled once per SWEEP and scrolled right to
+# left.  Drawn radially it is classic M-mode; drawn any other way it is a
+# generalised position-vs-time strip, which is the same thing the calipers
+# already let you do spatially.
+#
+# WHY THIS IS ON THE CPU rather than a second GL pass over mag_tex: M-mode is a
+# TIME instrument.  Reading the rendered image back would sample it at the
+# display rate (~60 Hz, and irregular - it stalls when the window is occluded),
+# whereas the acquisition delivers a fresh sweep every 8.5 ms.  Sampling the RF
+# directly gives one column per sweep at the rate the hardware actually
+# produces them, which is both finer and, more importantly, EVENLY SPACED - the
+# audio below is built from the column-to-column difference and would be
+# rubbish if the interval wandered with frame timing.  It also avoids a
+# glReadPixels sync point in a pipeline explicitly built not to have one.
+#
+# The cost is that mline_sample() duplicates the beamformer in numpy.  It is a
+# transcription of the BEAMFORM shader - same delays, same Tukey windows, same
+# acceptance test, same coherence factor - and the two MUST be kept in step or
+# the strip stops describing the image above it.  Any change to the shader's
+# element loop needs the same change here.
+# 256 rows already exceeds the strip's tallest on-screen height, and this runs
+# inside the per-sweep budget alongside the Hilbert transform - going finer buys
+# nothing visible and risks the worker falling behind the acquisition.
+MM_PTS   = 256              # samples along the line (the strip's vertical axis)
+MM_COLS  = 1200             # history depth; at ~117 sweeps/s that is ~10 s
+
+mm_lk = threading.Lock()
+mm = {"buf":  np.zeros((MM_PTS, MM_COLS), np.float32),
+      "t":    np.zeros(MM_COLS, np.float64),   # perf_counter per column
+      "w": 0, "n": 0, "prev": None, "peak": 1e-9}
+
+# Endpoints in metres, like the calipers, so the line stays pinned to the
+# tissue through zoom, pan, resize and depth changes.
+mline = {"on": False, "a": None, "b": None}
+
+# What the synthesiser reads: motion energy, and where along the line it is.
+audio_fb = {"amp": 0.0, "pos": 0.5}
+
+def _ramp(v):
+    """Half-Hann, matching ramp() in the shader."""
+    return 0.5 - 0.5 * np.cos(np.pi * np.clip(v, 0.0, 1.0))
+
+def mline_sample(an, samps, a, b, npts=MM_PTS):
+    """(N, samps, 2) analytic RF -> (npts,) envelope along the segment a..b.
+
+    Transcription of the BEAMFORM fragment shader; see the note above."""
+    E     = elem_uniform()                              # (N,4) x, z, nx, nz
+    alive = alive_mask()                                # (N,)
+    f     = np.linspace(0.0, 1.0, npts, dtype=np.float32)
+    px    = a[0] + (b[0] - a[0]) * f
+    pz    = a[1] + (b[1] - a[1]) * f
+
+    dvx = px[:, None] - E[None, :, 0]                   # (M,N)
+    dvz = pz[:, None] - E[None, :, 1]
+    d   = np.hypot(dvx, dvz)
+    ds  = np.maximum(d, 1e-9)
+
+    # tx == rx: round trip is 2*d, capture starts dly_s after the fire, t0_s is
+    # the lens/electronic offset the geometry cannot see.
+    t    = (2.0 * d / state["c"] + state["t0_ns"] * 1e-9
+            - state["dly_us"] * 1e-6) * FS_HZ
+    cosa = (dvx * E[None, :, 2] + dvz * E[None, :, 3]) / ds
+    cacc = float(np.cos(np.radians(state["accept"])))
+    ok   = ((t >= 0.0) & (t <= samps - 1.0) & (cosa >= cacc) &
+            (alive[None, :] > 0.5))
+
+    ap = max(state["apod"], 1e-4)
+    v  = np.abs(2.0 * (np.arange(N_ELEM, dtype=np.float32) / (N_ELEM - 1.0)) - 1.0)
+    w  = (_ramp((1.0 - v) / ap)[None, :] *
+          _ramp(((cosa - cacc) / max(1.0 - cacc, 1e-6)) / ap))
+    w  = np.where(ok, w, 0.0).astype(np.float32)
+
+    # Fractional-delay tap, the CPU's version of the shader's bilinear fetch.
+    # Flatten to (N*samps, 2) and gather with take(): 2-D fancy indexing on the
+    # (N, samps, 2) array costs ~60% more, and this runs inside the per-sweep
+    # budget so it is worth the extra line.
+    ti   = np.clip(t, 0.0, samps - 2.0)
+    i0   = ti.astype(np.int32)
+    fr   = (ti - i0)[..., None].astype(np.float32)
+    flat = an.reshape(N_ELEM * samps, 2)
+    k    = (np.arange(N_ELEM, dtype=np.int64) * samps + i0).ravel()
+    s    = (flat.take(k, axis=0).reshape(npts, N_ELEM, 2) * (1.0 - fr) +
+            flat.take(k + 1, axis=0).reshape(npts, N_ELEM, 2) * fr)   # (M,N,2)
+
+    acc = np.einsum('mn,mnk->mk', w, s)                 # (M,2) complex sum
+    mag = np.hypot(acc[:, 0], acc[:, 1])
+    if state["cf"] > 0.0:
+        wsum = w.sum(axis=1)
+        psum = (w * (s * s).sum(axis=2)).sum(axis=1)
+        cf   = (acc[:, 0]**2 + acc[:, 1]**2) / np.maximum(wsum * psum, 1e-20)
+        mag  = mag * np.power(np.clip(cf, 0.0, 1.0), state["cf"])
+    return mag.astype(np.float32)
+
+def mm_reset():
+    """Line moved (or depth changed): the history no longer describes one place."""
+    with mm_lk:
+        mm["buf"][:] = 0.0
+        mm["w"], mm["n"], mm["prev"], mm["peak"] = 0, 0, None, 1e-9
+    audio_fb["amp"] = 0.0
+
+def mm_push(col):
+    """One sweep's worth of line, plus the motion feature the audio runs on."""
+    now = time.perf_counter()
+    with mm_lk:
+        i = mm["w"]
+        mm["buf"][:, i] = col
+        mm["t"][i]      = now
+        mm["w"] = (i + 1) % MM_COLS
+        mm["n"] = min(mm["n"] + 1, MM_COLS)
+        prev, mm["prev"] = mm["prev"], col
+        # Slowly-decaying peak: the strip's own auto-gain reference.  Decay so a
+        # single bright transient does not dim the next ten seconds of history.
+        mm["peak"] = max(float(col.max()), mm["peak"] * 0.999)
+
+    if prev is None or prev.shape != col.shape:
+        return
+    # Frame-to-frame change IS the motion: a stationary scatterer subtracts to
+    # zero however bright it is, so the audio responds to movement rather than
+    # to echogenicity.
+    dif = np.abs(col - prev)
+    tot = float(dif.sum())
+    audio_fb["amp"] = float(np.sqrt(np.mean(dif * dif)))
+    if tot > 1e-12:                     # centroid of the motion along the line
+        audio_fb["pos"] = float((dif * np.arange(dif.size)).sum()
+                                / tot / max(dif.size - 1, 1))
 
 def hilbert_worker():
     """The analytic-signal transform is the only CPU-heavy step left (~6 ms for
@@ -597,12 +1196,26 @@ def hilbert_worker():
                 continue
             stats["dirty"] = False
             samps = cfg["samps"]
-            rf = raw_buf.astype(np.float32)
+            rf = raw_buf.copy()         # int16: the averager sums it exactly
+        # Averaging goes here, not in the reader: the copy above is already off
+        # the USB path, and the cine ring keeps storing RAW sweeps so a recorded
+        # loop can be re-averaged (or not) at replay time.
+        rf = rf_avg.push(rf)
         t0 = time.perf_counter()
         out = analytic(_condition(rf, samps, live=True), samps)
         perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
         if state["frozen"]:             # froze mid-transform: do not stomp the
             continue                    # frame the user just paused on
+        # Live sweeps only.  A replayed frame would push a column stamped with
+        # the wall clock rather than its acquisition time, so scrubbing the cine
+        # loop would shuffle the strip's time axis into nonsense.
+        a, b = mline["a"], mline["b"]
+        if mline["on"] and a is not None and b is not None:
+            try:
+                mm_push(mline_sample(out, samps, a, b))
+            except Exception as e:      # a bad line must never kill the worker
+                print(f"[m-mode: {e}]")
+                mline["on"] = False
         with hil_lk:
             hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
 # started below, once analytic() exists
@@ -634,18 +1247,37 @@ try:                        # optional: ~2x faster here, because scipy keeps
 except ImportError:
     _fft, _ifft, _FFT_KW, FFT_LIB = np.fft.fft, np.fft.ifft, {}, "numpy"
 
-_hilb = {"nfft": 0, "wgt": None}
+def _hilb_mask(nfft, lo_hz, hi_hz):
+    """Hilbert spectrum mask - DC and Nyquist at 1, the positive bins at 2, the
+    negative half at 0 - with the receive passband folded straight into it.
+
+    Full band in gives back the plain analytic mask bit for bit, so 'bandpass
+    off' costs nothing and is not a separate code path."""
+    wgt = np.zeros(nfft, dtype=np.float64)
+    wgt[0] = 1.0; wgt[nfft//2] = 1.0; wgt[1:nfft//2] = 2.0
+    if lo_hz > 0.0 or hi_hz < FS_HZ / 2.0:
+        f = np.arange(nfft, dtype=np.float64) * (FS_HZ / nfft)   # bin centre, Hz
+        t = max(BAND_TAPER * 0.5 * (hi_hz - lo_hz), 1.0)         # skirt width
+        # Same half-Hann ramp the shader apodizes with, on the frequency axis:
+        # 0 outside the band, 1 across the flat top, no corner at either edge.
+        r = lambda v: 0.5 - 0.5 * np.cos(np.pi * np.clip(v, 0.0, 1.0))
+        wgt *= r((f - lo_hz) / t) * r((hi_hz - f) / t)
+    return wgt.astype(np.float32)      # float32 keeps the multiply in complex64
+
+_hilb = {"key": None, "wgt": None}
 def analytic(rf, samps):
     """(N, samps) real -> (N, samps, 2) float32 interleaved re/im.
 
     The only per-frame CPU work in the whole pipeline (~6 ms for 48 elements
-    with numpy, ~3 ms with scipy installed).  Everything else is on the GPU."""
-    if _hilb["nfft"] != next_fast_len(samps):
-        nfft = next_fast_len(samps)
-        wgt  = np.zeros(nfft, dtype=np.float32)     # Hilbert spectrum mask
-        wgt[0] = 1.0; wgt[nfft//2] = 1.0; wgt[1:nfft//2] = 2.0
-        _hilb.update(nfft=nfft, wgt=wgt)
-    X = _fft(rf, n=_hilb["nfft"], axis=1, **_FFT_KW)
+    with numpy, ~3 ms with scipy installed).  Everything else is on the GPU.
+
+    The mask is cached on (length, passband), so dragging the band sliders
+    rebuilds one array per change and the steady state is unchanged."""
+    nfft = next_fast_len(samps)
+    key  = (nfft,) + band_edges()      # read the band ONCE: the UI thread moves
+    if _hilb["key"] != key:            # it, and key and mask must agree
+        _hilb.update(key=key, wgt=_hilb_mask(*key))
+    X = _fft(rf, n=nfft, axis=1, **_FFT_KW)
     X *= _hilb["wgt"]
     an = _ifft(X, axis=1, **_FFT_KW)[:, :samps]
     out = np.empty((N_ELEM, samps, 2), dtype=np.float32)
@@ -684,26 +1316,60 @@ uniform vec4  viewbox;         // x0, x1, z0, z1 in metres
 uniform float c, dly_s, fs;    // sound speed m/s, pulse->rx delay s, sample rate
 uniform float samps;           // valid samples per A-scan == texture width
 uniform float cos_acc;         // cos(acceptance half-angle)
+uniform float apod;            // Tukey fraction, 0 = rect, 1 = full Hann
+uniform float t0_s;            // fixed lens/electronic round-trip offset
+uniform float alive[%(N)d];    // 0 = dead element, excluded from the sum
+uniform float cf_pow;          // coherence-factor exponent, 0 = off
+
+// Half-Hann ramp: 0 at v = 0, 1 at v >= 1, flat slope at both ends so the
+// weight has no corner to ring on.
+float ramp(float v) { return 0.5 - 0.5 * cos(3.14159265 * clamp(v, 0.0, 1.0)); }
 
 void main() {
     vec2 p = vec2(mix(viewbox.x, viewbox.y, v_uv.x),
                   mix(viewbox.z, viewbox.w, 1.0 - v_uv.y));
-    vec2 acc = vec2(0.0);
+    vec2  acc  = vec2(0.0);     // coherent (complex) sum - the image
+    float wsum = 0.0;           // sum w         -- the two CF denominators,
+    float psum = 0.0;           // sum w |s|^2   -- same weights as acc uses
     float inv_w = 1.0 / samps;
+    float a = max(apod, 1e-4);          // a = 0 would divide by zero below
     for (int i = 0; i < %(N)d; i++) {
+        if (alive[i] < 0.5) continue;   // dead element: contributes nothing
         vec2 dv = p - elems[i].xy;
         float d = length(dv);
-        // tx == rx (monostatic): round trip is 2*d; capture starts dly_s after fire
-        float t = (2.0 * d / c - dly_s) * fs;
+        // tx == rx (monostatic): round trip is 2*d; capture starts dly_s after
+        // fire; t0_s is the lens/electronic delay the geometry cannot see
+        float t = (2.0 * d / c + t0_s - dly_s) * fs;
         float cosa = dot(dv, elems[i].zw) / max(d, 1e-9);
         if (t >= 0.0 && t <= samps - 1.0 && cosa >= cos_acc) {
-            acc += texture(rf, vec2((t + 0.5) * inv_w,
-                                    (float(i) + 0.5) / %(N)d.0)).rg;
+            // Index window: v runs 0 at the array centre to 1 at either end,
+            // so one ramp handles both ends and stays symmetric under `flip`.
+            float v = abs(2.0 * (float(i) / %(Nm1)s) - 1.0);
+            float w = ramp((1.0 - v) / a);
+            // Angular window: u runs 0 at the acceptance edge to 1 on axis.
+            // Tapering the outer `a` of the cone is what stops an element from
+            // entering the sum at full weight and stepping the image.
+            float u = (cosa - cos_acc) / max(1.0 - cos_acc, 1e-6);
+            w *= ramp(u / a);
+            vec2 s = texture(rf, vec2((t + 0.5) * inv_w,
+                                      (float(i) + 0.5) / %(N)d.0)).rg;
+            acc  += w * s;
+            wsum += w;
+            psum += w * dot(s, s);      // |s|^2 for the analytic sample
         }
     }
-    f_mag = length(acc);        // envelope of the coherent sum
+    float mag = length(acc);    // envelope of the coherent sum
+    if (cf_pow > 0.0) {
+        // How much of that sum was actually in phase.  Same weights top and
+        // bottom, so a pixel every element agrees on gives 1.0 whatever the
+        // taper; Cauchy-Schwarz keeps it inside [0, 1].  wsum == 0 (no element
+        // reached this pixel) leaves acc at zero too, so the clamp returns 0.
+        float cf = dot(acc, acc) / max(wsum * psum, 1e-20);
+        mag *= pow(clamp(cf, 0.0, 1.0), cf_pow);
+    }
+    f_mag = mag;
 }
-""" % {"N": N_ELEM}
+""" % {"N": N_ELEM, "Nm1": "%.1f" % (N_ELEM - 1)}
 
 # 2x2 max downsample.  Chained to 1x1 so the display pass can read the frame
 # peak straight out of a texture - no glReadPixels, no pipeline stall.
@@ -751,6 +1417,8 @@ class BModeGL(QOpenGLWidget):
         self.rf_tex = None
         self.tex_samps = 0
         self.tex_gen = -1
+        self.elem_key = None         # (geom gen, direction) in the 'elems' uniform
+        self.dead_key = None         # dead["gen"] in the 'alive' uniform
         self.fb_w = self.fb_h = 1
         self._screen = None
         self._screen_id = -1
@@ -769,11 +1437,15 @@ class BModeGL(QOpenGLWidget):
         self.vao_bf = self.ctx.vertex_array(self.prog_bf, [(self.vbo, '2f', 'in_pos')])
         self.vao_rd = self.ctx.vertex_array(self.prog_rd, [(self.vbo, '2f', 'in_pos')])
         self.vao_cp = self.ctx.vertex_array(self.prog_cp, [(self.vbo, '2f', 'in_pos')])
-        self.prog_bf['elems'].write(ELEM_UNIFORM.tobytes())
+        self.prog_bf['elems'].write(elem_uniform().tobytes())
+        self.elem_key = (geom["gen"], flip["on"])   # what the uniform holds
+        self.prog_bf['alive'].write(alive_mask().tobytes())
+        self.dead_key = dead["gen"]
         self.prog_bf['rf'].value = 0
         self.prog_cp['magtex'].value = 0
         self.prog_cp['maxtex'].value = 1
-        self.prog_cp['full_scale'].value = FULL_SCALE
+        # full_scale is not constant any more - it tracks the apodization, so
+        # _compress sets it per frame rather than once here.
 
     def _release(self, objs):
         for o in objs:
@@ -851,6 +1523,17 @@ class BModeGL(QOpenGLWidget):
 
     def _beamform(self, fbo, size, vb):
         p = self.prog_bf
+        # Re-upload only when the geometry actually changed: 768 bytes, but it
+        # is the one uniform that is not a scalar, and the capture path calls
+        # this a second time per grab.  The key is (rebuild count, direction) -
+        # dragging R or pitch bumps gen, flip just picks the other array.
+        key = (geom["gen"], flip["on"])
+        if self.elem_key != key:
+            p['elems'].write(elem_uniform().tobytes())
+            self.elem_key = key
+        if self.dead_key != dead["gen"]:            # dead list edited live
+            p['alive'].write(alive_mask().tobytes())
+            self.dead_key = dead["gen"]
         p['viewbox'].value = (float(vb[0]), float(vb[1]),
                               float(vb[2]), float(vb[3]))
         p['c'].value       = float(state["c"])
@@ -858,6 +1541,9 @@ class BModeGL(QOpenGLWidget):
         p['fs'].value      = float(FS_HZ)
         p['samps'].value   = float(self.tex_samps)
         p['cos_acc'].value = float(np.cos(np.radians(state["accept"])))
+        p['apod'].value    = float(state["apod"])
+        p['cf_pow'].value  = float(state["cf"])
+        p['t0_s'].value    = float(state["t0_ns"]) * 1e-9
         self.rf_tex.use(0)
         fbo.use()
         fbo.viewport = (0, 0, size[0], size[1])
@@ -877,6 +1563,7 @@ class BModeGL(QOpenGLWidget):
     def _compress(self, magtex, fbo, size):
         magtex.use(0)
         (self.reduce[-1][1] if self.reduce else magtex).use(1)
+        self.prog_cp['full_scale'].value = full_scale(state["apod"])
         self.prog_cp['dyn_db'].value    = float(state["dyn"])
         self.prog_cp['gain_db'].value   = float(state["gain"])
         self.prog_cp['auto_gain'].value = 1.0 if state["auto"] else 0.0
@@ -995,8 +1682,11 @@ def paint_axes(p, r, vb, s=1.0):
 
     if vb[2] <= 0.002:                  # only meaningful when the face is in view
         p.setPen(QPen(QColor("#4db8ff"), max(1.0, s)))
+        # column 0 is the element x; read it back from the live table so the
+        # ticks follow the R / pitch sliders (EX is local to rebuild_geometry)
+        ex = elem_uniform()[:, 0]
         for i in range(N_ELEM):
-            x = sc2px(vb, r, EX[i], 0.0).x()
+            x = sc2px(vb, r, ex[i], 0.0).x()
             if r.left() <= x <= r.right():
                 p.drawLine(QPointF(x, r.top() - 6*s), QPointF(x, r.top() - 1*s))
     p.setPen(QPen(QColor(FRAME_C), max(1.0, s)))
@@ -1048,6 +1738,42 @@ def paint_measures(p, r, vb, measures, s=1.0, hot=None):
         p.drawRoundedRect(box, 3*s, 3*s)
         p.setPen(QPen(col))
         p.drawText(QPointF(box.left() + 4*s, box.top() + 2*s + fm.ascent()), txt)
+    p.restore()
+
+def paint_mline(p, r, vb, a, b, hot=None, s=1.0):
+    """The M-mode line: A at the top of the strip, B at the bottom, ticks along
+    it so the strip's vertical axis can be related back to the image."""
+    if a is None or b is None:
+        return
+    p.save()
+    p.setClipRect(r)
+    p.setRenderHint(QPainter.Antialiasing, True)
+    qa, qb = sc2px(vb, r, a[0], a[1]), sc2px(vb, r, b[0], b[1])
+    col = QColor(MLINE_C)
+
+    p.setPen(QPen(QColor(0, 0, 0, 150), 3.5 * s))
+    p.drawLine(qa, qb)
+    p.setPen(QPen(col, 1.6 * s, Qt.DashLine))
+    p.drawLine(qa, qb)
+
+    # quarter ticks: a coarse ruler tying strip rows back to the image
+    p.setPen(QPen(col, 1.2 * s))
+    dx, dy = qb.x() - qa.x(), qb.y() - qa.y()
+    L = float(np.hypot(dx, dy)) or 1.0
+    nx, ny = -dy / L * 4.0 * s, dx / L * 4.0 * s
+    for k in (0.25, 0.5, 0.75):
+        m = QPointF(qa.x() + dx * k, qa.y() + dy * k)
+        p.drawLine(QPointF(m.x() - nx, m.y() - ny), QPointF(m.x() + nx, m.y() + ny))
+
+    font = QFont("Consolas", max(7, int(9 * s)))
+    font.setBold(True)
+    p.setFont(font)
+    for q, t, w in ((qa, "A", 0), (qb, "B", 1)):
+        p.setBrush(QBrush(QColor(col if hot == w else Qt.black)))
+        p.setPen(QPen(col, 1.4 * s))
+        p.drawEllipse(q, 5.0 * s, 5.0 * s)
+        p.setPen(QPen(col))
+        p.drawText(QPointF(q.x() + 7 * s, q.y() - 5 * s), t)
     p.restore()
 
 #===============================================================================
@@ -1189,10 +1915,31 @@ class LiveOverlay(MeasureCanvas):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setFocusPolicy(Qt.StrongFocus)
         self._pan = None
+        self._mdrag = None          # 0 = end A, 1 = end B, 2 = whole line
+        self._moff = None
+        self._mhot = None
 
     def image_rect(self):
         return QRectF(ML, MT, max(1, self.width() - ML - MR),
                       max(1, self.height() - MT - MB))
+
+    # -- M-line ---------------------------------------------------------------
+    # Only live while the M-mode box is ticked, and it takes priority over
+    # caliper CREATION but not over grabbing a caliper that is already there -
+    # so an existing measurement stays draggable and the M-line gets the empty
+    # space.  Ctrl is left alone: that is pan.
+    def _pick_mline(self, pt):
+        if not mline["on"] or mline["a"] is None:
+            return None
+        r = self.image_rect()
+        qa = sc2px(self.vb, r, *mline["a"])
+        qb = sc2px(self.vb, r, *mline["b"])
+        for w, q in ((0, qa), (1, qb)):
+            if np.hypot(pt.x() - q.x(), pt.y() - q.y()) <= HIT:
+                return w
+        if seg_dist(pt.x(), pt.y(), qa.x(), qa.y(), qb.x(), qb.y()) <= HIT:
+            return 2
+        return None
 
     # -- zoom / pan -----------------------------------------------------------
     def wheelEvent(self, ev):
@@ -1222,9 +1969,36 @@ class LiveOverlay(MeasureCanvas):
             self._pan = ev.position()
             self.setCursor(Qt.ClosedHandCursor)
             return
+        if mline["on"] and ev.button() == Qt.LeftButton:
+            pt  = ev.position()
+            hit = self._pick_mline(pt)
+            if hit is not None:
+                self._mdrag = hit
+                if hit == 2:
+                    x, z = px2sc(self.vb, self.image_rect(), pt.x(), pt.y())
+                    self._moff = (mline["a"][0] - x, mline["a"][1] - z,
+                                  mline["b"][0] - x, mline["b"][1] - z)
+                self.update()
+                return
+            if self.image_rect().contains(pt) and not self._pick(pt):
+                x, z = px2sc(self.vb, self.image_rect(), pt.x(), pt.y())
+                mline["a"] = mline["b"] = (x, z)
+                self._mdrag = 1
+                self.update()
+                return
         super().mousePressEvent(ev)
 
     def mouseMoveEvent(self, ev):
+        if self._mdrag is not None:
+            x, z = px2sc(self.vb, self.image_rect(),
+                         ev.position().x(), ev.position().y())
+            if self._mdrag == 2:
+                mline["a"] = (x + self._moff[0], z + self._moff[1])
+                mline["b"] = (x + self._moff[2], z + self._moff[3])
+            else:
+                mline["a" if self._mdrag == 0 else "b"] = (x, z)
+            self.update()
+            return
         if self._pan is not None:
             r = self.image_rect()
             x0, z0 = px2sc(self.vb, r, self._pan.x(), self._pan.y())
@@ -1234,9 +2008,30 @@ class LiveOverlay(MeasureCanvas):
             self._pan = ev.position()
             self.zoomed.emit()
             return
+        if mline["on"]:
+            hot = self._pick_mline(ev.position())
+            if hot != self._mhot:
+                self._mhot = hot
+                self.update()
+            if hot is not None:
+                self.setCursor(Qt.SizeAllCursor if hot == 2
+                               else Qt.PointingHandCursor)
+                return
         super().mouseMoveEvent(ev)
 
     def mouseReleaseEvent(self, ev):
+        if self._mdrag is not None:
+            r = self.image_rect()
+            qa = sc2px(self.vb, r, *mline["a"])
+            qb = sc2px(self.vb, r, *mline["b"])
+            if np.hypot(qa.x() - qb.x(), qa.y() - qb.y()) < 4.0:
+                mline["a"] = mline["b"] = None      # a click, not a drag
+            self._mdrag, self._moff = None, None
+            # The history described the OLD line, so it is not comparable to
+            # what comes next - start the strip again rather than splice.
+            mm_reset()
+            self.update()
+            return
         if self._pan is not None:
             self._pan = None
             self.setCursor(Qt.CrossCursor)
@@ -1253,6 +2048,8 @@ class LiveOverlay(MeasureCanvas):
         r = self.image_rect()
         paint_axes(p, r, self.vb, 1.0)
         paint_measures(p, r, self.vb, self.measures, 1.0, self.hot)
+        if mline["on"]:
+            paint_mline(p, r, self.vb, mline["a"], mline["b"], self._mhot)
         p.end()
 
 class Scene(QWidget):
@@ -1485,6 +2282,44 @@ def mkslider(row, label, lo, hi, val, on_change=None, on_release=None,
     row.addWidget(box)
     return s
 
+def mkfslider(row, label, lo, hi, step, val, on_change, width=104, unit="",
+              fmt="%g", tip=None, quant=None):
+    """Float slider.  QSlider only counts integers, so it counts in `step` units
+    and the real value is position * step.
+
+    `quant`, if given, maps a value to whatever the hardware actually resolves
+    (FPGA clock cycles, for the pulser fields).  A drag then emits a command
+    only when the QUANTISED value changes, so sweeping across a range worth one
+    cycle sends one command rather than fifty.  Pure-shader sliders leave it
+    None and fire on every step.
+    """
+    box = QWidget()
+    l = QHBoxLayout(box); l.setContentsMargins(5, 0, 5, 0); l.setSpacing(4)
+    lab = QLabel(label); lab.setStyleSheet(f"color:{DIM};")
+    s = QSlider(Qt.Horizontal)
+    s.setRange(int(round(lo / step)), int(round(hi / step)))
+    s.setValue(int(round(val / step)))
+    s.setFixedWidth(width)
+    vl = QLabel(f"{fmt % val}{unit}"); vl.setFixedWidth(46)
+    vl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    last = {"q": quant(val) if quant else None}
+    def _ch(pos):
+        v = pos * step
+        vl.setText(f"{fmt % v}{unit}")
+        if quant is not None:
+            q = quant(v)
+            if q == last["q"]:
+                return                  # same clock-cycle value - nothing to send
+            last["q"] = q
+        on_change(v)
+    s.valueChanged.connect(_ch)
+    if tip:
+        for w in (s, lab, vl):
+            w.setToolTip(tip)
+    l.addWidget(lab); l.addWidget(s); l.addWidget(vl)
+    row.addWidget(box)
+    return s
+
 #===============================================================================
 # cine transport: play/step/repeat buttons, scrub timeline, speed knob
 #===============================================================================
@@ -1691,6 +2526,158 @@ class Timeline(QWidget):
         p.end()
 
 #===============================================================================
+# M-mode strip + motion audio
+#===============================================================================
+# QtMultimedia ships with the full PySide6 wheel but not with PySide6-Essentials,
+# so it is optional: no audio device, no sound, everything else still works.
+try:
+    from PySide6.QtMultimedia import QAudioFormat, QAudioSink, QMediaDevices
+    HAVE_AUDIO = True
+except Exception as _e:
+    HAVE_AUDIO = False
+    print(f"[no audio: {_e}]")
+
+AUDIO_SR    = 22050
+AUDIO_F_LO  = 180.0         # pitch at the FAR end of the line
+AUDIO_F_HI  = 1200.0        # pitch at the NEAR end
+AUDIO_GATE  = 0.04          # motion below this fraction of peak is silence
+AUDIO_SENS  = 6.0           # motion -> loudness
+
+class MotionAudio:
+    """Sonifies the M-line's frame-to-frame change.
+
+    THIS IS NOT DOPPLER, and the difference matters if you are tempted to read
+    velocity into it.  A given point is re-sampled once per sweep - 48 elements
+    x 177.5 us = 8.5 ms, so a 117 Hz PRF - which puts the unaliased Doppler
+    limit at about 1.3 cm/s.  Blood flow is one to two orders of magnitude
+    faster than that, so the phase shift between sweeps is aliased beyond
+    recovery and no amount of processing gets it back.  What you hear here is
+    motion ENERGY (how much the line changed) and motion POSITION (where along
+    it), which is honest and useful for finding a pulsating vessel, but says
+    nothing about how fast anything is moving.
+    (Real PW Doppler is available on this hardware - single-element mode fires
+    one element every 177.5 us for a 5.6 kHz PRF, good for 61 cm/s - but it
+    costs the B-mode sweep, so it is a separate mode rather than this one.)
+
+    Push mode rather than a QIODevice subclass: we top the sink up from a timer,
+    which keeps all the synthesis on the UI thread and degrades to a dropout
+    rather than a deadlock if a block is ever late."""
+
+    def __init__(self, parent):
+        self.sink = self.dev = None
+        self.phase, self.amp, self.freq = 0.0, 0.0, AUDIO_F_LO
+        self.gain = 0.5
+        self.timer = QTimer(parent)
+        self.timer.timeout.connect(self._fill)
+
+    def start(self):
+        if not HAVE_AUDIO or self.sink is not None:
+            return
+        fmt = QAudioFormat()
+        fmt.setSampleRate(AUDIO_SR)
+        fmt.setChannelCount(1)
+        fmt.setSampleFormat(QAudioFormat.Int16)
+        out = QMediaDevices.defaultAudioOutput()
+        if out is None or not out.isFormatSupported(fmt):
+            print("[no audio: default output will not take 22050 Hz mono int16]")
+            return
+        self.sink = QAudioSink(out, fmt)
+        self.sink.setBufferSize(AUDIO_SR // 4 * 2)      # ~250 ms
+        self.dev  = self.sink.start()
+        self.phase, self.amp = 0.0, 0.0
+        self.timer.start(15)
+
+    def stop(self):
+        self.timer.stop()
+        if self.sink is not None:
+            self.sink.stop()
+        self.sink = self.dev = None
+
+    def _fill(self):
+        if self.dev is None:
+            return
+        n = min(self.sink.bytesFree() // 2, AUDIO_SR // 4)
+        if n <= 0:
+            return
+
+        peak = max(mm["peak"], 1e-9)
+        a = min(1.0, audio_fb["amp"] / peak * AUDIO_SENS)
+        a = 0.0 if a < AUDIO_GATE else (a - AUDIO_GATE) / (1.0 - AUDIO_GATE)
+        # pos 0 is end A of the line, which is drawn at the top of the strip
+        f = AUDIO_F_HI * (AUDIO_F_LO / AUDIO_F_HI) ** float(audio_fb["pos"])
+
+        # Ramp amplitude and frequency ACROSS the block instead of stepping them
+        # at the block boundary - a step is a click, and at 15 ms intervals a
+        # train of them is worse than the tone.  Phase comes from the cumulative
+        # sum of the swept frequency so it stays continuous across blocks too.
+        a1 = self.amp  + (a - self.amp)  * 0.35
+        f1 = self.freq + (f - self.freq) * 0.25
+        av = np.linspace(self.amp,  a1, n)
+        fv = np.linspace(self.freq, f1, n)
+        ph = self.phase + 2.0 * np.pi * np.cumsum(fv) / AUDIO_SR
+        self.phase = float(np.mod(ph[-1], 2.0 * np.pi))
+        self.amp, self.freq = float(a1), float(f1)
+
+        w = np.sin(ph) * av * self.gain * 32000.0
+        self.dev.write(np.clip(w, -32767, 32767).astype(np.int16).tobytes())
+
+class MModeStrip(QWidget):
+    """Position-along-the-line (vertical) vs time (horizontal), newest at the
+    right.  Shares the B-mode's dyn/gain so the two read consistently; the
+    brightness reference is the strip's own decaying peak under auto-gain, and
+    full_scale() when auto is off."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumHeight(110)
+        self.setMaximumHeight(240)
+        self._keep = None               # QImage does not copy - hold the buffer
+
+    def paintEvent(self, ev):
+        p = QPainter(self)
+        r = self.rect().adjusted(0, 0, -1, -1)
+        p.fillRect(self.rect(), QColor(PLOT_BG))
+
+        with mm_lk:
+            n, w, peak = mm["n"], mm["w"], mm["peak"]
+            if n:
+                # roll so the oldest surviving column is first, newest last
+                data = np.roll(mm["buf"], -w, axis=1)[:, MM_COLS - n:].copy()
+                span = float(mm["t"][(w - 1) % MM_COLS] -
+                             mm["t"][(w - n) % MM_COLS])
+            else:
+                data, span = None, 0.0
+
+        if data is None:
+            p.setPen(QPen(QColor(DIM)))
+            p.drawText(r, Qt.AlignCenter,
+                       "M-mode: drag a line on the image")
+            p.setPen(QPen(QColor(FRAME_C))); p.drawRect(r)
+            p.end(); return
+
+        ref = peak if state["auto"] else full_scale(state["apod"])
+        dyn = max(float(state["dyn"]), 1e-6)
+        db  = 20.0 * np.log10(data / max(ref, 1e-9) + 1e-9)
+        v   = np.clip((db + float(state["gain"]) + dyn) / dyn, 0.0, 1.0)
+        img = np.ascontiguousarray((v * 255.0).astype(np.uint8))
+
+        self._keep = img
+        h, wd = img.shape
+        p.drawImage(r, QImage(img.data, wd, h, wd, QImage.Format_Grayscale8))
+
+        p.setPen(QPen(QColor(DIM)))
+        p.setFont(QFont("Consolas", 8))
+        p.drawText(QPointF(r.left() + 4, r.top() + 12), "A")
+        p.drawText(QPointF(r.left() + 4, r.bottom() - 4), "B")
+        if span > 0.05:
+            t = f"{span:.1f} s  ({n} sweeps, {n/span:.0f}/s)"
+            p.drawText(QPointF(r.right() - 4 - QFontMetrics(p.font())
+                               .horizontalAdvance(t), r.top() + 12), t)
+        p.setPen(QPen(QColor(FRAME_C)))
+        p.drawRect(r)
+        p.end()
+
+#===============================================================================
 # main window
 #===============================================================================
 class Main(QWidget):
@@ -1720,10 +2707,39 @@ class Main(QWidget):
         # -- control rows -----------------------------------------------------
         r1 = QHBoxLayout(); r1.setSpacing(2); root.addLayout(r1)
         r2 = QHBoxLayout(); r2.setSpacing(2); root.addLayout(r2)
+        # Claimed here so it sits under r2 on screen; filled in below, next to
+        # the other receive-conditioning controls it belongs with.
+        rrx = QHBoxLayout(); rrx.setSpacing(2); root.addLayout(rrx)
 
         self.cb_signed = QCheckBox("signed"); self.cb_signed.setChecked(mode["signed"])
         self.cb_signed.toggled.connect(lambda v: mode.__setitem__("signed", v))
         r1.addWidget(self.cb_signed)
+
+        self.cb_flip = QCheckBox("flip L/R"); self.cb_flip.setChecked(flip["on"])
+        self.cb_flip.setToolTip(
+            "mirror the array: tick if element 0 is the RIGHT-hand end of the "
+            "probe.\nThe FPGA's element order comes from a connector drawing "
+            "whose direction\nis unverified - if it was read from the far side "
+            "the image is mirrored and\nnothing else looks wrong. Sweep a "
+            "finger across the face and check the\nbright spot tracks the same "
+            "way.\nRe-renders the geometry only; the RF is untouched, so this "
+            "works while frozen.")
+        self.cb_flip.toggled.connect(self.set_flip)
+        r1.addWidget(self.cb_flip)
+
+        r1.addWidget(QLabel("dead"))
+        self.ed_dead = QLineEdit(",".join(str(i) for i in sorted(dead["set"])))
+        self.ed_dead.setFixedWidth(112)
+        self.ed_dead.setToolTip(
+            "aperture positions to leave OUT of the beamformer, comma "
+            "separated.\nUse for elements that receive nothing - they add only "
+            "noise to the\ncoherent sum and drag the level meters. Press Enter "
+            "to apply.\n\nThese are physical elements, so the list does NOT "
+            "move with 'flip L/R'.\nThe FPGA still fires them and the cine "
+            "recording still stores them:\nthis is a render-time mask, so "
+            "clearing the box brings them straight back.")
+        self.ed_dead.editingFinished.connect(self.apply_dead)
+        r1.addWidget(self.ed_dead)
 
         self.depth_s = mkslider(r1, "depth", 2, 40, DEPTH_CM_DEF,
                                 on_release=self.apply_depth, unit="cm")
@@ -1733,6 +2749,13 @@ class Main(QWidget):
                  width=90, unit="us")
         mkslider(r1, "c", 1400, 1650, int(C_DEF), on_change=self.set_c,
                  width=96, unit="")
+        # QSlider is integer-only, so apodization rides as a percentage.
+        mkslider(r1, "apod", 0, 100, int(round(APOD_DEF * 100)),
+                 on_change=self.set_apod, unit="%")
+        # Coherence-factor exponent, also as a percentage: 100% = the standard
+        # CF, 0% = off.  See CF_DEF - this one changes what brightness means.
+        mkslider(r1, "coh", 0, 300, int(round(CF_DEF * 100)),
+                 on_change=self.set_cf, width=84, unit="%")
         mkslider(r1, "aperture", 5, 90, ACCEPT_DEF, on_change=self.set_accept,
                  width=84, unit="°")
         r1.addStretch(1)
@@ -1769,16 +2792,59 @@ class Main(QWidget):
                               "near meter below 0 dBFS.")
         self.cb_bg.toggled.connect(lambda v: bg.__setitem__("on", bool(v)))
         r2.addWidget(self.cb_bg)
+
+        self._receive_row(rrx)
+
+        # -- M-mode -----------------------------------------------------------
+        # Built here, before the checkbox that shows them, so the toggle handler
+        # can never run against a half-constructed strip.
+        self.mstrip = MModeStrip()
+        self.mstrip.setVisible(False)
+        self.audio  = MotionAudio(self)
+
+        self.cb_mm = QCheckBox("M-mode")
+        self.cb_mm.setToolTip(
+            "scroll a line through time under the image.\n\nDrag on empty image "
+            "space to place the line, drag either end (or the middle)\nto move "
+            "it - endpoints are in metres, so it stays on the tissue through\n"
+            "zoom, pan and depth changes. Drawn radially it is classic M-mode.\n"
+            "Existing calipers stay draggable; new ones are suspended while "
+            "this is on.\n\nOne column per SWEEP, not per rendered frame, so "
+            "the time axis is even.")
+        self.cb_mm.toggled.connect(self.set_mmode)
+        r2.addWidget(self.cb_mm)
+
+        self.cb_snd = QCheckBox("sound")
+        self.cb_snd.setEnabled(HAVE_AUDIO)
+        self.cb_snd.setToolTip(
+            "sonify motion along the M-line: loudness = how much the line "
+            "changed\nsweep to sweep, pitch = where along it (A high, B low).\n\n"
+            "NOT Doppler. At 117 Hz sweep rate the unaliased velocity limit is "
+            "~1.3 cm/s,\nso blood flow is aliased beyond recovery - this hears "
+            "THAT something moved,\nnot how fast."
+            + ("" if HAVE_AUDIO else "\n\nQtMultimedia not installed."))
+        self.cb_snd.toggled.connect(self.set_sound)
+        r2.addWidget(self.cb_snd)
+
+        mkslider(r2, "vol", 0, 100, 50, on_change=self.set_vol,
+                 width=70, unit="%")
         r2.addStretch(1)
         r2.addSpacing(14)
         self.wininfo = QLabel(""); self.wininfo.setStyleSheet(f"color:{DIM};")
         r2.addWidget(self.wininfo)
+
+        # -- probe calibration + transmit ---------------------------------------
+        r3 = QHBoxLayout(); r3.setSpacing(2); root.addLayout(r3)
+        r4 = QHBoxLayout(); r4.setSpacing(2); root.addLayout(r4)
+        self._calib_row(r3)
+        self._pulser_rows(r3, r4)
 
         # -- scene + cine transport + side panel ------------------------------
         mid = QHBoxLayout(); mid.setSpacing(6); root.addLayout(mid, 1)
         self.scene = Scene(self)
         col = QVBoxLayout(); col.setSpacing(4)
         col.addWidget(self.scene, 1)
+        col.addWidget(self.mstrip)          # hidden until M-mode is ticked
         col.addWidget(self._cine_bar())     # built before the panel: FREEZE's
         mid.addLayout(col, 1)               # handler touches it
         mid.addWidget(self._side_panel())
@@ -1818,7 +2884,224 @@ class Main(QWidget):
             QShortcut(QKeySequence(key), self).activated.connect(fn)
 
         self._cine_enable(False)
+        self.pls_refresh()          # fills the f0/frame-rate readout at startup
         self.resize(1320, 900)
+
+    # -- receive conditioning -------------------------------------------------
+    # Everything here is CPU-side, between the ADC words and the beamformer:
+    # no FPGA traffic, so it works on replayed cine exactly as it does live.
+    # Both controls attack the DEEP noise floor and neither touches the near
+    # field, which is clutter-limited rather than noise-limited - if the far
+    # field cleans up and the near field does not, that is the tell that the
+    # deep haze was electronic and not tissue.
+    def _receive_row(self, row):
+        lab = QLabel("receive:"); lab.setStyleSheet(f"color:{DIM};")
+        row.addWidget(lab)
+
+        self.cb_band = QCheckBox("bandpass")
+        self.cb_band.setChecked(BAND_ON_DEF)
+        self.cb_band.setToolTip(
+            "band-limit the RF before the envelope, inside the Hilbert FFT that "
+            "already runs.\n\nOff, the envelope carries AFE noise over the whole "
+            "0-20 MHz Nyquist span\nwhile the echo only occupies the probe's "
+            "band. Keeping B MHz of it drops\n10*log10(20/B) dB of noise: the "
+            "5 MHz default is about 6 dB, free.\n\nCosts nothing where the image "
+            "is clutter-limited, which is most of the near field.")
+        self.cb_band.toggled.connect(self.set_band_on)
+        row.addWidget(self.cb_band)
+
+        band_tip = ("passband centre and full width, in MHz.\n\nCentre it on the "
+                    "pulser's f0 (the transmit row's readout) - the two-way\n"
+                    "response of a CH6-2 sits inside 2-6 MHz, so 4.0 +/- 2.5 "
+                    "keeps all of it.\n\nWidth is also a range-resolution floor "
+                    "(c/2B): 5 MHz is 0.15 mm, well\ninside the ~0.4 mm the "
+                    "two-cycle pulse gives, but below ~2 MHz you start\npaying "
+                    "in axial detail. The skirts are raised cosines, so "
+                    "narrowing does\nnot ring - a brick wall would, and time "
+                    "ringing back-projects as arcs.")
+        self.s_bf0 = mkfslider(row, "band f0", 1.0, 9.0, 0.1, BAND_F0_DEF,
+                               self.set_band_f0, width=96, unit="M",
+                               fmt="%.1f", tip=band_tip)
+        self.s_bbw = mkfslider(row, "width", 1.0, 12.0, 0.1, BAND_BW_DEF,
+                               self.set_band_bw, width=96, unit="M",
+                               fmt="%.1f", tip=band_tip)
+
+        # The tooltip has to carry the coherent/incoherent distinction: it is
+        # the reason this is worth more than the persistence control it looks
+        # like, and the reason it lives before the Hilbert rather than after.
+        self.s_avg = mkslider(row, "avg", 1, AVG_MAX, AVG_DEF,
+                              on_change=self.set_avg, width=96, unit=" sw")
+        self.s_avg.setToolTip(
+            "average the last N sweeps of RF before the envelope.\n\nThe echo "
+            "repeats sweep to sweep and the noise does not, so the mean gains\n"
+            "sqrt(N) on anything uncorrelated - 8 sweeps is 9 dB. This is "
+            "COHERENT\naveraging: done here the noise cancels against its own "
+            "sign, whereas\naveraging magnitudes after the beamformer only "
+            "smooths speckle (by then\nthe noise is a rectified positive bias, "
+            "and averaging cannot remove a bias).\n\nCost is motion: N sweeps at "
+            "~130/s is N*7.7 ms of integration, so 8 is ~60 ms.\nPhantoms take "
+            "the maximum; anything pulsatile wants 1-4.\n\nThe far dBFS meter "
+            "reads the averaged data, so stepping 1 -> 8 measures how\nmuch of "
+            "your deep signal was noise: ~9 dB drop means it was all noise.")
+
+        self.rx_lbl = QLabel(""); self.rx_lbl.setStyleSheet(f"color:{DIM};")
+        row.addWidget(self.rx_lbl)
+        row.addStretch(1)
+
+    def set_band_on(self, v):
+        state["band_on"] = bool(v)
+        self._refresh_rx()
+
+    def set_band_f0(self, v):
+        state["band_f0"] = float(v)
+        self._refresh_rx()
+
+    def set_band_bw(self, v):
+        state["band_bw"] = float(v)
+        self._refresh_rx()
+
+    def set_avg(self, v):
+        rf_avg.set_n(v)
+        self._refresh_rx()
+
+    def _refresh_rx(self):
+        """A CPU-side receive setting moved.  Live sweeps pick it up on the next
+        frame by themselves; a frozen one has to be pushed back through the
+        worker or the image would keep showing the old filter."""
+        if state["frozen"] and self.review:
+            self._seek(self.play_t, force=True)
+
+    # -- probe calibration ----------------------------------------------------
+    # R, pitch and t0 all move the DELAY MODEL only - no FPGA traffic - so they
+    # stay live while frozen and while replaying cine.  That is the whole point:
+    # freeze on a wire target, then drag until it is a point.  Suggested order,
+    # because they trade off against each other in a fixed way:
+    #
+    #   1. c   - water is 1480, tissue ~1540.  Sets the depth scale.
+    #   2. t0  - a pure depth shift; put the wire at its measured depth.
+    #   3. R   - asymmetric smear.  Wrong R bends the array off the true arc,
+    #            so the two halves focus at different depths.
+    #   4. pitch - lateral smear that grows toward the aperture edges.
+    #
+    # Do it on an OFF-AXIS wire: on-axis, a pitch error is nearly invisible
+    # because every element is roughly equidistant.
+    def _calib_row(self, row):
+        lab = QLabel("probe:"); lab.setStyleSheet(f"color:{DIM};")
+        row.addWidget(lab)
+        mkfslider(row, "R", 40.0, 120.0, 0.1, geom["R_mm"], self.set_R,
+                  width=96, unit="mm", fmt="%.1f",
+                  tip="convex radius of curvature.\nMeasured: R = (chord^2/4 + "
+                      "sag^2) / 2*sag.  CH6-2 face is 62.32 mm across with a "
+                      "7.62 mm\nsagitta -> 67.5 mm.  Wrong R focuses the two "
+                      "halves of the array at different depths.")
+        mkfslider(row, "pitch", 0.200, 0.600, 0.001, geom["pitch_mm"],
+                  self.set_pitch, width=96, unit="mm", fmt="%.3f",
+                  tip="element pitch along the arc = arc length / element count."
+                      "\nCH6-2: 64.79 mm of arc over 192 elements -> 0.3375 mm."
+                      "\nA 1% error is ~half a wavelength of round-trip error at "
+                      "the aperture edge.")
+        mkfslider(row, "t0", T0_NS_MIN, T0_NS_MAX, T0_NS_STEP, state["t0_ns"],
+                  self.set_t0, width=96, unit="ns", fmt="%.0f",
+                  tip="fixed round-trip offset the geometry cannot see: lens + "
+                      "matching layer\n(~2 us round trip) plus tx-to-capture "
+                      "skew.  Positive = echoes arrive later.\nRECONSTRUCTION "
+                      "ONLY - sends nothing to the FPGA, unlike pulse->rx.")
+        row.addSpacing(10)
+
+    # -- transmit sequencer ---------------------------------------------------
+    # Same PulserCtl the Tk hosts drive, so the settings and their meanings are
+    # identical; only the widgets are Qt.  One field is deliberately missing:
+    # "rx us".  send_pls_rx owns the pulser's receive window because it has to
+    # cover the capture window, and a manual slider would only fight the depth
+    # control.  Everything else is a straight port.
+    def _pulser_rows(self, r3, r4):
+        self.cb_arm = QCheckBox("PULSER RUN")
+        self.cb_arm.setChecked(pulser.arm)
+        self.cb_arm.setToolTip(PLS_HELP.get("PULSER RUN", ""))
+        self.cb_arm.toggled.connect(self.set_arm)
+        r3.addWidget(self.cb_arm)
+
+        b_fclr = QPushButton("clr fault")
+        b_fclr.setToolTip(PLS_HELP.get("clr fault", ""))
+        b_fclr.clicked.connect(lambda: (pulser.clear_fault(), self.pls_refresh()))
+        r3.addWidget(b_fclr)
+
+        self.cb_single = QCheckBox("single element")
+        self.cb_single.setToolTip(PLS_HELP.get("single element", ""))
+        self.cb_single.toggled.connect(self.set_single)
+        r3.addWidget(self.cb_single)
+        r3.addStretch(1)
+
+        # Row 4: burst shape, then the inter-stage waits and element selection.
+        # settle/inhibit start at their datasheet floors - the FPGA clamps
+        # anything lower regardless, so the slider cannot ask for an unsafe one.
+        def pls(label, lo, hi, step, val, setter, quant, unit, fmt="%g", width=88):
+            def on(v):
+                setter(v)
+                self.pls_refresh()
+            return mkfslider(r4, label, lo, hi, step, val, on, width=width,
+                             unit=unit, fmt=fmt, tip=PLS_HELP.get(label),
+                             quant=quant)
+
+        pls("pulses", 1, 16, 1, pulser.n_cycles, pulser.set_n_cycles,
+            int, "", "%.0f", width=64)
+        pls("width ns", 10, 500, 10, pulser.t_drive_ns, pulser.set_t_drive_ns,
+            pls_ns_to_cyc, "ns", "%.0f")
+        pls("dead ns", 10, 200, 10, pulser.t_dead_ns, pulser.set_t_dead_ns,
+            pls_ns_to_cyc, "ns", "%.0f")
+        pls("settle us", T_SETTLE_MIN_US, 40, 0.5, pulser.t_settle_us,
+            pulser.set_t_settle_us, pls_us_to_cyc, "us", "%.1f")
+        pls("inhibit us", T_INHIBIT_MIN_US, 40, 0.5, pulser.t_inhib_us,
+            pulser.set_t_inhib_us, pls_us_to_cyc, "us", "%.1f")
+        pls("ring us", 0, 50, 0.5, pulser.t_ring_us, pulser.set_t_ring_us,
+            pls_us_to_cyc, "us", "%.1f")
+        pls("elements", 1, N_ELEM_MAX, 1, pulser.n_elem, pulser.set_n_elem,
+            int, "", "%.0f", width=76)
+
+        # The element slider only transmits while "single element" is ticked;
+        # otherwise it just parks a value for when you tick it.
+        self.elem_v = 0
+        def elem_moved(v):
+            self.elem_v = int(v)
+            if self.cb_single.isChecked():
+                pulser.set_single_elem(self.elem_v)
+                self.pls_refresh()
+        mkfslider(r4, "element", 0, N_ELEM_MAX - 1, 1, 0, elem_moved,
+                  width=76, unit="", fmt="%.0f", tip=PLS_HELP.get("element"))
+
+        r4.addStretch(1)
+        self.pls_lbl = QLabel(""); self.pls_lbl.setStyleSheet(f"color:{DIM};")
+        r4.addWidget(self.pls_lbl)
+        self.pace_lbl = QLabel(""); self.pace_lbl.setStyleSheet("color:#fa5;")
+        r3.addWidget(self.pace_lbl)
+
+    def pls_refresh(self):
+        """Derived transmit readout, plus the pacing guard.
+
+        SRC_SEQ arms, waits for tx_sync, captures, then holds off seq_gap before
+        re-arming; a burst arriving inside that cycle is ignored.  If the pulser
+        were faster than the capture we would silently keep only every Nth
+        element - and with an even N over an even aperture that means seeing
+        only the even ones, which looks exactly like half a dead array.
+        send_pls_rx sizes t_rx to make this impossible, so the warning should
+        never appear; it is here to catch that rule being wrong, not the user.
+        """
+        self.pls_lbl.setText(
+            "f0 %.2f MHz  burst %.0f ns  elem %.0f us  frame %.1f ms (%.1f fps)%s"
+            % (pulser.f0_hz() / 1e6, pulser.burst_ns(),
+               pulser.element_period_us(), pulser.frame_ms(),
+               1e3 / max(pulser.frame_ms(), 1e-6),
+               "" if pulser.arm else "   [STOPPED]"))
+        capture_us = state["dly_us"] + cfg["win_us"] + self.gap
+        element_us = pulser.element_period_us()
+        if element_us < capture_us:
+            n = int(capture_us // element_us) + 1
+            self.pace_lbl.setText(
+                "PACING: element period %.0f us < capture %.0f us -> only every "
+                "%d%s burst captured" % (element_us, capture_us, n,
+                                         {1: "st", 2: "nd", 3: "rd"}.get(n, "th")))
+        else:
+            self.pace_lbl.setText("")
 
     # -- cine transport bar ---------------------------------------------------
     def _cine_bar(self):
@@ -1950,18 +3233,68 @@ class Main(QWidget):
         self.scene.gl.update()
 
     # -- control callbacks ----------------------------------------------------
+    # dly and gap both move the end of the capture cycle, so both have to resize
+    # the pulser's receive window with them - see send_pls_rx.
     def set_dly(self, v):
         state["dly_us"] = float(v)
         send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(v)), "seq_dly")
+        send_pls_rx(v, self.gap)
+        self.pls_refresh()      # t_rx moved, so element period and frame rate did
 
     def set_gap(self, v):
         self.gap = v
         send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(v)), "seq_gap")
+        send_pls_rx(state["dly_us"], v)
+        self.pls_refresh()
 
     # these are pure shader uniforms - repaint explicitly so they stay live
     # while frozen (only the compress pass re-runs for dyn range / gain)
+    def set_flip(self, v):    flip["on"] = bool(v);       self.scene.gl.update()
+
+    def apply_dead(self):
+        """Re-parse the box, normalise what it shows, and repaint.  Render-time
+        only - no FPGA traffic, and it works while frozen or scrubbing."""
+        set_dead(self.ed_dead.text())
+        txt = ",".join(str(i) for i in sorted(dead["set"]))
+        if txt != self.ed_dead.text():
+            self.ed_dead.setText(txt)       # echo back what was actually taken
+        self.scene.gl.update()
     def set_c(self, v):       state["c"] = float(v);      self.scene.gl.update()
     def set_accept(self, v):  state["accept"] = float(v); self.scene.gl.update()
+    def set_mmode(self, on):
+        mline["on"] = bool(on)
+        self.mstrip.setVisible(mline["on"])
+        mm_reset()                      # stale history never survives a re-arm
+        if not mline["on"] and self.cb_snd.isChecked():
+            self.cb_snd.setChecked(False)   # no line, nothing to listen to
+        self.scene.ov.update()
+
+    def set_sound(self, on):
+        if on and not mline["on"]:
+            self.cb_mm.setChecked(True)     # sound implies the line exists
+        self.audio.start() if on else self.audio.stop()
+
+    def set_vol(self, v):     self.audio.gain = v / 100.0
+
+    def set_apod(self, v):    state["apod"] = v / 100.0;  self.scene.gl.update()
+    def set_cf(self, v):      state["cf"]   = v / 100.0;  self.scene.gl.update()
+    def set_t0(self, v):      state["t0_ns"] = float(v);  self.scene.gl.update()
+
+    # R and pitch rebuild the element table, which bumps geom["gen"] and makes
+    # _beamform re-upload the 'elems' uniform on the next pass.
+    def set_R(self, v):
+        geom["R_mm"] = float(v); rebuild_geometry(); self.scene.gl.update()
+
+    def set_pitch(self, v):
+        geom["pitch_mm"] = float(v); rebuild_geometry(); self.scene.gl.update()
+
+    # -- transmit callbacks ---------------------------------------------------
+    def set_arm(self, on):
+        pulser.set_arm(bool(on)); self.pls_refresh()
+
+    def set_single(self, on):
+        pulser.set_single_elem(self.elem_v if on else None)
+        self.pls_refresh()
     def set_dyn(self, v):     state["dyn"] = float(v);    self.scene.gl.update()
     def set_gain(self, v):    state["gain"] = float(v);   self.scene.gl.update()
 
@@ -2008,6 +3341,9 @@ class Main(QWidget):
             else:
                 self._cine_text()
         else:
+            # Resuming: the held sweeps predate the pause and the probe may
+            # have moved, so the first live frame back must not blend the two.
+            rf_avg.reset()
             self._stop_play()
             self.review, self.rev_t = [], np.zeros(0)
             self.cur_idx = -1
@@ -2036,11 +3372,29 @@ class Main(QWidget):
         i = min(max(i, 0), len(self.review) - 1)
         if i != self.cur_idx or force:
             self.cur_idx = i
-            request_replay(self.review[i][1])
+            request_replay(self._review_rf(i))
         self.play_t = t
         self.tl.span, self.tl.pos = self._span(), t
         self.tl.update()
         self._cine_text()
+
+    def _review_rf(self, i):
+        """Recorded sweep i, averaged over the same span the live view uses.
+
+        The cine ring stores RAW sweeps, so this has to redo the boxcar rather
+        than replay one - which is the better arrangement anyway: freezing does
+        not change the noise floor under the image, and a loop recorded at avg 1
+        can be re-averaged after the fact by dragging the slider while frozen.
+
+        The window is trimmed at the start of the buffer rather than padded, so
+        the oldest frames average over fewer sweeps instead of reusing one."""
+        n = min(rf_avg.n, i + 1)
+        if n <= 1:
+            return self.review[i][1]
+        acc = np.zeros(self.review[i][1].shape, dtype=np.int32)
+        for k in range(i - n + 1, i + 1):
+            acc += self.review[k][1]
+        return (acc / n).astype(np.float32)
 
     def _cine_text(self):
         if not self.review:
@@ -2107,6 +3461,7 @@ class Main(QWidget):
         words = depth_to_words(v)
         if words == cfg["win_words"]:
             return
+        mm_reset()          # a new window length: old columns are not comparable
         state["depth_cm"] = v
         # the recorded windows are the old length: nothing in them can be shown
         # against the new geometry, so the loop starts over (and cannot stay
@@ -2116,6 +3471,7 @@ class Main(QWidget):
         self.clear_bg()                       # reference is the old window length
         send_cmd(cmd(OP_STOP), "stop")
         time.sleep(0.2)                       # residual old-size frames drain
+        rf_avg.reset()                        # held sweeps are the old length
         with buf_lk:
             set_cfg(words)
             raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)
@@ -2126,11 +3482,23 @@ class Main(QWidget):
                         int(state["dly_us"]), self.gap)
         send_cmd(cmd(OP_START), "start")
         view["cz"] = None                     # depth changed: recentre vertically
+        self.pls_refresh()      # send_seq_config resized t_rx with the window
 
     # -- capture --------------------------------------------------------------
     def info_line(self):
         return (f"{N_ELEM} el  depth {state['depth_cm']} cm  c {state['c']:.0f} m/s  "
                 f"dly {state['dly_us']:.0f} us  aper {state['accept']:.0f} deg  "
+                f"apod {state['apod']*100:.0f}%  "
+                # Only when on: CF makes brightness non-quantitative, so a
+                # capture has to carry the fact that it was applied.
+                + (f"coh {state['cf']:.2f}  " if state["cf"] > 0 else "")
+                # Both of these change the noise floor the image sits on, so a
+                # capture is not comparable to another one without them.
+                + ("band %.1f-%.1f MHz  " % tuple(f / 1e6 for f in band_edges())
+                   if state["band_on"] else "")
+                + (f"avg {rf_avg.n} sw  " if rf_avg.n > 1 else "")
+                + f"t0 {state['t0_ns']:+.0f} ns  "
+                f"R {geom['R_mm']:.1f} mm  pitch {geom['pitch_mm']:.4f} mm  "
                 f"dyn {state['dyn']:.0f} dB  gain {state['gain']:+.0f} dB  "
                 f"zoom {view['zoom']:.1f}x  TGC {self.tgc_lo}-"
                 f"{max(self.tgc_lo, self.tgc_hi)}"
@@ -2216,6 +3584,8 @@ class Main(QWidget):
         if gl.tex_gen != hil["gen"] or gl.rf_tex is None:
             gl.update()
         self.scene.ov.update()
+        if mline["on"]:
+            self.mstrip.update()
         # background capture runs on the Hilbert worker; reflect its countdown
         want = bg["want"]
         txt  = f"capturing {want}" if want else "capture bg"
@@ -2231,21 +3601,35 @@ class Main(QWidget):
             self.tl.span = secs
             self.tl.update()
             self.cine_lbl.setText(f"rec {n} f · {secs:4.1f} s · {mb:.0f} MB")
+        # Both readouts are the ACTUAL state, not the slider positions: the band
+        # is clamped to Nyquist and the averager fills over its first N sweeps,
+        # so "8/8" is the only thing that says the full 9 dB is really there.
+        lo, hi = band_edges()
+        self.rx_lbl.setText(
+            ("band %.1f-%.1f MHz" % (lo / 1e6, hi / 1e6)
+             if state["band_on"] else "band off")
+            + (f" · avg {rf_avg.depth()}/{rf_avg.n}" if rf_avg.n > 1 else ""))
         self.wininfo.setText(
             f"near {level['near']:+6.1f}  far {level['far']:+6.1f} dBFS"
             f"{'  [bg]' if bg['on'] and bg['ref'] is not None else ''} · "
             f"win {cfg['samps']} samp · {cfg['win_us']:.0f} us · "
-            f"grid {gl.fb_w}x{gl.fb_h} · {N_ELEM} el, {APERTURE_MM:g} mm aperture "
-            f"· R {PROBE_R_MM:g} mm pitch {PITCH_MM:g} mm")
+            f"grid {gl.fb_w}x{gl.fb_h} · {N_ELEM} el, {APERTURE_MM:.2f} mm aperture "
+            f"· R {geom['R_mm']:.1f} mm pitch {geom['pitch_mm']:.4f} mm "
+            f"t0 {state['t0_ns']:+.0f} ns")
         # near is the clipping meter: colour it when the artifact is on the rail,
         # because a clipped artifact is one the subtraction cannot remove.
         self.wininfo.setStyleSheet(
             f"color:{WARN_C};" if level["near"] > -1.0 else f"color:{DIM};")
-        bad = stats["drops"] or stats["resyncs"]
+        # "holes" counts ADC samples dropped INSIDE a window (seq_check).
+        # Non-zero holes with zero drops = traces are being time-corrupted
+        # without any frame being lost, which is what flickering dark patches
+        # deeper in the window look like.
+        bad = stats["drops"] or stats["resyncs"] or stats["seq_bad"]
         self.status.setText(
             f" {stats['mbps']:6.1f} MB/s   {stats['fps']/N_ELEM:6.1f} sweeps/s"
             f"   frames {stats['frames']}   drops {stats['drops']}"
             f"   resyncs {stats['resyncs']}"
+            f"   holes {stats['seq_bad']}/{stats['seq_chk']}"
             f"   |  gpu {perf['gpu_ms']:.2f} ms   ui {perf['cpu_ms']:.2f} ms"
             f"   hilbert {perf['hil_ms']:.1f} ms ({FFT_LIB}, off-thread)"
             + ("" if stats["alive"] else "   *** STREAM STOPPED ***"))
@@ -2253,6 +3637,7 @@ class Main(QWidget):
 
     def closeEvent(self, ev):
         stats["alive"] = False
+        self.audio.stop()                 # release the device before teardown
         hil_ev.set()                      # let the worker notice and exit
         if HW:
             try:

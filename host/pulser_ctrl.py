@@ -282,25 +282,25 @@ HELP = {
     "every element in the frame pays it.",
 
 "elements":
-    "Elements fired per frame. The sequencer walks 0 .. N-1 in order, then "
-    "repeats.\n\n"
+    "Elements fired per frame. The sequencer walks aperture positions 0 .. N-1 "
+    "in order - left to right across the probe face - then repeats.\n\n"
     "Frame time = elements x element period, where the element period is "
     "settle + burst + ring + rx plus a little chain overhead.\n\n"
     "48 = the full aperture (3 leaf muxes x 16 channels).",
 
 "single element":
     "Fire one element repeatedly instead of walking the aperture.\n\n"
-    "Writes the chosen index into slot 0 of the element list and sets the "
-    "list length to 1.\n\n"
-    "NOTE: if the bitstream was built with MUX_STATIC=1 the mux word is a "
-    "compile-time constant, so this no longer changes WHICH element fires - "
-    "it only shortens the frame to one shot.",
+    "Writes the chosen position into slot 0 of the element list and sets the "
+    "list length to 1.",
 
 "element":
     "Which element to fire when 'single element' is ticked.\n\n"
-    "Index 0-47 maps to the mux tree as branch = index / 16 (leaf mux 1, 2 or "
-    "3, reached through root SW5 / SW7 / SW11) and channel = index % 16 (that "
-    "leaf's SW0-SW15).\n\n"
+    "0-47 is an APERTURE POSITION: 0 is the left-most element of the array, 47 "
+    "the right-most. It is not a mux address - the connector wiring is "
+    "scrambled, and tx_sequencer.v's mux_code() table maps the position onto "
+    "the root/leaf switch pair that actually reaches it.\n\n"
+    "This is also the id that arrives in the frame header, so it indexes the "
+    "element geometry in tfm_gl_host.py directly.\n\n"
     "Moving this slider sends nothing unless 'single element' is ticked.",
 }
 

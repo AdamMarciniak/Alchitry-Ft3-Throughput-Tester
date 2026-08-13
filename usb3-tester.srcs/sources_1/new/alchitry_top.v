@@ -285,6 +285,13 @@ module alchitry_top #(
     //--------------------------------------------------------------------------
     wire        pulse_busy;
     wire        pulse_chain_ok;
+    // Chain loopback diagnostics.  Only the strobe is consumed below (LEDs);
+    // the count / element / returned word are left as named nets so an ILA can
+    // be dropped straight onto them - they synthesise away until one is.
+    wire [15:0] pulse_chain_errs;
+    wire [5:0]  pulse_chain_err_elem;
+    wire [63:0] pulse_chain_err_word;
+    wire        pulse_chain_err_stb;
     wire        pulse_fault;
     wire [3:0]  pulse_fault_code;
     wire [15:0] pulse_frames;
@@ -304,13 +311,20 @@ module alchitry_top #(
         .ROOT_SW_BR1   (7),
         .ROOT_SW_BR2   (11),
 
-        // ---- BENCH MODE: single fixed element -------------------------------
-        // Set MUX_STATIC back to 0 to restore the normal aperture walk.
-        // Holds root SW5 (-> leaf mux 1) and leaf mux 1 SW10 closed for every
-        // shot: pulse and receive on the one element at ROOT.NO5 / BR1.NO10.
-        // Chain word = 64'h0000_0000_0400_0020.  Timing, frame length and the
-        // receive path are unchanged - every element just rewrites this word.
-        .MUX_STATIC      (1),
+        // ---- aperture walk --------------------------------------------------
+        // MUX_STATIC = 0: the sequencer sweeps aperture positions 0..47 left to
+        // right, one element per transmit event, and tx_sequencer's mux_code()
+        // table turns each position into the root/leaf switch pair the
+        // connector actually wired it to.  Every element receives on the same
+        // single RX path, so nothing downstream of the mux tree changes.
+        //
+        // Set MUX_STATIC back to 1 for the single-element bench mode: the FSM,
+        // the timing and the frame length are identical, but every element
+        // rewrites one fixed chain word so the switches never move.  The
+        // parameters below are hardware coordinates (chain device + NO pin),
+        // not aperture positions - SW5 / BR1.NO10 was the element used for the
+        // first tissue echoes, chain word 64'h0000_0000_0400_0020.
+        .MUX_STATIC      (0),
         .MUX_STATIC_ROOT (5),          // root SW5  -> COM5/NO5, feeds leaf 1
         .MUX_STATIC_BR   (0),          // leaf 1 = BR1 = chain device after root
         .MUX_STATIC_CH   (10)          // leaf SW10 -> COM10/NO10
@@ -349,6 +363,10 @@ module alchitry_top #(
         .busy            (pulse_busy),
         .element_current (pulse_element),
         .chain_ok        (pulse_chain_ok),
+        .chain_err_cnt   (pulse_chain_errs),
+        .chain_err_elem  (pulse_chain_err_elem),
+        .chain_err_word  (pulse_chain_err_word),
+        .chain_err_stb   (pulse_chain_err_stb),
         .fault           (pulse_fault),
         .fault_code      (pulse_fault_code),
         .frame_count     (pulse_frames),
@@ -463,12 +481,56 @@ module alchitry_top #(
     );
 
     //--------------------------------------------------------------------------
-    // Status LEDs
+    // Chain loopback indicators.
+    //
+    // Two views of the same event, because they answer different questions:
+    //   sticky : has the mux chain EVER failed to write since reset.  A glance
+    //            says whether the transmit path can be trusted at all.
+    //   pulse  : ~1 us per mismatch.  This is the scope trigger - trigger on
+    //            the rising edge with negative delay and the failing shift sits
+    //            in the pre-trigger window on mux_clk / mux_din / mux_dout,
+    //            where the rotation can be read straight off the screen.  The
+    //            trigger RATE is also the error rate, which is the number that
+    //            matters: an occasional miss and every-shot corruption look
+    //            identical on the sticky bit.
+    //
+    // These ride on LEDs rather than a new header pin - the LED pins (K13..P14)
+    // are real FPGA I/O and probe fine, and no pin assignment has to be guessed
+    // against a header map.  To move one to the pulser header instead, add the
+    // port here, a line to host/pulser.acf, and the PACKAGE_PIN it generates to
+    // pulser.xdc, exactly as the eight pulser signals were done.
     //--------------------------------------------------------------------------
-    assign led = {ft_locked,        // 7: FT601 MMCM locked
-                  rx_locked,        // 6: magic word found, control channel live
-                  streaming,        // 5: START received
-                  afe_led[4],       // 4: AFE FCLK alive
-                  afe_led[3],       // 3: AFE OUT1 activity
-                  afe_led[2:0]};    // 2:0 AFE phase (101 = LOCKED, 110 = FAILED)
+    localparam integer DBG_STRETCH = 100;      // 1.0 us at 100 MHz
+
+    reg       chain_err_sticky  = 1'b0;
+    reg [6:0] chain_err_stretch = 7'd0;
+
+    always @(posedge clk_in) begin
+        if (rst_sys) begin
+            chain_err_sticky  <= 1'b0;
+            chain_err_stretch <= 7'd0;
+        end else if (pulse_chain_err_stb) begin
+            chain_err_sticky  <= 1'b1;
+            chain_err_stretch <= DBG_STRETCH - 1;
+        end else if (chain_err_stretch != 7'd0) begin
+            chain_err_stretch <= chain_err_stretch - 7'd1;
+        end
+    end
+
+    wire chain_err_pulse = (chain_err_stretch != 7'd0);
+
+    //--------------------------------------------------------------------------
+    // Status LEDs
+    //
+    // led[4:3] were afe_led[4] (FCLK alive) and afe_led[3] (OUT1 activity).
+    // Both are implied by led[2:0] == 101 (phase LOCKED), so they are the two
+    // cheapest bits to spend on the chain check.  Swap the two lines back to
+    // recover them.
+    //--------------------------------------------------------------------------
+    assign led = {ft_locked,         // 7: FT601 MMCM locked
+                  rx_locked,         // 6: magic word found, control channel live
+                  streaming,         // 5: START received
+                  chain_err_pulse,   // 4: mux chain readback mismatch, 1 us pulse
+                  chain_err_sticky,  // 3: ...any mismatch since reset
+                  afe_led[2:0]};     // 2:0 AFE phase (101 = LOCKED, 110 = FAILED)
 endmodule

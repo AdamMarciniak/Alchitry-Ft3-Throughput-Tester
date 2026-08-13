@@ -15,6 +15,12 @@
 //     then straight back to S_SHIFT for the next element, early in the RX
 //     window where the echo data is ringdown-dominated anyway.
 //
+//   ELEMENT NUMBERING: everything outside the mux_code() table below speaks in
+//   APERTURE POSITIONS - 0 is the left-most element of the array, N_ELEM-1 the
+//   right-most.  That is what the element list holds, what element_current
+//   reports, and therefore what the host header carries.  mux_code() is the
+//   single place the connector's scrambled wiring is described.
+//
 //   Electrical rules enforced here (README-sonic-tx-sequencer.md sec 5):
 //     - pulse_ina is ACTIVE HIGH, pulse_inb is ACTIVE LOW.  Safe idle is
 //       ina=0, inb=1.  ina=1 & inb=0 is shoot-through; an unconditional
@@ -90,6 +96,8 @@ module tx_sequencer #(
     // same elements per frame - every element just writes the SAME word, so
     // the switches are reloaded with the value they already have and never
     // actually move.  Pulse and receive on one element, through one path.
+    // These three are HARDWARE coordinates - chain device and NO pin - not an
+    // aperture position, so they bypass mux_code() entirely.
     parameter integer MUX_STATIC      = 0,    // 0 = walk the aperture (normal)
     parameter integer MUX_STATIC_ROOT = 5,    // root switch held closed (SW5)
     parameter integer MUX_STATIC_BR   = 0,    // leaf: 0 = BR1, 1 = BR2, 2 = BR3
@@ -136,7 +144,20 @@ module tx_sequencer #(
     // ---- status -------------------------------------------------------------
     output wire        busy,
     output reg  [5:0]  element_current,
-    output reg         chain_ok,
+    output reg         chain_ok,          // last readback matched what was sent
+
+    // ---- chain loopback diagnostics -----------------------------------------
+    // mux_dout IS connected on this board (K5 / header B33 / DOUT_READBACK), so
+    // every shift verifies the PREVIOUS shift at no cost.  These report that
+    // without stopping the run; CHAIN_CHECK turns the same event into a latched
+    // fault, which is the wrong behaviour while diagnosing - it parks the
+    // sequencer on the first mismatch instead of letting it keep failing where
+    // it can be watched.
+    output reg  [15:0] chain_err_cnt,     // mismatches since reset (saturating)
+    output reg  [5:0]  chain_err_elem,    // element whose word failed to survive
+    output reg  [63:0] chain_err_word,    // what came back instead
+    output reg         chain_err_stb,     // 1-cycle pulse per mismatch
+
     output wire        fault,
     output reg  [3:0]  fault_code,
     output reg  [15:0] frame_count,
@@ -188,10 +209,13 @@ module tx_sequencer #(
     assign dbg_state = state;
 
     //==========================================================================
-    // Element list.  6-bit element index per entry, initialised 0 .. N_ELEM-1
-    // so the sequencer walks the full aperture with no host interaction.
-    // Distributed RAM, asynchronous read - the FSM has a whole element period
-    // to use it.
+    // Element list.  One 6-bit APERTURE POSITION per entry (0 = left-most
+    // element, N_ELEM-1 = right-most), initialised 0 .. N_ELEM-1 so the
+    // sequencer sweeps the array left to right with no host interaction.  The
+    // mux_code() table below turns a position into the (branch, channel) the
+    // wiring actually puts it on; nothing outside that table needs to know the
+    // connector order.  Distributed RAM, asynchronous read - the FSM has a
+    // whole element period to use it.
     //==========================================================================
     (* ram_style = "distributed" *) reg [5:0] elem_list [0:LIST_DEPTH-1];
     integer li;
@@ -206,8 +230,107 @@ module tx_sequencer #(
     wire [5:0] elem_sel = elem_list[list_ptr];
 
     //==========================================================================
+    // Aperture position -> mux hardware address.
+    //
+    // elem_list holds an APERTURE POSITION: 0 is the left-most element of the
+    // array, 47 the right-most.  That is also what element_current reports, so
+    // the header the host sees is a position along the probe face and indexes
+    // the geometry table in tfm_gl_host.py directly.  The mux tree is NOT wired
+    // in that order - the connector scrambles it - so this table is the one
+    // place the physical wiring is described.
+    //
+    // Two independent renumberings are folded in here.  Get either wrong and
+    // the image is a shuffled version of the tissue, which looks plausible:
+    //
+    //  1. The board's pin labels are off by one device from our chain
+    //     numbering.  Chain order is ROOT, mux1, mux2, mux3 (root nearest the
+    //     FPGA), i.e. mux1 = BR1 = branch 0, mux2 = BR2 = branch 1,
+    //     mux3 = BR3 = branch 2.  But a pin printed "1Nxx" lands on mux 3,
+    //     "2Nxx" on mux 1 and "3Nxx" on mux 2.  So:
+    //         label 1Nxx -> BR3 -> branch 2      (A*/B* elements)
+    //         label 2Nxx -> BR1 -> branch 0      (G*/H* elements)
+    //         label 3Nxx -> BR2 -> branch 1      (C*/D*/E*/F* elements)
+    //     The channel number carries straight through: Nxx -> SWxx.
+    //
+    //  2. Within a device the NO pins are not in array order either - e.g. the
+    //     four left-most elements A1 A2 B1 B2 are BR3 SW15, SW14, SW3, SW2.
+    //
+    // The result is a permutation: every one of the 48 (branch, channel) pairs
+    // appears exactly once, 16 per branch.  The label beside each entry is the
+    // silkscreen name of that element, kept here so the table can be checked
+    // against the connector drawing without re-deriving anything.
+    //
+    // Positions >= N_ELEM cannot occur - word_ok gates on elem_sel < N_ELEM and
+    // faults FC_ELEMENT before the word can be latched - so the default arm is
+    // unreachable and exists only to keep the function fully specified.
+    //==========================================================================
+    function [5:0] mux_code;                // {branch[1:0], channel[3:0]}
+        input [5:0] pos;
+        begin
+            case (pos)
+            // ---- 1Nxx pins -> BR3 (branch 2) --------------------------------
+            6'd0 : mux_code = {2'd2, 4'd15};   // A1
+            6'd1 : mux_code = {2'd2, 4'd14};   // A2
+            6'd2 : mux_code = {2'd2, 4'd3 };   // B1
+            6'd3 : mux_code = {2'd2, 4'd2 };   // B2
+            6'd4 : mux_code = {2'd2, 4'd13};   // A3
+            6'd5 : mux_code = {2'd2, 4'd12};   // A4
+            6'd6 : mux_code = {2'd2, 4'd1 };   // B3
+            6'd7 : mux_code = {2'd2, 4'd0 };   // B4
+            // ---- 3Nxx pins -> BR2 (branch 1) --------------------------------
+            6'd8 : mux_code = {2'd1, 4'd15};   // C5
+            6'd9 : mux_code = {2'd1, 4'd14};   // C6
+            6'd10: mux_code = {2'd1, 4'd11};   // D5
+            6'd11: mux_code = {2'd1, 4'd10};   // D6
+            6'd12: mux_code = {2'd1, 4'd13};   // C7
+            6'd13: mux_code = {2'd1, 4'd12};   // C8
+            6'd14: mux_code = {2'd1, 4'd9 };   // D7
+            6'd15: mux_code = {2'd1, 4'd8 };   // D8
+            // ---- 1Nxx pins -> BR3 (branch 2) --------------------------------
+            6'd16: mux_code = {2'd2, 4'd11};   // A5
+            6'd17: mux_code = {2'd2, 4'd10};   // A6
+            6'd18: mux_code = {2'd2, 4'd4 };   // B5
+            6'd19: mux_code = {2'd2, 4'd5 };   // B6
+            6'd20: mux_code = {2'd2, 4'd9 };   // A7
+            6'd21: mux_code = {2'd2, 4'd8 };   // A8
+            6'd22: mux_code = {2'd2, 4'd6 };   // B7
+            6'd23: mux_code = {2'd2, 4'd7 };   // B8
+            // ---- 2Nxx pins -> BR1 (branch 0) --------------------------------
+            6'd24: mux_code = {2'd0, 4'd7 };   // H24
+            6'd25: mux_code = {2'd0, 4'd6 };   // H23
+            6'd26: mux_code = {2'd0, 4'd8 };   // G24
+            6'd27: mux_code = {2'd0, 4'd9 };   // G23
+            6'd28: mux_code = {2'd0, 4'd5 };   // H22
+            6'd29: mux_code = {2'd0, 4'd4 };   // H21
+            6'd30: mux_code = {2'd0, 4'd10};   // G22
+            6'd31: mux_code = {2'd0, 4'd11};   // G21
+            // ---- 3Nxx pins -> BR2 (branch 1) --------------------------------
+            6'd32: mux_code = {2'd1, 4'd3 };   // F24
+            6'd33: mux_code = {2'd1, 4'd2 };   // F23
+            6'd34: mux_code = {2'd1, 4'd7 };   // E24
+            6'd35: mux_code = {2'd1, 4'd6 };   // E23
+            6'd36: mux_code = {2'd1, 4'd1 };   // F22
+            6'd37: mux_code = {2'd1, 4'd0 };   // F21
+            6'd38: mux_code = {2'd1, 4'd5 };   // E22
+            6'd39: mux_code = {2'd1, 4'd4 };   // E21
+            // ---- 2Nxx pins -> BR1 (branch 0) --------------------------------
+            6'd40: mux_code = {2'd0, 4'd3 };   // H20
+            6'd41: mux_code = {2'd0, 4'd2 };   // H19
+            6'd42: mux_code = {2'd0, 4'd15};   // G20
+            6'd43: mux_code = {2'd0, 4'd14};   // G19
+            6'd44: mux_code = {2'd0, 4'd1 };   // H18
+            6'd45: mux_code = {2'd0, 4'd0 };   // H17
+            6'd46: mux_code = {2'd0, 4'd13};   // G18
+            6'd47: mux_code = {2'd0, 4'd12};   // G17
+            default: mux_code = 6'd0;          // unreachable, see above
+            endcase
+        end
+    endfunction
+
+    //==========================================================================
     // Chain word for the selected element (sec 6).
-    //   branch = e / 16      channel = e % 16
+    //   branch / channel come from the aperture table above, NOT from
+    //   elem_sel[5:4] / elem_sel[3:0] - the wiring is not in array order.
     //   word_ROOT       = 1 << ROOT_SW_BR[branch]   (SW5 / SW7 / SW11)
     //   word_BR[branch] = 1 << channel              the other two words are zero
     // Wire order is tail first - BR3, BR2, BR1, ROOT - MSB (SW15) first inside
@@ -215,8 +338,9 @@ module tx_sequencer #(
     // the first bit out travels furthest, so the LAST 16 bits sent (w_root)
     // stay in the device nearest the FPGA, which is the root mux.
     //==========================================================================
-    wire [1:0]  branch    = elem_sel[5:4];
-    wire [3:0]  channel   = elem_sel[3:0];
+    wire [5:0]  elem_hw   = mux_code(elem_sel);
+    wire [1:0]  branch    = elem_hw[5:4];
+    wire [3:0]  channel   = elem_hw[3:0];
     wire [15:0] onehot_ch = 16'h0001 << channel;
 
     localparam [15:0] ROOT_B0   = 16'h0001 << ROOT_SW_BR0;
@@ -302,6 +426,8 @@ module tx_sequencer #(
     reg [63:0] tx_sr      = 64'h0;
     reg [63:0] rx_sr      = 64'h0;
     reg [63:0] prev_word  = 64'h0;   // what we sent last time - DOUT lags 64 clocks
+    reg [5:0]  prev_elem  = 6'd0;    // ...and the element that word selected
+    reg        seen_first = 1'b0;    // one shift has completed since reset
     reg [6:0]  bit_cnt    = 7'd0;
     reg [7:0]  div_cnt    = 8'd0;
     reg        shift_busy = 1'b0;
@@ -444,6 +570,7 @@ module tx_sequencer #(
                          ((state == S_SHIFT) || (state == S_WAITRX) || (state == S_TCS))) begin
                 trip = 1'b1;  trip_code = FC_ELEMENT;
             end else if ((CHAIN_CHECK != 0) && shift_done && !chain_match &&
+                         seen_first &&
                          ((state == S_SHIFT) || (state == S_SELFT))) begin
                 trip = 1'b1;  trip_code = FC_CHAIN;
             end
@@ -700,6 +827,58 @@ module tx_sequencer #(
             default: state <= S_RST;
 
             endcase
+        end
+    end
+
+    //==========================================================================
+    // Chain loopback check.
+    //
+    // rx_sr holds what came back out of the tail of the daisy chain during THIS
+    // shift, which is the word sent during the PREVIOUS shift - the chain is 64
+    // flops deep, so DOUT lags DIN by exactly one word.  chain_match is that
+    // comparison; all this block does is record the failures.
+    //
+    // Because the readback is one word behind, a mismatch reported at shift N
+    // condemns the word sent at shift N-1.  That is prev_elem, NOT the element
+    // being shifted now - get this backwards and the error is blamed on the
+    // wrong element, which is the whole point of the measurement.
+    //
+    // The first compare after reset is recorded in chain_ok (so the power-up
+    // liveness check the shifter comment describes is still observable) but is
+    // NOT counted here.  S_SELFT shifts 64 zeros while prev_word is still zero,
+    // so that compare only means anything if the MAX14866 shift registers come
+    // out of POR zeroed.  If they do, discarding it costs nothing; if they do
+    // not, counting it would leave the indicator permanently lit and useless.
+    //
+    // A mismatch means the 64-bit word did not survive in the chain. The
+    // leading candidate is the MAX14866 transmit detector still inhibiting SPI
+    // when S_INHIBIT expires: it swallows leading clocks, the word arrives
+    // rotated, and a different switch closes than the element id in the frame
+    // header claims.  chain_err_word is kept so the rotation can be read
+    // directly - compare it against the expected one-hot-per-device pattern and
+    // the number of eaten clocks falls out.
+    //==========================================================================
+    always @(posedge clk) begin
+        chain_err_stb <= 1'b0;
+
+        if (rst) begin
+            prev_elem      <= 6'd0;
+            seen_first     <= 1'b0;
+            chain_err_cnt  <= 16'd0;
+            chain_err_elem <= 6'd0;
+            chain_err_word <= 64'h0;
+        end else if (shift_done) begin
+            prev_elem <= elem_pend;          // in lockstep with prev_word
+
+            if (!seen_first) begin
+                seen_first <= 1'b1;
+            end else if (!chain_match) begin
+                chain_err_elem <= prev_elem;
+                chain_err_word <= rx_sr;
+                chain_err_stb  <= 1'b1;
+                if (chain_err_cnt != 16'hFFFF)
+                    chain_err_cnt <= chain_err_cnt + 16'd1;
+            end
         end
     end
 
