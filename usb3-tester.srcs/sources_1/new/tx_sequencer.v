@@ -15,6 +15,19 @@
 //     then straight back to S_SHIFT for the next element, early in the RX
 //     window where the echo data is ringdown-dominated anyway.
 //
+//   CODED EXCITATION (chirp): the burst engine runs in HALF cycles - one
+//   half cycle is one driven phase (+HV or -HV) plus the dead gap after it.
+//   cfg_chirp_len = 0 reproduces the fixed burst exactly: 2*n_cycles half
+//   cycles, every driven phase cfg_t_drive long.  cfg_chirp_len = M > 0 fires
+//   M half cycles whose driven widths come from a host-loaded table instead,
+//   one entry per half cycle, so the period can sweep across the burst (a
+//   linear-FM chirp is the intended use; any monotonic or non-monotonic sweep
+//   that fits 256 entries works).  Polarity still strictly alternates
+//   +,-,+,... and the dead gap is still cfg_t_dead everywhere: the table
+//   holds only the driven widths, so no table content can express a polarity
+//   violation - the electrical rules below survive any garbage the host
+//   uploads, and a zero entry is clamped to one cycle.
+//
 //   ELEMENT NUMBERING: everything outside the mux_code() table below speaks in
 //   APERTURE POSITIONS - 0 is the left-most element of the array, N_ELEM-1 the
 //   right-most.  That is what the element list holds, what element_current
@@ -119,6 +132,16 @@ module tx_sequencer #(
     input  wire [7:0]  cfg_n_cycles,          // +/- pulse pairs per burst (>= 1)
     input  wire [15:0] cfg_t_drive,           // width of each +HV and -HV pulse
     input  wire [15:0] cfg_t_dead,            // idle gap between opposite polarities
+    input  wire [7:0]  cfg_chirp_len,         // half cycles from the chirp table;
+                                              //   0 = fixed burst (n_cycles/t_drive)
+
+    // ---- chirp table --------------------------------------------------------
+    // One driven-phase width per half cycle, clk cycles.  Written any time;
+    // only read between S_SETTLE and the end of the burst, so a mid-burst
+    // write can at worst perturb the burst being fired, never the FSM.
+    input  wire        ch_wr,
+    input  wire [7:0]  ch_wr_addr,
+    input  wire [15:0] ch_wr_data,
     input  wire [23:0] cfg_t_settle,          // LE rising -> first HV edge
     input  wire [23:0] cfg_t_inhibit,         // last HV edge -> chain clocking
     input  wire [23:0] cfg_t_ring,            // ringdown blanking
@@ -223,6 +246,19 @@ module tx_sequencer #(
         elem_list[li] = (li < N_ELEM) ? li[5:0] : 6'd0;
 
     always @(posedge clk) if (el_wr) elem_list[el_wr_addr] <= el_wr_data;
+
+    //==========================================================================
+    // Chirp table.  256 driven-phase widths, one per half cycle, distributed
+    // RAM with asynchronous read - the index is stable for a whole dead gap
+    // (>= t_dead >= 1 cycle) before the value is loaded into the burst timer,
+    // so the async read path has an entire clock period of slack.  Initialised
+    // to the default t_drive so an unloaded table fires something sane.
+    //==========================================================================
+    (* ram_style = "distributed" *) reg [15:0] chirp_ram [0:255];
+    integer ci;
+    initial for (ci = 0; ci < 256; ci = ci + 1) chirp_ram[ci] = 16'd10;
+
+    always @(posedge clk) if (ch_wr) chirp_ram[ch_wr_addr] <= ch_wr_data;
 
     reg  [5:0] list_ptr = 6'd0;
     wire [6:0] list_len = (cfg_list_len == 7'd0) ? 7'd1 : cfg_list_len;
@@ -498,10 +534,25 @@ module tx_sequencer #(
     //==========================================================================
     // Burst shape.  Driven phase = t_half - t_dead, clamped so both the driven
     // and the dead phase are always at least one cycle long.
+    //
+    // The engine counts HALF cycles.  A fixed burst is 2*n_cycles halves all
+    // t_drive wide; a chirp is cfg_chirp_len halves whose widths walk the
+    // table.  half_idx is reset while the settle timer runs, so the async
+    // table read (half_drive) is valid long before the first load, and it is
+    // pre-incremented on each load so the NEXT width is settling on the read
+    // port for the whole of the current driven phase and dead gap.
     //==========================================================================
     wire [15:0] t_dead_eff  = (cfg_t_dead  == 16'd0) ? 16'd1 : cfg_t_dead;
     wire [15:0] t_drive_eff = (cfg_t_drive == 16'd0) ? 16'd1 : cfg_t_drive;
     wire [7:0]  n_cyc_eff   = (cfg_n_cycles == 8'd0) ? 8'd1 : cfg_n_cycles;
+
+    wire        chirp_en    = (cfg_chirp_len != 8'd0);
+    reg  [7:0]  half_idx    = 8'd0;     // table entry for the NEXT driven phase
+    wire [15:0] chirp_q     = chirp_ram[half_idx];
+    wire [15:0] chirp_cur   = (chirp_q == 16'd0) ? 16'd1 : chirp_q;
+    wire [15:0] half_drive  = chirp_en ? chirp_cur : t_drive_eff;
+    wire [8:0]  total_half  = chirp_en ? {1'b0, cfg_chirp_len}
+                                       : {n_cyc_eff, 1'b0};   // 2 * n_cycles
 
     // Host-writable waits, floored at their datasheet minima.  The clamp is
     // deliberately here in the sequencer rather than in the host: a bad value
@@ -520,7 +571,7 @@ module tx_sequencer #(
     //==========================================================================
     reg [23:0] tmr           = T_CLR_C - 1; // general state timer (CLR out of POR)
     reg [15:0] btmr          = 16'd0;   // burst phase timer
-    reg [7:0]  cyc_cnt       = 8'd0;    // HV cycles remaining
+    reg [8:0]  half_rem      = 9'd0;    // driven half cycles still to fire
     reg [23:0] rx_tmr        = 24'd0;   // receive window, from the end of the burst
     reg [24:0] wd_cnt        = 25'd0;   // per-state watchdog
     reg [5:0]  elem_pend     = 6'd0;    // element sitting in the shift register
@@ -600,7 +651,8 @@ module tx_sequencer #(
             oe_r            <= 1'b0;
             rx_tmr          <= 24'd0;
             btmr            <= 16'd0;
-            cyc_cnt         <= 8'd0;
+            half_rem        <= 9'd0;
+            half_idx        <= 8'd0;
             list_ptr        <= 6'd0;
             elem_pend       <= 6'd0;
             word_ok_pend    <= 1'b1;
@@ -729,6 +781,7 @@ module tx_sequencer #(
                      else begin
                          le_r            <= 1'b1;
                          element_current <= elem_pend;
+                         half_idx        <= 8'd0;    // table read settles in S_SETTLE
                          tmr             <= t_settle_eff - 24'd1;
                          state           <= S_SETTLE;
                      end
@@ -739,15 +792,21 @@ module tx_sequencer #(
             //------------------------------------------------------------------
             S_SETTLE: if (tmr != 24'd0) tmr <= tmr - 24'd1;
                       else begin
-                          cyc_cnt <= n_cyc_eff;
-                          btmr    <= t_drive_eff - 16'd1;
-                          ina_r   <= 1'b1;           // ina 0->1 only: idle -> +HV
-                          tx_sync <= 1'b1;
-                          state   <= S_FIRE_P;
+                          half_rem <= total_half - 9'd1;
+                          half_idx <= 8'd1;          // prefetch the next width
+                          btmr     <= half_drive - 16'd1;
+                          ina_r    <= 1'b1;          // ina 0->1 only: idle -> +HV
+                          tx_sync  <= 1'b1;
+                          state    <= S_FIRE_P;
                       end
 
             //------------------------------------------------------------------
             // Burst.  Exactly one of ina / inb changes at every transition.
+            // Each driven phase takes its width from half_drive - the table
+            // entry in chirp mode, t_drive otherwise - and every dead gap is
+            // t_dead.  Both dead states test half_rem, so a chirp of odd
+            // length ends after a +HV phase and an even one after -HV; either
+            // way the burst is parked in the idle state when it leaves.
             //------------------------------------------------------------------
             S_FIRE_P: if (btmr != 16'd0) btmr <= btmr - 16'd1;
                       else begin
@@ -756,11 +815,19 @@ module tx_sequencer #(
                           state <= S_DEAD_A;
                       end
 
-            S_DEAD_A: if (btmr != 16'd0) btmr <= btmr - 16'd1;
-                      else begin
-                          inb_r <= 1'b0;             // idle -> -HV
-                          btmr  <= t_drive_eff - 16'd1;
-                          state <= S_FIRE_N;
+            S_DEAD_A: if (btmr != 16'd0) begin
+                          btmr <= btmr - 16'd1;
+                      end else if (half_rem != 9'd0) begin
+                          half_rem <= half_rem - 9'd1;
+                          half_idx <= half_idx + 8'd1;
+                          inb_r    <= 1'b0;          // idle -> -HV
+                          btmr     <= half_drive - 16'd1;
+                          state    <= S_FIRE_N;
+                      end else begin
+                          // burst complete, parked in the idle state
+                          rx_tmr <= rx_win;
+                          tmr    <= t_inhibit_eff - 24'd1;
+                          state  <= S_INHIBIT;
                       end
 
             S_FIRE_N: if (btmr != 16'd0) btmr <= btmr - 16'd1;
@@ -772,11 +839,12 @@ module tx_sequencer #(
 
             S_DEAD_B: if (btmr != 16'd0) begin
                           btmr <= btmr - 16'd1;
-                      end else if (cyc_cnt > 8'd1) begin
-                          cyc_cnt <= cyc_cnt - 8'd1;
-                          ina_r   <= 1'b1;           // idle -> +HV, next cycle
-                          btmr    <= t_drive_eff - 16'd1;
-                          state   <= S_FIRE_P;
+                      end else if (half_rem != 9'd0) begin
+                          half_rem <= half_rem - 9'd1;
+                          half_idx <= half_idx + 8'd1;
+                          ina_r    <= 1'b1;          // idle -> +HV, next cycle
+                          btmr     <= half_drive - 16'd1;
+                          state    <= S_FIRE_P;
                       end else begin
                           // burst complete, parked in the idle state
                           rx_tmr <= rx_win;

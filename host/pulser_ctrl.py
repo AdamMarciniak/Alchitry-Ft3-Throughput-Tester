@@ -16,6 +16,8 @@
 #        python pulser_ctrl.py --stop
 #        python pulser_ctrl.py --start --pulses 3 --width 80 --dead 40
 #        python pulser_ctrl.py --single 19
+#        python pulser_ctrl.py --chirp 2 4 20  (2->4 MHz linear chirp over 20 us)
+#        python pulser_ctrl.py --chirp-off     (back to the fixed burst)
 #        python pulser_ctrl.py --show          (print settings, send nothing)
 #
 #    The FT601 opens exclusively, so close scope_host.py first.
@@ -45,6 +47,8 @@ OP_PLS_TRX     = 0x17   # payload: echo receive window, cycles
 OP_PLS_NELEM   = 0x18   # payload[6:0]: elements per frame
 OP_PLS_ELEM    = 0x19   # payload: {addr[5:0], data[5:0]} element-list write
 OP_PLS_FCLR    = 0x1A   # clear a latched pulser fault
+OP_PLS_CHIRP   = 0x1B   # payload: {addr[7:0], drive[15:0]} chirp-table write
+OP_PLS_CLEN    = 0x1C   # payload[7:0]: chirp half cycles, 0 = fixed burst
 
 # --- datasheet floors, enforced in RTL too -------------------------------------
 # The FPGA clamps these regardless of what we send; they are repeated here so
@@ -62,6 +66,13 @@ T_DEAD_MIN_NS = 40.0
 
 N_ELEM_MAX = 48
 
+# Chirp table geometry, must match tx_sequencer.v.  One table entry is the
+# driven width of one HALF cycle (one +HV or -HV phase); the dead gap after
+# each phase is t_dead as usual, so the half PERIOD the transducer sees is
+# entry + dead.  255 halves at ~3 MHz is ~42 us of sweep - plenty.
+CHIRP_DEPTH   = 256
+CHIRP_LEN_MAX = 255
+
 DEFAULTS = dict(
     arm         = True,
     n_cycles    = 2,        # 2 positive + 2 negative pulses
@@ -72,6 +83,10 @@ DEFAULTS = dict(
     t_ring_us   = 3.0,      # ringdown blanking
     t_rx_us     = 130.0,    # receive window (~100 mm at 1540 m/s)
     n_elem      = 48,       # elements per frame
+    chirp_on    = False,    # coded excitation off: plain n_cycles burst
+    chirp_f0_mhz = 2.0,     # sweep start (first half cycle)
+    chirp_f1_mhz = 4.0,     # sweep end (last half cycle)
+    chirp_us    = 20.0,     # sweep duration
 )
 
 
@@ -79,6 +94,69 @@ def ns_to_cyc(ns):  return max(1, int(round(float(ns) / NS_PER_CYCLE)))
 def us_to_cyc(us):  return max(1, int(round(float(us) * CLK_HZ / 1e6)))
 def cyc_to_ns(c):   return c * NS_PER_CYCLE
 def cyc_to_us(c):   return c * 1e6 / CLK_HZ
+
+
+# =============================================================================
+# Chirp design
+# =============================================================================
+# The pulser is a switched bipolar bridge: +HV, ground, or -HV, no amplitude
+# control.  A chirp on such a transmitter is a frequency-swept SQUARE wave -
+# each half cycle is one driven phase and the sweep lives entirely in how the
+# half-cycle boundaries are spaced.  The transducer's own band does the
+# smoothing; what matters here is that the SWITCHING TIMES track the ideal
+# chirp phase, so the design works on cumulative phase:
+#
+#   linear FM      f(t) = f0 + (f1 - f0) * t / T
+#   phase (cycles) p(t) = f0*t + (f1-f0)/(2T) * t^2
+#
+# and a half-cycle boundary sits wherever p(t) crosses a multiple of 1/2.
+# Those boundary TIMES are quantised to the 10 ns FPGA clock and the table
+# entries are their DIFFERENCES (minus the dead gap), so the rounding error
+# never accumulates: every edge is within 5 ns of the ideal chirp, however
+# long the sweep is.  Quantising the half-periods instead would random-walk
+# the phase by sqrt(M) * 5 ns, which by the end of a long sweep is a
+# significant fraction of a cycle - the compressed pulse pays for that
+# directly, so it is the differences of rounded times, not rounded
+# differences.
+def chirp_edges_cyc(f0_hz, f1_hz, dur_s):
+    """Half-cycle boundary times of an f0 -> f1 linear chirp, in clk cycles.
+
+    Returns a list of M+1 strictly increasing integers: edge m is where driven
+    phase m starts, edge M is where the burst ends.  M = round((f0+f1)*T), the
+    whole number of half cycles closest to the requested duration, capped at
+    CHIRP_LEN_MAX."""
+    f0, f1, T = float(f0_hz), float(f1_hz), float(dur_s)
+    if f0 <= 0 or f1 <= 0 or T <= 0:
+        raise ValueError("chirp needs positive f0, f1 and duration")
+    M = int(round((f0 + f1) * T))               # 2 * (mean f) * T half cycles
+    M = max(1, min(CHIRP_LEN_MAX, M))
+    k = (f1 - f0) / T
+    edges = []
+    for m in range(M + 1):
+        if abs(k) < 1e-3:                       # constant frequency: k -> 0 limit
+            t = m / (2.0 * f0)
+        else:                                   # solve f0*t + k*t^2/2 = m/2
+            t = (-f0 + (f0 * f0 + k * m) ** 0.5) / k
+        edges.append(int(round(t * CLK_HZ)))
+    return edges
+
+
+def chirp_table(f0_hz, f1_hz, dur_s, dead_cyc):
+    """FPGA chirp-table entries: driven width per half cycle, clk cycles.
+
+    The half PERIOD is edge-to-edge; the FPGA inserts dead_cyc of idle after
+    every driven phase, so the driven width is the difference minus the dead
+    gap.  Edges too close together for that (possible only at frequencies far
+    above any transducer here) are pushed apart so every driven phase is at
+    least one cycle - the same floor the RTL enforces."""
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+    dead  = max(1, int(dead_cyc))
+    tab, prev = [], edges[0]
+    for e in edges[1:]:
+        e = max(e, prev + dead + 1)             # driven phase >= 1 cycle
+        tab.append(e - prev - dead)
+        prev = e
+    return tab
 
 
 class PulserCtl:
@@ -89,15 +167,28 @@ class PulserCtl:
         self._cmd  = cmd
         self.__dict__.update(DEFAULTS)
         self.single_elem = None      # None = walk 0..n_elem-1
+        # Bumped whenever a setting that changes the TRANSMIT WAVEFORM is sent
+        # (burst shape or chirp).  A receive-side matched filter caches its
+        # reference against this, so it rebuilds exactly when the pulse moves.
+        self.tx_gen = 0
 
     # -- derived ---------------------------------------------------------------
+    def _chirp_edges(self):
+        return chirp_edges_cyc(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                               self.chirp_us * 1e-6)
+
     def f0_hz(self):
-        """Centre frequency: one cycle is drive/dead/drive/dead."""
+        """Centre frequency: one cycle is drive/dead/drive/dead; a chirp
+        reports the middle of its sweep."""
+        if self.chirp_on:
+            return 0.5 * (self.chirp_f0_mhz + self.chirp_f1_mhz) * 1e6
         period_ns = 2.0 * (cyc_to_ns(ns_to_cyc(self.t_drive_ns)) +
                            cyc_to_ns(ns_to_cyc(self.t_dead_ns)))
         return 1e9 / period_ns if period_ns > 0 else 0.0
 
     def burst_ns(self):
+        if self.chirp_on:
+            return cyc_to_ns(self._chirp_edges()[-1])
         return self.n_cycles * 2.0 * (cyc_to_ns(ns_to_cyc(self.t_drive_ns)) +
                                       cyc_to_ns(ns_to_cyc(self.t_dead_ns)))
 
@@ -118,15 +209,23 @@ class PulserCtl:
 
     def set_n_cycles(self, n):
         self.n_cycles = max(1, min(255, int(n)))
+        self.tx_gen += 1
         self._send(self._cmd(OP_PLS_NCYC, self.n_cycles), "pls_ncyc")
 
     def set_t_drive_ns(self, ns):
         self.t_drive_ns = float(ns)
+        self.tx_gen += 1
         self._send(self._cmd(OP_PLS_TDRIVE, ns_to_cyc(ns)), "pls_tdrive")
 
     def set_t_dead_ns(self, ns):
         self.t_dead_ns = float(ns)
+        self.tx_gen += 1
         self._send(self._cmd(OP_PLS_TDEAD, ns_to_cyc(ns)), "pls_tdead")
+        # The chirp table stores DRIVEN widths; the half period the transducer
+        # sees is width + dead.  A new dead time therefore changes every half
+        # period unless the table is rebuilt around it.
+        if self.chirp_on:
+            self._upload_chirp()
 
     def set_t_settle_us(self, us):
         self.t_settle_us = float(us)
@@ -171,6 +270,73 @@ class PulserCtl:
         self._send(self._cmd(OP_PLS_ELEM, ((slot & 0x3F) << 6) | (elem & 0x3F)),
                    "pls_elem")
 
+    # -- chirp -----------------------------------------------------------------
+    def chirp_table_now(self):
+        """The table the current settings would (or did) load, driven widths in
+        clk cycles - one entry per half cycle."""
+        return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                           self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+
+    def _upload_chirp(self):
+        """Write the whole table, then the length - the length is what arms it,
+        so a partially loaded table can never fire."""
+        tab = self.chirp_table_now()
+        for i, w in enumerate(tab):
+            self._send(self._cmd(OP_PLS_CHIRP, (i << 16) | (w & 0xFFFF)),
+                       "pls_chirp")
+        self._send(self._cmd(OP_PLS_CLEN, len(tab)), "pls_clen")
+        self.tx_gen += 1
+
+    def set_chirp_on(self, on):
+        self.chirp_on = bool(on)
+        if self.chirp_on:
+            self._upload_chirp()
+        else:
+            self._send(self._cmd(OP_PLS_CLEN, 0), "pls_clen")
+            self.tx_gen += 1
+
+    def set_chirp_f0_mhz(self, mhz):
+        self.chirp_f0_mhz = max(0.1, float(mhz))
+        if self.chirp_on: self._upload_chirp()
+
+    def set_chirp_f1_mhz(self, mhz):
+        self.chirp_f1_mhz = max(0.1, float(mhz))
+        if self.chirp_on: self._upload_chirp()
+
+    def set_chirp_us(self, us):
+        self.chirp_us = max(0.5, float(us))
+        if self.chirp_on: self._upload_chirp()
+
+    def tx_waveform(self, fs_hz):
+        """The commanded transmit waveform as +/-1/0 samples at fs_hz - chirp
+        or fixed burst, whichever is active, from the same quantised edge
+        times the FPGA fires.  This is the matched-filter reference: what the
+        transducer makes of it differs (its band, plus the RTZ dead gaps), but
+        the switching times are exact, and those carry the code."""
+        dead = ns_to_cyc(self.t_dead_ns)
+        if self.chirp_on:
+            edges = self._chirp_edges()
+            halves = []
+            prev = edges[0]
+            for e in edges[1:]:
+                e = max(e, prev + dead + 1)
+                halves.append((prev, e - dead))
+                prev = e
+        else:
+            drive, halves, t = ns_to_cyc(self.t_drive_ns), [], 0
+            for _ in range(2 * self.n_cycles):
+                halves.append((t, t + drive))
+                t += drive + dead
+        n = int(round(halves[-1][1] * fs_hz / CLK_HZ)) + 1
+        out = [0.0] * max(n, 1)
+        for m, (a, b) in enumerate(halves):
+            i0 = int(round(a * fs_hz / CLK_HZ))
+            i1 = max(int(round(b * fs_hz / CLK_HZ)), i0 + 1)
+            s  = 1.0 if (m & 1) == 0 else -1.0
+            for i in range(i0, min(i1, len(out))):
+                out[i] = s
+        return out
+
     # -- bulk ------------------------------------------------------------------
     def push_all(self):
         """Send every setting so the FPGA matches this object after a restart."""
@@ -182,18 +348,26 @@ class PulserCtl:
         self.set_t_ring_us(self.t_ring_us)
         self.set_t_rx_us(self.t_rx_us)
         self.set_single_elem(self.single_elem)   # also sets the list length
+        self.set_chirp_on(self.chirp_on)         # table + length, or length 0
         self.set_arm(self.arm)                   # arm last
 
     def summary(self):
         w = "elem %d only" % self.single_elem if self.single_elem is not None \
             else "elements 0-%d" % (self.n_elem - 1)
-        return ("pulser: %s  %dx(%.0f ns +/- %.0f ns dead) -> f0 %.2f MHz  "
-                "burst %.0f ns  settle %.1f us  inhibit %.1f us  "
+        if self.chirp_on:
+            tab = self.chirp_table_now()
+            tx = ("chirp %.2f->%.2f MHz  %d halves  burst %.1f us"
+                  % (self.chirp_f0_mhz, self.chirp_f1_mhz, len(tab),
+                     self.burst_ns() / 1e3))
+        else:
+            tx = ("%dx(%.0f ns +/- %.0f ns dead) -> f0 %.2f MHz  burst %.0f ns"
+                  % (self.n_cycles,
+                     cyc_to_ns(ns_to_cyc(self.t_drive_ns)),
+                     cyc_to_ns(ns_to_cyc(self.t_dead_ns)),
+                     self.f0_hz() / 1e6, self.burst_ns()))
+        return ("pulser: %s  %s  settle %.1f us  inhibit %.1f us  "
                 "rx %.0f us  %s  frame %.2f ms"
-                % ("RUN" if self.arm else "STOPPED", self.n_cycles,
-                   cyc_to_ns(ns_to_cyc(self.t_drive_ns)),
-                   cyc_to_ns(ns_to_cyc(self.t_dead_ns)),
-                   self.f0_hz() / 1e6, self.burst_ns(),
+                % ("RUN" if self.arm else "STOPPED", tx,
                    self.t_settle_us, self.t_inhib_us, self.t_rx_us,
                    w, self.frame_ms()))
 
@@ -292,6 +466,47 @@ HELP = {
     "Fire one element repeatedly instead of walking the aperture.\n\n"
     "Writes the chosen position into slot 0 of the element list and sets the "
     "list length to 1.",
+
+"chirp":
+    "Coded excitation: replace the fixed-frequency burst with a linear "
+    "frequency sweep (chirp).\n\n"
+    "The pulser can only switch +HV / 0 / -HV, so the chirp is a frequency-"
+    "swept square wave: a table in the FPGA holds one driven width per half "
+    "cycle and the sweep lives in how the switching edges are spaced. Edges "
+    "are quantised to 10 ns against CUMULATIVE phase, so the timing error "
+    "never accumulates across the sweep.\n\n"
+    "A long sweep puts far more energy into the tissue than a 2-cycle burst "
+    "at the same voltage (10*log10(T_chirp/T_burst) dB - a 20 us chirp vs a "
+    "0.56 us burst is ~15 dB) while pulse compression on receive recovers "
+    "the axial resolution of the full sweep BANDWIDTH. Turn on 'pulse comp' "
+    "in the receive row when imaging with this, otherwise every echo is "
+    "smeared over the whole sweep length.\n\n"
+    "While ticked, the pulses/width sliders are ignored by the FPGA (the "
+    "table drives the burst); dead ns still applies between every polarity "
+    "flip and is folded into the designed half periods.",
+
+"chirp f0 M":
+    "Sweep START frequency, MHz - the frequency of the first half cycles.\n\n"
+    "Keep the whole sweep inside the transducer's two-way band (CH6-2: "
+    "roughly 2-6 MHz); energy outside it is spent heating the probe, and the "
+    "compressed pulse only benefits from bandwidth the echo actually "
+    "returns.\n\nf0 above f1 is a down-chirp, which is equally valid.",
+
+"chirp f1 M":
+    "Sweep END frequency, MHz - the frequency of the last half cycles.\n\n"
+    "Axial resolution after compression is set by |f1 - f0|: c/(2B) is "
+    "~0.4 mm at 2 MHz of sweep. Wider is sharper, until the transducer stops "
+    "returning the edges of the band.",
+
+"chirp us":
+    "Sweep duration, microseconds.\n\n"
+    "Longer = more transmitted energy (3 dB per doubling) and more gain from "
+    "compression, but the burst occupies the near field for its whole "
+    "length: nothing closer than c*T/2 (~15 mm at 20 us) can be separated "
+    "from the transmit ringdown. The 256-entry table also caps the length: "
+    "the designer stops at 255 half cycles, so at 3 MHz mean frequency the "
+    "usable maximum is ~42 us.\n\n"
+    "Element/frame timing grows with it - the readout updates accordingly.",
 
 "element":
     "Which element to fire when 'single element' is ticked.\n\n"
@@ -460,6 +675,17 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
     w_single.pack(side="left")
     tip.attach(w_single, HELP["single element"])
 
+    chirpv = tk.BooleanVar(value=ctl.chirp_on)
+
+    def on_chirp():
+        ctl.set_chirp_on(chirpv.get()); refresh()
+
+    w_chirp = tk.Checkbutton(btns, text="chirp", variable=chirpv,
+                             command=on_chirp, fg=FG, bg=BG, selectcolor=BG,
+                             activebackground=BG, activeforeground=FG)
+    w_chirp.pack(side="left")
+    tip.attach(w_chirp, HELP["chirp"])
+
     info.pack(side="left", padx=(14, 2))
 
     # --- sliders -------------------------------------------------------------
@@ -504,15 +730,26 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
     w_elem.grid(row=1, column=3, padx=3, pady=(0, 2), sticky="w")
     tip.attach(w_elem, HELP["element"])
 
+    # Row 2: coded excitation.  Sliders always track, but only transmit while
+    # the chirp checkbox is ticked (each change re-uploads the whole table).
+    cf0, w_cf0 = slider("chirp f0 M", 0.5, 8.0, 0.1, ctl.set_chirp_f0_mhz,
+                        ctl.chirp_f0_mhz, lambda v: round(float(v), 1), 2, 0)
+    cf1, w_cf1 = slider("chirp f1 M", 0.5, 8.0, 0.1, ctl.set_chirp_f1_mhz,
+                        ctl.chirp_f1_mhz, lambda v: round(float(v), 1), 2, 1)
+    cus, w_cus = slider("chirp us",   1.0, 40.0, 0.5, ctl.set_chirp_us,
+                        ctl.chirp_us, lambda v: round(float(v), 1), 2, 2)
+
     refresh()
 
     return dict(arm=armv, n_cycles=ncyc, t_drive=tdrive, t_dead=tdead,
                 t_settle=tsettle, t_inhib=tinhib, t_ring=tring, t_rx=trx,
-                n_elem=nelem, single=singlev, elem=elemv, refresh=refresh,
+                n_elem=nelem, single=singlev, elem=elemv, chirp=chirpv,
+                chirp_f0=cf0, chirp_f1=cf1, chirp_us=cus, refresh=refresh,
                 tip=tip,
                 widgets=dict(pulses=w_ncyc, width=w_tdrive, dead=w_tdead,
                              settle=w_tsettle, inhibit=w_tinhib, ring=w_tring,
-                             rx=w_trx, elements=w_nelem, element=w_elem))
+                             rx=w_trx, elements=w_nelem, element=w_elem,
+                             chirp_f0=w_cf0, chirp_f1=w_cf1, chirp_us=w_cus))
 
 
 # =============================================================================
@@ -570,6 +807,11 @@ def _main(argv):
     ap.add_argument("--ring",    type=float, metavar="US", help="ringdown blanking")
     ap.add_argument("--rx",      type=float, metavar="US", help="receive window")
     ap.add_argument("--elems",   type=int,   metavar="N",  help="elements per frame")
+    ap.add_argument("--chirp",   type=float, nargs=3, metavar=("F0", "F1", "US"),
+                    help="coded excitation: linear chirp F0->F1 MHz over US us "
+                         "(uploads the table and enables it)")
+    ap.add_argument("--chirp-off", action="store_true",
+                    help="back to the fixed burst (pulses/width/dead)")
     ap.add_argument("--single",  type=int,   metavar="E",  help="fire only element E")
     ap.add_argument("--walk",    action="store_true", help="undo --single, walk the aperture")
     ap.add_argument("--all",     action="store_true",
@@ -616,6 +858,10 @@ def _main(argv):
             if a.ring    is not None: ctl.set_t_ring_us(a.ring)
             if a.rx      is not None: ctl.set_t_rx_us(a.rx)
             if a.elems   is not None: ctl.set_n_elem(a.elems)
+            if a.chirp   is not None:
+                ctl.chirp_f0_mhz, ctl.chirp_f1_mhz, ctl.chirp_us = a.chirp
+                ctl.set_chirp_on(True)
+            if a.chirp_off:           ctl.set_chirp_on(False)
             if a.single  is not None: ctl.set_single_elem(a.single)
             if a.walk:                ctl.set_single_elem(None)
             if a.clear_fault:         ctl.clear_fault()

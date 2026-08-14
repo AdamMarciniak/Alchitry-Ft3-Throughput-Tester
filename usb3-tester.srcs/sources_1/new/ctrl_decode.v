@@ -5,8 +5,9 @@
 //              pulse/receive sequencer + transmit sequencer config registers.
 //              Entirely in the clk_in domain (RX FIFO read side).
 //
-//   Opcodes 0x10-0x1A are the transmit sequencer (tx_sequencer.v): burst
-//   shape, the inter-stage waits, the element list, and arm/stop.  They are
+//   Opcodes 0x10-0x1C are the transmit sequencer (tx_sequencer.v): burst
+//   shape, the chirp table, the inter-stage waits, the element list, and
+//   arm/stop.  They are
 //   config registers only - the sequencer runs on its own timebase and is
 //   NOT gated by streaming/START, so pulser commands never disturb the ADC
 //   capture and the pulser keeps firing with no host attached.
@@ -111,6 +112,10 @@ module ctrl_decode (
     output reg         pls_el_wr,       // 1-cycle pulse
     output reg  [5:0]  pls_el_addr,
     output reg  [5:0]  pls_el_data,
+    output reg  [7:0]  pls_chirp_len,   // half cycles from the table, 0 = fixed burst
+    output reg         pls_ch_wr,       // 1-cycle pulse
+    output reg  [7:0]  pls_ch_addr,
+    output reg  [15:0] pls_ch_data,
 
     // AFE5804 register write (to afe5804_ctrl ext port)
     output reg  [23:0] afe_word,        // {addr[7:0], data[15:0]}
@@ -151,7 +156,11 @@ module ctrl_decode (
                      OP_PLS_TRX     = 8'h17, // payload: echo receive window
                      OP_PLS_NELEM   = 8'h18, // payload[6:0]: elements per frame
                      OP_PLS_ELEM    = 8'h19, // payload: {addr[5:0], data[5:0]} list write
-                     OP_PLS_FCLR    = 8'h1A; // clear a latched pulser fault
+                     OP_PLS_FCLR    = 8'h1A, // clear a latched pulser fault
+                     OP_PLS_CHIRP   = 8'h1B, // payload: {addr[7:0], drive[15:0]}
+                                             //   chirp-table write, one half cycle
+                     OP_PLS_CLEN    = 8'h1C; // payload[7:0]: chirp half cycles,
+                                             //   0 = fixed burst (n_cycles/t_drive)
 
     localparam [1:0] PAT_COUNTER = 2'd0,
                      PAT_LFSR    = 2'd1,
@@ -186,6 +195,7 @@ module ctrl_decode (
         rst_cnt_pulse <= 1'b0;
         afe_wr        <= 1'b0;
         pls_el_wr     <= 1'b0;
+        pls_ch_wr     <= 1'b0;
         pls_fault_clr <= 1'b0;
 
         if (rst) begin
@@ -217,6 +227,9 @@ module ctrl_decode (
             pls_list_len  <= 7'd48;       // walk all 48 elements
             pls_el_addr   <= 6'd0;
             pls_el_data   <= 6'd0;
+            pls_chirp_len <= 8'd0;        // fixed burst until a host asks for a chirp
+            pls_ch_addr   <= 8'd0;
+            pls_ch_data   <= 16'd0;
         end else if (ctrl_rd_en) begin
             cmd_count <= cmd_count + 1'b1;
 
@@ -259,6 +272,12 @@ module ctrl_decode (
                     pls_el_wr   <= 1'b1;
                 end
                 OP_PLS_FCLR:    pls_fault_clr <= 1'b1;
+                OP_PLS_CHIRP: begin
+                    pls_ch_addr <= payload[23:16];
+                    pls_ch_data <= payload[15:0];
+                    pls_ch_wr   <= 1'b1;
+                end
+                OP_PLS_CLEN:    pls_chirp_len <= payload[7:0];
 
                 default:      ;           // NOP, lock word, anything unknown
             endcase

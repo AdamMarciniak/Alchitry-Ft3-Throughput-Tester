@@ -23,3 +23,7 @@ usb3-tester.srcs/utils_1/
 __pycache__/
 *.pyc
 dfx_runtime.txt
+
+# tfm_gl_host "save settings" dumps (JSON + PNG per press).  Drop this line if
+# you want the settings history versioned - the PNGs are what make it heavy.
+host/settings/

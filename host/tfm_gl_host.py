@@ -94,7 +94,7 @@
 # All 48 elements transmit through the shared HV driver and receive through the
 # same single AFE channel, so the receive path is identical for every one of
 # them - only the mux tree moves between shots.
-import ctypes as C, sys, time, threading, os, struct, collections
+import ctypes as C, sys, time, threading, os, struct, collections, json
 import numpy as np
 import moderngl
 
@@ -105,7 +105,7 @@ from PySide6.QtGui import (QSurfaceFormat, QImage, QPixmap, QPainter, QPen,
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QSlider, QPushButton,
                                QCheckBox, QHBoxLayout, QVBoxLayout, QScrollArea,
                                QFrame, QDialog, QFileDialog, QSizePolicy,
-                               QLineEdit)
+                               QLineEdit, QInputDialog)
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 # PulserCtl is UI-agnostic - it only wants (send_cmd, cmd) - so the transmit
@@ -275,6 +275,32 @@ CF_DEF = 0.0
 BAND_ON_DEF = True
 BAND_F0_DEF, BAND_BW_DEF = 4.0, 5.0     # MHz, centre and full width
 BAND_TAPER = 0.35                       # of the width, split over both skirts
+
+# --- pulse compression (matched filter) ---------------------------------------
+# The receive half of coded excitation.  With the pulser chirping, every echo
+# is the whole sweep long - tens of microseconds - and the raw envelope smears
+# each reflector over that length.  Cross-correlating the RF with the transmit
+# waveform (multiplying the spectrum by conj(REF), inside the Hilbert FFT that
+# already runs) compresses each echo back to ~1/B wide while summing the energy
+# of the full sweep, which is where coded excitation's SNR gain is cashed in:
+# a 20 us chirp carries ~15 dB more energy than a 2-cycle burst at the same
+# voltage, and compression delivers it at c/2B axial resolution.
+#
+# The reference is built from the same quantised switching edges the FPGA
+# fires (pulser.tx_waveform), so it tracks the chirp sliders exactly.  What it
+# does NOT include is the transducer's two-way response; the bandpass above
+# effectively stands in for that, and the two multiply into one weight array.
+# The FFT is padded by the reference length so the correlation cannot wrap the
+# deep end of the window onto the shallow end.
+#
+# Correlation peaks at each echo's ARRIVAL time, the same registration the
+# plain envelope has, so the depth axis and t0 calibration are untouched.  It
+# works on the fixed burst too (it is just a short matched filter there); it
+# defaults off because with an uncoded 2-cycle burst it mostly re-shades the
+# image without buying resolution.  Sidelobes of the compressed pulse ring
+# AXIALLY at roughly -13 dB for an unweighted square chirp; the bandpass
+# skirts double as the amplitude taper that pushes them down.
+MF_ON_DEF = False
 
 # --- sweep averaging ----------------------------------------------------------
 # Coherent (pre-Hilbert) boxcar over the last M sweeps.  The echo repeats sweep
@@ -710,7 +736,8 @@ state = {"c": C_DEF, "dly_us": float(DLY_US_DEF), "accept": float(ACCEPT_DEF),
          "dyn": float(DYN_DEF), "gain": float(GAIN_DEF), "auto": True,
          "frozen": False, "depth_cm": DEPTH_CM_DEF,
          "band_on": bool(BAND_ON_DEF), "band_f0": float(BAND_F0_DEF),
-         "band_bw": float(BAND_BW_DEF), "jit": bool(JIT_ON_DEF)}
+         "band_bw": float(BAND_BW_DEF), "jit": bool(JIT_ON_DEF),
+         "mf": bool(MF_ON_DEF)}
 
 def band_edges():
     """Receive passband as (lo, hi) in Hz, clamped to the digitiser.  Returning
@@ -1646,6 +1673,16 @@ def _split_shift(s):
     k0 += j // SUBSAMP                  # frac rounded up to a whole sample
     return k0, j % SUBSAMP
 
+_mf_ref = {"gen": None, "ref": None}
+def mf_reference():
+    """Transmit waveform at the ADC rate, cached against pulser.tx_gen so it
+    rebuilds exactly when a burst/chirp setting is sent and never else."""
+    if _mf_ref["gen"] != pulser.tx_gen:
+        _mf_ref.update(gen=pulser.tx_gen,
+                       ref=np.asarray(pulser.tx_waveform(FS_HZ),
+                                      dtype=np.float32))
+    return _mf_ref["ref"]
+
 _hilb = {"key": None, "wgt": None}
 def analytic(rf, samps, shifts=None):
     """(N, samps) real -> (N, samps, 2) float32 interleaved re/im.
@@ -1653,16 +1690,29 @@ def analytic(rf, samps, shifts=None):
     The only per-frame CPU work in the whole pipeline (~6 ms for 48 elements
     with numpy, ~3 ms with scipy installed).  Everything else is on the GPU.
 
-    The mask is cached on (length, passband), so dragging the band sliders
-    rebuilds one array per change and the steady state is unchanged.
+    The mask is cached on (length, passband, matched filter), so dragging the
+    band sliders rebuilds one array per change and the steady state is
+    unchanged.  With pulse compression on, conj(FFT(reference)) is folded into
+    the same weight - the correlation costs nothing per frame beyond the FFT
+    padding that stops it wrapping the window ends onto each other.
 
     `shifts`, if given, is the per-element capture-start displacement in
     samples from measure_shifts(); each row is moved back by -shift so all 48
     land on one timebase referenced to the transmit burst."""
-    nfft = next_fast_len(samps)
-    key  = (nfft,) + band_edges()      # read the band ONCE: the UI thread moves
-    if _hilb["key"] != key:            # it, and key and mask must agree
-        _hilb.update(key=key, wgt=_hilb_mask(*key))
+    mf   = state["mf"]                 # read ONCE, like the band below
+    ref  = mf_reference() if mf else None
+    nfft = next_fast_len(samps + (ref.size if mf else 0))
+    key  = (nfft, mf, _mf_ref["gen"] if mf else None) + band_edges()
+    if _hilb["key"] != key:            # the UI thread moves the settings, and
+        wgt = _hilb_mask(nfft, *key[3:])            # key and weight must agree
+        if mf:
+            # Divide by the reference energy so a perfect echo compresses to
+            # its own amplitude rather than to (amplitude * sum ref^2) - the
+            # brightness scale stays comparable when the checkbox is toggled.
+            R   = np.fft.fft(ref.astype(np.float64), nfft)
+            wgt = (wgt * np.conj(R) /
+                   max(float(np.dot(ref, ref)), 1e-9)).astype(np.complex64)
+        _hilb.update(key=key, wgt=wgt)
     if shifts is not None:
         k0, j = _split_shift(-np.asarray(shifts, dtype=np.float64))
         if np.any(k0):
@@ -2779,6 +2829,183 @@ def save_capture(cap, parent):
     else:
         print(f"FAILED to save {path}")
 
+#===============================================================================
+# settings snapshot
+#===============================================================================
+# A capture is a picture; this is the machine that made it.  Every control on
+# this window ends up in one JSON file, next to a PNG of what was on screen when
+# the button was pressed, so a session can be reconstructed - or explained -
+# after the fact without having to remember where forty sliders were sitting.
+#
+# Two things are written on every press:
+#
+#   settings/latest.json  - overwritten, so "what is it set to right now" is
+#                           always one fixed path
+#   settings/<stamp>.json - kept, so the history of an evening is walkable
+#
+# ...plus the matching PNG beside each.  The values are the LIVE state, not the
+# slider positions: band edges are clamped to Nyquist, the averager reports how
+# many sweeps it actually holds, and the level meters and jitter numbers are
+# measurements of the last sweep.  That is deliberate - the point is to record
+# what the image really was, and a slider that is fighting a clamp is exactly
+# the sort of thing worth catching later.
+SETTINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings")
+
+def _plain(o):
+    """json fallback: numpy scalars/arrays and sets are all over this file."""
+    if isinstance(o, np.generic):
+        return o.item()
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    if isinstance(o, (set, frozenset)):
+        return sorted(o)
+    return str(o)
+
+def settings_snapshot(main, note=""):
+    lo, hi = band_edges()
+    gl = main.scene.gl
+    n_cine, cine_s, cine_mb = cine.status()
+    return {
+        "saved":   time.strftime("%Y-%m-%d %H:%M:%S"),
+        "note":    note,
+        "host":    os.path.basename(__file__),
+        "source":  "hardware" if HW else "simulation",
+        "argv":    sys.argv[1:],
+        # The same one-liner that footers a capture, so a settings file and a
+        # saved PNG can be matched up by eye.
+        "summary": main.info_line(),
+
+        # -- what the FPGA was told to do ------------------------------------
+        "acquisition": {
+            "depth_cm":     state["depth_cm"],
+            "win_words":    cfg["win_words"],
+            "win_samples":  cfg["samps"],
+            "win_us":       round(cfg["win_us"], 2),
+            "dly_us":       state["dly_us"],      # pulse -> receive settling
+            "damp_gap_us":  main.gap,             # receive end -> next pulse
+            "tgc_min":      main.tgc_lo,
+            "tgc_max":      max(main.tgc_lo, main.tgc_hi),
+            "fs_hz":        FS_HZ,
+            "n_elem_rx":    N_ELEM,
+        },
+        "transmit": {
+            "armed":         pulser.arm,
+            "chirp_on":      pulser.chirp_on,
+            "chirp_f0_mhz":  pulser.chirp_f0_mhz,
+            "chirp_f1_mhz":  pulser.chirp_f1_mhz,
+            "chirp_us":      pulser.chirp_us,
+            "n_cycles":      pulser.n_cycles,
+            "t_drive_ns":    pulser.t_drive_ns,
+            "t_dead_ns":     pulser.t_dead_ns,
+            "t_settle_us":   pulser.t_settle_us,
+            "t_inhib_us":    pulser.t_inhib_us,
+            "t_ring_us":     pulser.t_ring_us,
+            "t_rx_us":       pulser.t_rx_us,      # driven by depth, not a slider
+            "n_elem":        pulser.n_elem,
+            "single_elem":   pulser.single_elem,  # None = walk the aperture
+            "f0_mhz":        round(pulser.f0_hz() / 1e6, 3),
+            "burst_us":      round(pulser.burst_ns() / 1e3, 3),
+            "element_period_us": round(pulser.element_period_us(), 2),
+            "frame_ms":      round(pulser.frame_ms(), 3),
+        },
+
+        # -- CPU side: works on replayed cine exactly as it does live ---------
+        "receive": {
+            "bandpass_on":   state["band_on"],
+            "band_f0_mhz":   state["band_f0"],
+            "band_bw_mhz":   state["band_bw"],
+            "band_lo_mhz":   round(lo / 1e6, 3),  # after the Nyquist clamp
+            "band_hi_mhz":   round(hi / 1e6, 3),
+            "avg_sweeps":    rf_avg.n,
+            "avg_held":      rf_avg.depth(),      # < avg_sweeps while filling
+            "matched_filter": state["mf"],
+            "dejitter_on":   state["jit"],
+            "jitter_rms_ns": round(jit["rms_ns"], 2),
+            "jitter_pp_ns":  round(jit["pp_ns"], 2),
+            "jitter_used":   jit["used"],
+            "jitter_railed": jit["railed"],
+            "bg_subtract":   bg["on"],
+            "bg_ref":        bg["ref"] is not None,
+            "near_dbfs":     round(level["near"], 2),   # clipping meter
+            "far_dbfs":      round(level["far"], 2),
+        },
+        "beamformer": {
+            "c_m_s":        state["c"],
+            "apod":         state["apod"],
+            "cf":           state["cf"],
+            "accept_deg":   state["accept"],
+            "t0_ns":        state["t0_ns"],
+            "R_mm":         geom["R_mm"],
+            "pitch_mm":     geom["pitch_mm"],
+            "aperture_mm":  round(APERTURE_MM, 3),
+            "flip_lr":      flip["on"],
+            "dead":         sorted(dead["set"]),
+            "alive":        n_alive(),
+        },
+        "display": {
+            "dyn_db":     state["dyn"],
+            "gain_db":    state["gain"],
+            "auto_gain":  state["auto"],
+            "signed":     mode["signed"],
+            "zoom":       round(view["zoom"], 3),
+            "pan_cx":     view["cx"],
+            "pan_cz":     view["cz"],
+            "grid":       [gl.fb_w, gl.fb_h],
+            "mmode_on":   mline["on"],
+            # metres, like the calipers, so they stay on the tissue
+            "mline_a":    mline["a"],
+            "mline_b":    mline["b"],
+            "measurements_mm": [round(meas_mm(m), 2)
+                                for m in main.scene.ov.measures],
+        },
+        "stream": {
+            "frozen":       state["frozen"],
+            "mbps":         round(stats["mbps"], 1),
+            "sweeps_per_s": round(stats["fps"] / N_ELEM, 1),
+            "frames":       stats["frames"],
+            "drops":        stats["drops"],
+            "resyncs":      stats["resyncs"],
+            "holes":        [stats["seq_bad"], stats["seq_chk"]],
+            "skips":        stats["skips"],
+            "cine_frames":  n_cine,
+            "cine_seconds": round(cine_s, 2),
+            # where the play head is when frozen: negative = seconds back from
+            # live, which is the only thing that says WHICH frame this describes
+            "cine_offset_s": (round(main.play_t - main._span(), 3)
+                              if state["frozen"] and main.review else None),
+        },
+    }
+
+def write_settings(main, note=""):
+    """Write latest.json + a stamped copy, each with the current image beside
+    it.  Returns the stamped json path, or None if nothing could be written."""
+    stamp = time.strftime("%Y%m%d_%H%M%S")
+    snap  = settings_snapshot(main, note)
+    snap["image"] = None
+    try:
+        os.makedirs(SETTINGS_DIR, exist_ok=True)
+        # The PNG is best-effort: no GL context yet (or a stream that never
+        # started) must not cost the settings file, which is the point of the
+        # button.  Rendered through the capture path so it carries axes and the
+        # info footer, i.e. it is readable on its own.
+        img, vb = main.scene.gl.grab_bmode()
+        if img is not None:
+            cap = Capture(img, vb, main.scene.ov.measures, snap["summary"])
+            Capture._n -= 1                 # a snapshot is not a numbered capture
+            shot = render_capture(cap)
+            if shot.save(os.path.join(SETTINGS_DIR, f"{stamp}.png"), "PNG"):
+                snap["image"] = f"{stamp}.png"
+                shot.save(os.path.join(SETTINGS_DIR, "latest.png"), "PNG")
+        for name in (f"{stamp}.json", "latest.json"):
+            with open(os.path.join(SETTINGS_DIR, name), "w") as f:
+                json.dump(snap, f, indent=2, default=_plain)
+    except OSError as e:
+        print(f"FAILED to save settings: {e}")
+        return None
+    path = os.path.join(SETTINGS_DIR, f"{stamp}.json")
+    print(f"saved settings {path}")
+    return path
+
 class ThumbLabel(QLabel):
     clicked = Signal()
     removed = Signal()
@@ -3473,6 +3700,29 @@ class Main(QWidget):
                                self.set_band_bw, width=96, unit="M",
                                fmt="%.1f", tip=band_tip)
 
+        self.cb_mf = QCheckBox("pulse comp")
+        self.cb_mf.setChecked(MF_ON_DEF)
+        self.cb_mf.setToolTip(
+            "matched filter: cross-correlate the RF with the transmit "
+            "waveform, inside the\nHilbert FFT that already runs.\n\nThis is "
+            "the receive half of coded excitation. With the chirp on, every "
+            "echo is\nthe whole sweep long and the raw envelope smears it "
+            "over that length;\ncompression collapses each echo to ~1/"
+            "bandwidth wide while summing the\nenergy of the full sweep "
+            "(~15 dB over a 2-cycle burst at the same voltage).\n\nThe "
+            "reference is rebuilt from the pulser's own quantised edge times "
+            "whenever\na transmit setting changes, so it always matches what "
+            "is firing NOW - on a\nfrozen or replayed loop recorded with "
+            "different transmit settings it will\nmis-match; re-record after "
+            "changing the chirp.\n\nWorks on the plain burst too (short "
+            "matched filter), where it mostly re-shades\nrather than "
+            "sharpens.  Compressed-pulse range sidelobes ring axially at\n"
+            "about -13 dB for an unweighted chirp; the bandpass skirts "
+            "double as the\ntaper that pushes them down, so leave bandpass "
+            "on and centred on the sweep.")
+        self.cb_mf.toggled.connect(self.set_mf)
+        row.addWidget(self.cb_mf)
+
         # The tooltip has to carry the coherent/incoherent distinction: it is
         # the reason this is worth more than the persistence control it looks
         # like, and the reason it lives before the Hilbert rather than after.
@@ -3536,6 +3786,10 @@ class Main(QWidget):
 
     def set_jit(self, v):
         state["jit"] = bool(v)
+        self._refresh_rx()
+
+    def set_mf(self, v):
+        state["mf"] = bool(v)
         self._refresh_rx()
 
     def open_reverb(self):
@@ -3625,6 +3879,30 @@ class Main(QWidget):
         self.cb_single.setToolTip(PLS_HELP.get("single element", ""))
         self.cb_single.toggled.connect(self.set_single)
         r3.addWidget(self.cb_single)
+
+        self.cb_chirp = QCheckBox("chirp")
+        self.cb_chirp.setChecked(pulser.chirp_on)
+        self.cb_chirp.setToolTip(PLS_HELP.get("chirp", ""))
+        self.cb_chirp.toggled.connect(self.set_chirp)
+        r3.addWidget(self.cb_chirp)
+
+        # Coded excitation.  The setters only transmit while the chirp box is
+        # ticked (each change re-uploads the whole table); unticked they just
+        # park values, exactly like the element slider below.  They live on r3
+        # beside their checkbox - r4 is already full of burst sliders.
+        def chirp_slider(label, lo, hi, step, val, setter):
+            def on(v):
+                setter(v)
+                self.pls_refresh()
+            return mkfslider(r3, label, lo, hi, step, val, on, width=80,
+                             unit="", fmt="%.1f", tip=PLS_HELP.get(label),
+                             quant=lambda v: round(float(v), 1))
+        chirp_slider("chirp f0 M", 0.5, 8.0, 0.1, pulser.chirp_f0_mhz,
+                     pulser.set_chirp_f0_mhz)
+        chirp_slider("chirp f1 M", 0.5, 8.0, 0.1, pulser.chirp_f1_mhz,
+                     pulser.set_chirp_f1_mhz)
+        chirp_slider("chirp us", 1.0, 40.0, 0.5, pulser.chirp_us,
+                     pulser.set_chirp_us)
         r3.addStretch(1)
 
         # Row 4: burst shape, then the inter-stage waits and element selection.
@@ -3681,10 +3959,16 @@ class Main(QWidget):
         send_pls_rx sizes t_rx to make this impossible, so the warning should
         never appear; it is here to catch that rule being wrong, not the user.
         """
+        if pulser.chirp_on:
+            tx = ("chirp %.1f-%.1f MHz  burst %.1f us"
+                  % (pulser.chirp_f0_mhz, pulser.chirp_f1_mhz,
+                     pulser.burst_ns() / 1e3))
+        else:
+            tx = ("f0 %.2f MHz  burst %.0f ns"
+                  % (pulser.f0_hz() / 1e6, pulser.burst_ns()))
         self.pls_lbl.setText(
-            "f0 %.2f MHz  burst %.0f ns  elem %.0f us  frame %.1f ms (%.1f fps)%s"
-            % (pulser.f0_hz() / 1e6, pulser.burst_ns(),
-               pulser.element_period_us(), pulser.frame_ms(),
+            "%s  elem %.0f us  frame %.1f ms (%.1f fps)%s"
+            % (tx, pulser.element_period_us(), pulser.frame_ms(),
                1e3 / max(pulser.frame_ms(), 1e-6),
                "" if pulser.arm else "   [STOPPED]"))
         capture_us = state["dly_us"] + cfg["win_us"] + self.gap
@@ -3759,6 +4043,21 @@ class Main(QWidget):
         self.b_cap.setFixedHeight(30)
         self.b_cap.clicked.connect(self.do_capture)
         v.addWidget(self.b_cap)
+
+        self.b_set = QPushButton("save settings")
+        self.b_set.setToolTip(
+            "write every control on this window to host/settings/ as JSON, with "
+            "a PNG\nof the current image beside it - latest.json is always the "
+            "newest, and a\ntimestamped copy is kept alongside it.\n\nRecords the "
+            "LIVE state, not the slider positions: clamped band edges, how many\n"
+            "sweeps the averager actually holds, the level meters and the jitter "
+            "numbers.\n\nShift-click to attach a note (what the probe is on, what "
+            "you are looking at).")
+        self.b_set.clicked.connect(self.save_settings)
+        v.addWidget(self.b_set)
+        self.set_lbl = QLabel("")
+        self.set_lbl.setStyleSheet(f"color:{DIM};")
+        v.addWidget(self.set_lbl)
 
         row0 = QHBoxLayout(); row0.setSpacing(4)
         self.zoom_lbl = QLabel("zoom 1.0x")
@@ -3889,6 +4188,10 @@ class Main(QWidget):
 
     def set_single(self, on):
         pulser.set_single_elem(self.elem_v if on else None)
+        self.pls_refresh()
+
+    def set_chirp(self, on):
+        pulser.set_chirp_on(bool(on))
         self.pls_refresh()
     def set_dyn(self, v):     state["dyn"] = float(v);    self.scene.gl.update()
     def set_gain(self, v):    state["gain"] = float(v);   self.scene.gl.update()
@@ -4172,6 +4475,24 @@ class Main(QWidget):
     def save_last(self):
         if self.last:
             save_capture(self.last, self)
+
+    def save_settings(self):
+        """Dump the whole control state to host/settings/.  Shift attaches a
+        note - the one thing the sliders cannot record is what the probe was
+        pointed at, and that is usually the first question later."""
+        note = ""
+        if QApplication.keyboardModifiers() & Qt.ShiftModifier:
+            note, ok = QInputDialog.getText(self, "save settings",
+                                            "note (what are we looking at?)")
+            if not ok:
+                return
+        path = write_settings(self, note.strip())
+        if path is None:
+            self.set_lbl.setText("save FAILED - see console")
+            self.set_lbl.setStyleSheet(f"color:{WARN_C};")
+            return
+        self.set_lbl.setText(f"saved settings/{os.path.basename(path)}")
+        self.set_lbl.setStyleSheet(f"color:{DIM};")
 
     # -- frame / status -------------------------------------------------------
     def _tick(self):

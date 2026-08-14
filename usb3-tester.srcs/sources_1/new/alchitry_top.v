@@ -208,6 +208,10 @@ module alchitry_top #(
     wire        pls_el_wr;
     wire [5:0]  pls_el_addr;
     wire [5:0]  pls_el_data;
+    wire [7:0]  pls_chirp_len;
+    wire        pls_ch_wr;
+    wire [7:0]  pls_ch_addr;
+    wire [15:0] pls_ch_data;
 
     ctrl_decode u_ctrl (
         .clk            (clk_in),
@@ -245,6 +249,10 @@ module alchitry_top #(
         .pls_el_wr      (pls_el_wr),
         .pls_el_addr    (pls_el_addr),
         .pls_el_data    (pls_el_data),
+        .pls_chirp_len  (pls_chirp_len),
+        .pls_ch_wr      (pls_ch_wr),
+        .pls_ch_addr    (pls_ch_addr),
+        .pls_ch_data    (pls_ch_data),
 
         .afe_word       (afe_word),
         .afe_wr         (afe_wr),
@@ -270,8 +278,9 @@ module alchitry_top #(
     //--------------------------------------------------------------------------
     // Transmit sequencer: MAX14866 mux chain + MD1213/TC6320 bipolar pulser.
     //
-    // Timing and arm/stop come from ctrl_decode opcodes 0x10-0x1A over the
-    // FT601 control pipe.  Same clk_in domain as the decoder, so no CDC.
+    // Timing, the chirp table and arm/stop come from ctrl_decode opcodes
+    // 0x10-0x1C over the FT601 control pipe.  Same clk_in domain as the
+    // decoder, so no CDC.
     //
     // The sequencer owns the timebase.  It is not gated by `streaming` and
     // keeps firing whether or not the host is capturing, but the receive path
@@ -340,6 +349,10 @@ module alchitry_top #(
         .cfg_n_cycles    (pls_n_cycles),
         .cfg_t_drive     (pls_t_drive),
         .cfg_t_dead      (pls_t_dead),
+        .cfg_chirp_len   (pls_chirp_len),
+        .ch_wr           (pls_ch_wr),
+        .ch_wr_addr      (pls_ch_addr),
+        .ch_wr_data      (pls_ch_data),
         .cfg_t_settle    (pls_t_settle),
         .cfg_t_inhibit   (pls_t_inhibit),
         .cfg_t_ring      (pls_t_ring),
