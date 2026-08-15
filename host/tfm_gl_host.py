@@ -377,9 +377,16 @@ def full_scale(apod=None):
 #     row.  That is the physical element, so it is NOT affected by "flip L/R" -
 #     flip mirrors the geometry against the rows, it does not renumber them.
 #
-# Override on the command line:  python tfm_gl_host.py dead=1,3,4,23,25,46
+# 2026-08-14: the connector-side failures were repaired, so the old
+# 1,3,4,23,25,46 default is gone and 47 of the 48 elements are summed.  Element
+# 46 is the one that did NOT come back and is genuinely dead.  Everything else
+# stays in - do not restore the old list without re-measuring, because a stale
+# mask silently throws away part of the aperture and looks like nothing more
+# than a slightly softer image.
+#
+# Override on the command line:  python tfm_gl_host.py dead=1,3,4
 # or edit the box in the control row while running.
-DEAD_DEF = "1,3,4,23,25,46"
+DEAD_DEF = "46"
 
 def parse_dead(s):
     """Accept '1,3, 4' / '1 3 4' / empty.  Silently drops anything out of range
@@ -830,10 +837,10 @@ def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
 #          in one extra burst, 40 cm three.
 #
 # So size the pulser's t_rx from the capture cycle instead.  The other terms in
-# the element period (t_settle, the burst, t_ring, t_CS, LE) are all positive
-# and add ~9 us of extra margin, so ignoring them here is conservative - and it
-# avoids duplicating the whole FSM timing model in this host, where pulser_ctrl
-# could change those parameters underneath us anyway.
+# the element period (t_settle, the burst, t_ring, the 6.4 us chain shift, t_CS,
+# LE) are all positive and add ~15 us of extra margin, so ignoring them here is
+# conservative - and it avoids duplicating the whole FSM timing model in this
+# host, where pulser_ctrl could change those parameters underneath us anyway.
 PLS_RX_MARGIN_US = 10       # slack on top of dly + window + gap
 
 # The transmit settings, shared with tfm_host.py.  t_rx is the one field this

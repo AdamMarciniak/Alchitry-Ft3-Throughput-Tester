@@ -236,9 +236,11 @@ footer{color:var(--ink3); font-size:12.5px; border-top:1px solid var(--line2); p
     <h2>What happens between two bursts</h2>
     <p class="prose">
       Time zero is the first HV edge &mdash; the same instant <code>tx_sync</code> fires. The chart is one full element
-      period, drawn to scale from the values below. The important shape: the pulser's receive window is long, and the
-      chain shift for the <em>next</em> element is deliberately buried inside it, early, where the echo is
-      ringdown-dominated anyway.
+      period, drawn to scale from the values below. The important shape: the pulser's receive window is long, and
+      nothing at all happens inside it. The chain shift for the <em>next</em> element used to be buried in it, early,
+      where the echo is ringdown-dominated anyway; it now waits until the window has closed, so the entire receive
+      period is free of chain clocking. That costs 6.4&nbsp;µs of element period per element, and it is the trade the
+      design makes on purpose.
     </p>
   </div>
 
@@ -396,8 +398,13 @@ function derive(){
   d.samps = 2 * d.winWords;  d.winUs = d.samps / FS * 1e6;  d.frameWords = d.winWords + 1;
   d.trxUs = d.winUs + P.dly + P.gap + MARGIN_US;            // send_pls_rx()
   d.rxWinUs = P.ring + d.trxUs;                             // rx_tmr load = t_ring + t_rx
-  d.periodUs = d.burstUs + d.rxWinUs + TCS_US + LE_LOW_US + d.settleUs;
-  d.waitrxUs = d.rxWinUs - d.inhibUs - SHIFT_US;            // remainder of the window
+  // t_inhibit overlaps the head of the receive window, so the dead interval is
+  // the longer of the two.  The chain shift does NOT overlap it any more - it
+  // is serialised after the window closes to keep the receive period quiet - so
+  // it is a real term in the element period.
+  d.quietUs  = Math.max(d.rxWinUs, d.inhibUs);
+  d.periodUs = d.burstUs + d.quietUs + SHIFT_US + TCS_US + LE_LOW_US + d.settleUs;
+  d.waitrxUs = d.quietUs - d.inhibUs;                       // remainder of the window
   d.frameMs = N_ELEM * d.periodUs / 1000;  d.fps = 1000 / d.frameMs;
   d.prfKHz = 1000 / d.periodUs;
   d.mbps = d.frameWords * 4 * (1000/d.periodUs) * 1000 / 1e6;
@@ -414,12 +421,12 @@ function segments(d){
     `The burst: ${P.ncyc} cycle${P.ncyc>1?"s":""} of +HV → idle → −HV → idle. Exactly one of ina/inb changes at every transition, every polarity change routes through idle for t_dead, and the burst always ends parked in idle. tx_sync pulses on the very first edge.`);
   push(tx,"inhibit","S_INHIBIT",B,d.inhibUs,"idle",
     `MAX14866 transmit-detector lockout. SPI writes landing in this window are discarded silently — no error, and the next shot would fire into a stale element — so the sequencer simply does not clock the chain here. Floored at 4.50 µs; the host cannot go below it.`);
-  push(tx,"shift","S_SHIFT",B+d.inhibUs,SHIFT_US,"mux",
-    `64 chain bits at 10 MHz for the NEXT element, MSB first, tail device first (BR3, BR2, BR1, ROOT). LE stays high the whole time so the switches do not move. DOUT is sampled on each rising edge and returns the previous word — a free loopback check. This sits early in the receive window on purpose: the echo here is ringdown.`);
   const wr = Math.max(0, d.waitrxUs);
-  push(tx,"waitrx","S_WAITRX",B+d.inhibUs+SHIFT_US,wr,"idle",
-    `Nothing but waiting out the rest of the previous element's receive window. The new word is sitting in the shift register; the switches still hold the old element.`);
-  const tTcs = B + d.rxWinUs;
+  push(tx,"waitrx","S_WAITRX",B+d.inhibUs,wr,"idle",
+    `The rest of the receive window, and the reason the chain shift moved out of it. Nothing happens here at all: mux_clk low, mux_din low, LE high, switches still holding the element that just fired. The whole S_INHIBIT + S_WAITRX interval is electrically dead so the echo is not competing with 64 digital edges on a wire that runs beside it.`);
+  push(tx,"shift","S_SHIFT",B+d.quietUs,SHIFT_US,"mux",
+    `64 chain bits at 10 MHz for the NEXT element, MSB first, tail device first (BR3, BR2, BR1, ROOT). LE stays high the whole time so the switches do not move. DOUT is sampled on each rising edge and returns the previous word — a free loopback check. This used to run early in the receive window, where the echo is ringdown anyway; it now waits for the window to close, which costs ${fmt(SHIFT_US)} of element period and buys a quiet receive.`);
+  const tTcs = B + d.quietUs + SHIFT_US;
   push(tx,"tcs","S_TCS",tTcs,TCS_US,"mux",
     `t_CS guard: 20 ns from the last chain clock rising edge to LE falling.`);
   push(tx,"latch","S_LATCH",tTcs+TCS_US,LE_LOW_US,"mux",
@@ -721,9 +728,9 @@ function renderReadouts(){
 
   const wb = document.getElementById("warnbox");
   const msgs = [];
-  if (D.waitrxUs < 0) msgs.push(
-    `t_inhibit + the 6.4 µs chain shift (${fmt(D.inhibUs+SHIFT_US)}) no longer fit inside the receive window ` +
-    `(${fmt(D.rxWinUs)}). S_WAITRX collapses to zero and the element period is set by the shift, not by the echo.`);
+  if (D.waitrxUs <= 0) msgs.push(
+    `t_inhibit (${fmt(D.inhibUs)}) no longer fits inside the receive window (${fmt(D.rxWinUs)}). S_WAITRX ` +
+    `collapses to zero and the MAX14866 lockout, not the echo, is what the next shift is waiting for.`);
   if (P.dly + D.winUs + P.gap > D.rxWinUs) msgs.push(
     `The acquisition window no longer fits inside the pulser's t_rx: bursts would arrive while SRC_SEQ is still ` +
     `draining, and only every Nth would be captured.`);
@@ -794,8 +801,8 @@ const TX_FSM = [
   ["S_ARMW","until arm","Parked, waiting for arm. ctrl_decode resets pls_arm to 1, so this passes straight through on a cold boot."],
   ["S_OEW","1 ms","OE raised once — never per pulse — then wait for the 10 nF gate coupling caps to settle (τ 100–500 µs)."],
   ["S_READY","until start","Armed and idle. list_ptr forced to 0 and given a cycle to land, so the chain word is guaranteed to describe element 0 before the first shift is issued."],
-  ["S_SHIFT","6.4 µs","64 bits at 10 MHz for the next element. LE stays high. Overlaps the previous receive window."],
-  ["S_WAITRX","remainder","Wait out the rest of the previous receive window. Also the drain path at the end of a non-continuous frame."],
+  ["S_SHIFT","6.4 µs","64 bits at 10 MHz for the next element. LE stays high. Issued only once the receive window has closed, so no chain edge lands while an element is connected to the receive path."],
+  ["S_WAITRX","remainder","Wait out the rest of the receive window with the chain completely idle, then issue the next element's shift. Also the drain path at the end of a non-continuous frame."],
   ["S_TCS","20 ns","t_CS guard from the last chain clock edge to LE falling."],
   ["S_LATCH","50 ns","LE low. The switches move here and element_current updates."],
   ["S_SETTLE","≥ 4 µs","t_ON / t_OFF. Analog node quiet at ground; nothing else may happen."],
@@ -803,7 +810,7 @@ const TX_FSM = [
   ["S_DEAD_A","t_dead","ina 1→0: +HV → idle."],
   ["S_FIRE_N","t_drive","inb 1→0: idle → −HV."],
   ["S_DEAD_B","t_dead","inb 0→1: −HV → idle. Then either the next cycle, or load rx_tmr and go to S_INHIBIT."],
-  ["S_INHIBIT","≥ 4.5 µs","MAX14866 SPI lockout after HV. Frame counter increments here on the last element."],
+  ["S_INHIBIT","≥ 4.5 µs","MAX14866 SPI lockout after HV, overlapped with the head of the receive window. Frame counter increments here on the last element."],
   ["S_FAULT","until cleared","CLR held, OE dropped, driver parked. The shift register keeps its contents, so recovery needs one LE pulse and no reload."]
 ];
 const RX_FSM = [

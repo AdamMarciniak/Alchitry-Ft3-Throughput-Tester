@@ -5,15 +5,24 @@
 //              MD1213 driver / TC6320 bipolar HV pulser.
 //
 //   One transmit event per element:
-//     S_SHIFT  -> 64 chain bits, LE high.  Overlaps the previous RX window.
-//     S_WAITRX -> remainder of the previous receive window
+//     S_SHIFT  -> 64 chain bits, LE high.  The receive window is already over.
 //     S_TCS    -> t_CS guard, last CLK rising edge to LE falling
 //     S_LATCH  -> LE low, the switches move here
 //     S_SETTLE -> t_ON / t_OFF, analog node quiet at ground
 //     S_FIRE_* -> n_cycles of  +HV / idle / -HV / idle  (return to zero)
-//     S_INHIBIT-> MAX14866 SPI lockout after HV
-//     then straight back to S_SHIFT for the next element, early in the RX
-//     window where the echo data is ringdown-dominated anyway.
+//     S_INHIBIT-> MAX14866 SPI lockout after HV, overlapped with the RX window
+//     S_WAITRX -> the rest of the receive window, then issue the next shift
+//
+//   RX QUIET WINDOW: the chain shift used to overlap the receive window - it
+//   was issued from S_INHIBIT and ran early in the window, where the echo is
+//   ringdown-dominated anyway.  It does not any more.  64 MAX14866 clock edges
+//   are 64 chances to couple digital switching into the element that is at that
+//   moment connected to the receive path, and the RX window is exactly where
+//   that costs the most, so the shift now waits for the window to close: the
+//   whole of S_INHIBIT + S_WAITRX is a dead interval with no chain clocking, no
+//   DIN transitions and no LE movement.  It costs one shift time per element -
+//   CHAIN_BITS * 2 * SPI_HALF cycles, 6.4 us with the defaults - added to the
+//   element period, i.e. frame rate, and that is the intended trade.
 //
 //   CODED EXCITATION (chirp): the burst engine runs in HALF cycles - one
 //   half cycle is one driven phase (+HV or -HV) plus the dead gap after it.
@@ -217,7 +226,7 @@ module tx_sequencer #(
                      S_OEW     = 4'd3,   // OE up, gate caps settling
                      S_READY   = 4'd4,   // armed and idle
                      S_SHIFT   = 4'd5,   // 64 chain bits, LE high
-                     S_WAITRX  = 4'd6,   // finish the previous receive window
+                     S_WAITRX  = 4'd6,   // finish the receive window, then shift
                      S_TCS     = 4'd7,   // t_CS guard before LE falls
                      S_LATCH   = 4'd8,   // LE low, the switches change here
                      S_SETTLE  = 4'd9,   // t_ON / t_OFF
@@ -617,8 +626,13 @@ module tx_sequencer #(
                 trip = 1'b1;  trip_code = FC_SHOOT;
             end else if (wd_hit) begin
                 trip = 1'b1;  trip_code = FC_WATCHDOG;
+            // word_ok_pend describes the word being shifted in, so it is live
+            // from the shift until S_LATCH moves the switches - S_SHIFT and
+            // S_TCS.  It is NOT checked in S_WAITRX any more: that state now
+            // runs BEFORE the shift, where the register still holds the
+            // element that already fired and was already checked.
             end else if (!word_ok_pend &&
-                         ((state == S_SHIFT) || (state == S_WAITRX) || (state == S_TCS))) begin
+                         ((state == S_SHIFT) || (state == S_TCS))) begin
                 trip = 1'b1;  trip_code = FC_ELEMENT;
             end else if ((CHAIN_CHECK != 0) && shift_done && !chain_match &&
                          seen_first &&
@@ -638,7 +652,8 @@ module tx_sequencer #(
         tx_sync     <= 1'b0;
 
         // Receive window free-runs from the end of the burst, through
-        // S_INHIBIT and S_SHIFT, so the shift lands early in the RX window.
+        // S_INHIBIT and S_WAITRX.  Nothing touches the chain while it is
+        // non-zero; the next shift is issued when it hits zero.
         if (rx_tmr != 24'd0) rx_tmr <= rx_tmr - 24'd1;
 
         if (rst) begin
@@ -749,24 +764,37 @@ module tx_sequencer #(
             end
 
             //------------------------------------------------------------------
-            // 64 chain bits.  LE stays high the whole time.  This overlaps the
-            // previous element's receive window (rx_tmr is still counting).
+            // 64 chain bits.  LE stays high the whole time.  The previous
+            // element's receive window has already closed (S_WAITRX waited it
+            // out before issuing this shift), so nothing is listening.
             //------------------------------------------------------------------
             S_SHIFT: if (shift_done) begin
                 list_ptr <= list_last ? 6'd0 : (list_ptr + 6'd1);
-                state    <= S_WAITRX;
+                tmr      <= T_CS_C - 1;
+                state    <= S_TCS;
             end
 
             //------------------------------------------------------------------
-            // Wait out the rest of the previous receive window.  The register
-            // holds the new element; the switches have not moved.
+            // The rest of the receive window, after S_INHIBIT.  This is the
+            // quiet interval: the chain is idle - clk low, din low, LE high -
+            // and stays that way until rx_tmr expires.  Only then is the next
+            // element's word shifted in.
+            //
+            // list_ptr was advanced at the end of the last S_SHIFT, so
+            // chain_word / elem_sel already describe the NEXT element and have
+            // had the whole receive window to settle through the distributed
+            // RAM and mux_code().
             //------------------------------------------------------------------
             S_WAITRX: if (rx_tmr == 24'd0) begin
                 if (!run) begin
                     state <= S_READY;                // frame finished, draining done
                 end else begin
-                    tmr   <= T_CS_C - 1;
-                    state <= S_TCS;
+                    shift_data    <= chain_word;
+                    shift_start   <= 1'b1;
+                    elem_pend     <= elem_sel;
+                    word_ok_pend  <= word_ok;
+                    last_of_frame <= list_last;
+                    state         <= S_SHIFT;
                 end
             end
 
@@ -855,22 +883,23 @@ module tx_sequencer #(
             //------------------------------------------------------------------
             // MAX14866 transmit detector: SPI writes in this window are
             // silently discarded.  No chain activity until it expires.
+            //
+            // This runs concurrently with the head of the receive window
+            // (rx_tmr started at the same edge), and the shift that follows it
+            // now waits for the WHOLE window in S_WAITRX, so t_inhibit is
+            // hidden under the RX window for any sane t_ring + t_rx and costs
+            // nothing.  It is still counted separately rather than assumed:
+            // a host is free to set a receive window shorter than 4.5 us, and
+            // the t_inhibit failure mode is silent.
             //------------------------------------------------------------------
             S_INHIBIT: if (tmr != 24'd0) begin
                 tmr <= tmr - 24'd1;
             end else begin
                 if (last_of_frame) frame_count <= frame_count + 16'd1;
-                if (last_of_frame && !continuous) begin
-                    run   <= 1'b0;                   // drain the RX window, then stop
-                    state <= S_WAITRX;
-                end else begin
-                    shift_data    <= chain_word;     // list_ptr already advanced
-                    shift_start   <= 1'b1;
-                    elem_pend     <= elem_sel;
-                    word_ok_pend  <= word_ok;
-                    last_of_frame <= list_last;
-                    state         <= S_SHIFT;
-                end
+                // drain the RX window either way; S_WAITRX issues the next
+                // shift, or parks in S_READY when the frame is done.
+                if (last_of_frame && !continuous) run <= 1'b0;
+                state <= S_WAITRX;
             end
 
             //------------------------------------------------------------------
@@ -918,12 +947,15 @@ module tx_sequencer #(
     // out of POR zeroed.  If they do, discarding it costs nothing; if they do
     // not, counting it would leave the indicator permanently lit and useless.
     //
-    // A mismatch means the 64-bit word did not survive in the chain. The
-    // leading candidate is the MAX14866 transmit detector still inhibiting SPI
-    // when S_INHIBIT expires: it swallows leading clocks, the word arrives
-    // rotated, and a different switch closes than the element id in the frame
-    // header claims.  chain_err_word is kept so the rotation can be read
-    // directly - compare it against the expected one-hot-per-device pattern and
+    // A mismatch means the 64-bit word did not survive in the chain.  The
+    // classic cause is the MAX14866 transmit detector still inhibiting SPI when
+    // the shift starts: it swallows leading clocks, the word arrives rotated,
+    // and a different switch closes than the element id in the frame header
+    // claims.  That is now much harder to hit - the shift waits out t_inhibit
+    // AND the whole receive window - so a rotation appearing here points at the
+    // chain itself (signal integrity on CLK/DIN, a marginal device) rather than
+    // at the timing.  chain_err_word is kept so the rotation can be read
+    // directly: compare it against the expected one-hot-per-device pattern and
     // the number of eaten clocks falls out.
     //==========================================================================
     always @(posedge clk) begin

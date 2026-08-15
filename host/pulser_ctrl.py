@@ -66,6 +66,16 @@ T_DEAD_MIN_NS = 40.0
 
 N_ELEM_MAX = 48
 
+# MAX14866 chain shift, must match SPI_HALF / CHAIN_BITS in tx_sequencer.v.
+# 64 bits at one bit per 2*SPI_HALF cycles = 640 cycles = 6.4 us.  This used to
+# be free: the shift ran inside the receive window, early on where the echo is
+# ringdown anyway.  It is now serialised AFTER the window so that no chain edge
+# lands while an element is connected to the receive path, so it shows up in the
+# element period - see element_period_us().
+CHAIN_BITS   = 64
+SPI_HALF_CYC = 5
+T_SHIFT_US   = CHAIN_BITS * 2 * SPI_HALF_CYC * 1e6 / CLK_HZ
+
 # Chirp table geometry, must match tx_sequencer.v.  One table entry is the
 # driven width of one HALF cycle (one +HV or -HV phase); the dead gap after
 # each phase is t_dead as usual, so the half PERIOD the transducer sees is
@@ -193,10 +203,22 @@ class PulserCtl:
                                       cyc_to_ns(ns_to_cyc(self.t_dead_ns)))
 
     def element_period_us(self):
-        """LE fall to LE fall, matching the FSM's state sequence."""
+        """LE fall to LE fall, matching the FSM's state sequence.
+
+        burst -> S_INHIBIT / S_WAITRX -> S_SHIFT -> t_CS -> LE low -> t_settle.
+
+        t_inhibit runs concurrently with the receive window (both start at the
+        end of the burst), so the dead interval is the LONGER of the two, not
+        the sum - it only shows up at all if the window is set shorter than the
+        4.5 us lockout.  The chain shift is NOT concurrent any more: it waits
+        for the window to close so the receive period stays electrically quiet,
+        which is why T_SHIFT_US is a term here.
+        """
         settle = max(self.t_settle_us, T_SETTLE_MIN_US)
-        rx     = self.t_ring_us + self.t_rx_us
-        return 0.05 + settle + self.burst_ns() / 1e3 + rx + 0.02
+        inhib  = max(self.t_inhib_us, T_INHIBIT_MIN_US)
+        quiet  = max(self.t_ring_us + self.t_rx_us, inhib)
+        return (0.02 + 0.05 + settle + self.burst_ns() / 1e3 +
+                quiet + T_SHIFT_US)
 
     def frame_ms(self):
         n = 1 if self.single_elem is not None else self.n_elem
@@ -431,12 +453,15 @@ HELP = {
     "The FPGA clamps this to 4.0 us minimum regardless of what is sent.",
 
 "inhibit us":
-    "Last HV edge to the next mux chain clocking.\n\n"
+    "Minimum time from the last HV edge to the next mux chain clocking.\n\n"
     "The MAX14866 has a transmit detector: any input above +/-2V inhibits SPI "
     "programming for up to 4.5 us. Chain writes inside that window are "
     "DISCARDED WITH NO ERROR - the shift register keeps its old contents and "
     "the next shot fires the previous element. The failure is completely "
     "silent, which is why the floor is enforced in RTL.\n\n"
+    "It usually costs nothing: the sequencer holds the chain idle for the "
+    "whole receive window anyway (ring + rx), so this only binds if that "
+    "window is set shorter than 4.5 us.\n\n"
     "The FPGA clamps this to 4.5 us minimum.",
 
 "ring us":
