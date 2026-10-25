@@ -37,6 +37,8 @@
 # Adjustable live: pulse->receive delay, receive-end->pulse damp (DAC ring
 # settling), TGC min/max DAC codes.  Adjusting depth restarts the stream
 # (the frame size changes) - expect a brief resync blip.
+# Select PULSER RUN to start transmitting; clear it to stop.  The display's
+# pause checkbox only freezes the image.  Closing the window stops the pulser.
 #
 # AFE5804 signal-path settings (PGA, LPF, test patterns) are not touched here;
 # configure them with scope_host.py first if needed - they persist in the AFE.
@@ -44,6 +46,14 @@ import ctypes as C, sys, time, threading
 import os, struct
 import numpy as np
 import tkinter as tk
+
+# The trim bias and the file format have to be IDENTICAL across hosts or a
+# calibration measured here means something different when tfm_gl_host loads it.
+# So they live in pulser_ctrl (which is import-safe - it opens nothing at module
+# level) rather than being restated here.
+from pulser_ctrl import (PulserCtl, TRIM_MAX as TRIM_MAX_CYC, TRIM_BIAS,
+                         NS_PER_CYCLE as NS_PER_CYC,
+                         TRIM_FILE, trim_load_file, trim_save_file)
 
 XFER, NBUF        = 1024*1024, 8
 PIPE_IN, PIPE_OUT = 0x82, 0x02
@@ -54,7 +64,7 @@ OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
-OP_PLS_TRX = 0x17           # pulser's OWN receive window, clk cycles
+OP_PLS_TRIM = 0x1D          # {elem[5:0], cycles[11:0]} per-element transmit trim
 SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
 FS_HZ  = 40_000_000         # AFE5804 sample rate
@@ -123,6 +133,10 @@ def send_cmd(word, name=""):
 def cmd(op, payload=0):
     return ((op & 0xFF) << 24) | (payload & 0xFFFFFF)
 
+pulser = PulserCtl(send_cmd, cmd)
+pulser.arm = False          # configure first; PULSER RUN starts transmission
+pulser.n_elem = N_ELEM
+
 mode = {"signed": any(a.lower().startswith("sig") for a in sys.argv[1:])}
 
 def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
@@ -135,7 +149,7 @@ PLS_RX_MARGIN_US = 10
 
 def send_pls_rx(dly_us, gap_us):
     us = cfg["win_us"] + float(dly_us) + float(gap_us) + PLS_RX_MARGIN_US
-    send_cmd(cmd(OP_PLS_TRX, us_to_cycles(us)), "pls_t_rx")
+    pulser.set_t_rx_us(us)
 
 def send_seq_config(lo, hi, dly_us, gap_us):
     """Push the full sequencer timing/TGC setup for the current window length."""
@@ -147,13 +161,60 @@ def send_seq_config(lo, hi, dly_us, gap_us):
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
     send_pls_rx(dly_us, gap_us)
 
+# --- per-element transmit trim -------------------------------------------------
+# THE ARRAY IS NOT IN PHASE BY DEFAULT.  With the burst pinned to the ADC sample
+# grid the sweep-to-sweep jitter is a few ns, but the elements still do not agree
+# with each other: their artifact zero crossings sit at slightly different times,
+# and that difference is STATIC - cable, mux branch, and the element's own
+# acoustic response all land in it.  A static per-element phase error is a
+# defocus, and it is invisible in a beamformed image except as softness, so this
+# is the screen to fix it on.
+#
+# tx_sequencer.v holds each element's HV edge trim cycles after the ADC grid tick
+# that opens its capture window, so BIGGER TRIM = THAT ELEMENT LATER (deeper).
+# The hardware value is unsigned; the host works in signed nanoseconds around
+# TRIM_BIAS, which is what buys the negative half.  The bias is common to the
+# whole aperture, so it is just a constant range offset - it shifts everything
+# 2 us deeper and changes nothing about the alignment.
+# TRIM_MAX_CYC / TRIM_BIAS / NS_PER_CYC / TRIM_FILE come from pulser_ctrl.
+NS_PER_SAMP = 1e9 / FS_HZ               # 25 ns, the measurement step
+
+trim_ns = [0.0] * N_ELEM                # signed, host mirror of the FPGA table
+
+def send_trim(elem, ns):
+    """Push one element's trim.  Returns the ns actually programmed - the FPGA
+    quantises to 10 ns and clamps to 12 bits, so the mirror is kept honest by
+    storing what came back, not what was asked for."""
+    c = TRIM_BIAS + int(round(float(ns) / NS_PER_CYC))
+    c = max(0, min(TRIM_MAX_CYC, c))
+    send_cmd(cmd(OP_PLS_TRIM, ((int(elem) & 0x3F) << 12) | c), "pls_trim")
+    return (c - TRIM_BIAS) * NS_PER_CYC
+
+def upload_trim():
+    """Write the whole table.  Called at bring-up too: the FPGA resets trim_tab
+    to zero, which is -TRIM_BIAS in host terms, so the flat table has to be sent
+    before the mirror means anything."""
+    for e in range(N_ELEM):
+        trim_ns[e] = send_trim(e, trim_ns[e])
+
 # --- bring-up ----------------------------------------------------------------
 print("locking RX window (0xA5A55A5A)...")
 send_cmd(LOCK_WORD, "lock")
 time.sleep(0.05)
+pulser.set_arm(False)
 send_cmd(cmd(OP_RST_CNT), "rst_cnt")        # implies STOP, zeroes word count
 send_cmd(cmd(OP_SET_SRC, SRC_SEQ), "set_src")
 send_seq_config(TGC_MIN_DEF, TGC_MAX_DEF, DLY_US_DEF, GAP_US_DEF)
+
+# The saved calibration, straight into the hardware.  The FPGA's trim_tab resets
+# to zero on every reprogram, so this upload is what makes a calibration outlive
+# both the app and the bitstream.  A missing file loads flat, which is the
+# uncalibrated behaviour, so a fresh checkout still starts.
+pulser.push_all()  # timing, full aperture and saved trim; leaves the pulser off
+trim_ns[:] = pulser.trim_ns
+trim_note = pulser.trim_note
+print(trim_note)
+print(pulser.summary())
 
 d3.FT_SetStreamPipe(h, C.c_int(0), C.c_int(0), C.c_ubyte(PIPE_IN), C.c_ulong(XFER))
 d3.FT_SetPipeTimeout(h, C.c_ubyte(PIPE_IN), C.c_ulong(1000))
@@ -263,8 +324,15 @@ def reader():
     n = C.c_ulong(0)
     while stats["alive"]:
         for i in range(NBUF):
-            if d3.FT_GetOverlappedResult(h, C.byref(ovs[i]), C.byref(n),
-                                         C.c_int(1)) != FT_OK:
+            n.value = 0
+            result = d3.FT_GetOverlappedResult(h, C.byref(ovs[i]), C.byref(n),
+                                               C.c_int(1))
+            if not stats["alive"]:
+                return
+            if result == 19:  # FT_TIMEOUT: no SRC_SEQ frames while pulser is off
+                queue(i)
+                continue
+            if result != FT_OK:
                 if stats["alive"]:
                     print("read error - stream stopped")
                     stats["alive"] = False
@@ -319,8 +387,10 @@ root.configure(bg=BG)
 
 bar1 = tk.Frame(root, bg=BG); bar1.pack(fill="x", padx=6, pady=(4, 0))
 bar2 = tk.Frame(root, bg=BG); bar2.pack(fill="x", padx=6, pady=(0, 2))
+bar3 = tk.Frame(root, bg=BG); bar3.pack(fill="x", padx=6, pady=(0, 2))
 
 paused   = tk.BooleanVar(value=False)
+pulser_run = tk.BooleanVar(value=pulser.arm)
 signedv  = tk.BooleanVar(value=mode["signed"])
 depth_cm = tk.IntVar(value=DEPTH_CM_DEF)
 dly_us   = tk.IntVar(value=DLY_US_DEF)
@@ -329,6 +399,8 @@ tgc_min  = tk.IntVar(value=TGC_MIN_DEF)
 tgc_max  = tk.IntVar(value=TGC_MAX_DEF)
 disp_gn  = tk.DoubleVar(value=4.0)
 sel_elem = tk.IntVar(value=0)
+trim_var = tk.DoubleVar(value=0.0)          # trim of the SELECTED element, ns
+trim_lock = {"on": False}                   # suppress the Scale's write-back
 
 def chk(parent, text, var, cmd=None):
     tk.Checkbutton(parent, text=text, variable=var, command=cmd, fg=FG, bg=BG,
@@ -344,6 +416,10 @@ def scale(parent, label, var, lo, hi, cb=None, length=120, res=1):
     return s
 
 def on_signed(): mode["signed"] = signedv.get()
+def on_pulser_run():
+    pulser.set_arm(pulser_run.get())
+
+chk(bar1, "PULSER RUN", pulser_run, on_pulser_run)
 chk(bar1, "signed", signedv, on_signed)
 chk(bar1, "pause", paused)
 
@@ -391,6 +467,56 @@ scale(bar1, "damp us", gap_us, 0, 5000, send_gap)
 scale(bar2, "TGC min", tgc_min, 0, 4095, send_tgc, length=160)
 scale(bar2, "TGC max", tgc_max, 0, 4095, send_tgc, length=160)
 scale(bar2, "display gain", disp_gn, 0.5, 32, length=140, res=0.5)
+
+# --- per-element trim row ------------------------------------------------------
+# The scale trims the SELECTED element (click a column to pick one), so the loop
+# is: click a column, drag the trim, watch that column move against its
+# neighbours in the waterfall.  auto-cal does the same thing for all 48 at once
+# over the visible depth range.
+def refresh_trim_sum():
+    v = np.asarray(trim_ns)
+    trim_sum.config(text="spread %.1f ns rms  %.0f ns p-p"
+                         % (v.std(), v.max() - v.min()))
+
+def sync_trim_ui():
+    """Table -> widgets.  Guarded, because setting the var fires the Scale's
+    own command, which would write the value straight back to the FPGA."""
+    trim_lock["on"] = True
+    trim_var.set(round(trim_ns[sel_elem.get()]))
+    trim_lock["on"] = False
+    refresh_trim_sum()
+
+def on_trim(_v=None):
+    if trim_lock["on"]:
+        return
+    e = sel_elem.get()
+    trim_ns[e] = send_trim(e, trim_var.get())   # store what the FPGA took
+    refresh_trim_sum()
+
+def set_cal_msg(text, colour="#7f8"):
+    cal_msg.config(text=text, fg=colour)
+
+def button(parent, text, fn, w=8):
+    tk.Button(parent, text=text, width=w, command=fn, bg=BG, fg=FG,
+              activebackground=GRID, activeforeground=FG,
+              highlightthickness=0).pack(side="left", padx=3)
+
+# Labels first: a Scale fires its command once as it is created, and on_trim
+# reaches trim_sum through refresh_trim_sum().  The buttons defer through
+# lambdas because start_cal and friends are defined further down.
+trim_sum = tk.Label(bar3, fg=DIM, bg=BG, font=("Consolas", 9))
+cal_msg  = tk.Label(bar3, fg="#7f8", bg=BG, font=("Consolas", 9), anchor="e")
+
+scale(bar3, "trim ns", trim_var, -1000, 1000, on_trim, length=220, res=10)
+button(bar3, "auto-cal", lambda: start_cal(), w=9)
+button(bar3, "zero",     lambda: zero_cal(),  w=6)
+button(bar3, "save",     lambda: save_cal(),  w=6)
+button(bar3, "load",     lambda: load_cal(),  w=6)
+
+trim_sum.pack(side="left", padx=(10, 0))
+cal_msg.pack(side="right")
+refresh_trim_sum()
+set_cal_msg(trim_note, "#7f8" if trim_note.startswith("trim loaded") else "#89a")
 
 wininfo = tk.Label(bar2, fg=DIM, bg=BG, font=("Consolas", 9))
 wininfo.pack(side="right")
@@ -519,6 +645,7 @@ def on_release(ev):
         e = (ev.x - ML) // CW
         sel_elem.set(int(e))
         cv.coords(sel_rect, ML + e*CW, MT, ML + (e+1)*CW, MT + IMG_H)
+        sync_trim_ui()
         render_trace()
 
 def on_reset(_ev):
@@ -596,7 +723,188 @@ def render_trace():
     pts = np.empty(2 * len(xs)); pts[0::2] = xs; pts[1::2] = ys
     tv.coords(trace, *pts.tolist())
     tv.itemconfigure(trace_lbl,
-        text=f"elem {e}   pk {int(np.abs(w).max())}")
+        text=f"elem {e}   pk {int(np.abs(w).max())}   trim {trim_ns[e]:+.0f} ns")
+
+
+#-------------------------------------------------------------------------------
+# per-element trim calibration
+#
+# Measures how late each element's waveform sits against the aperture average,
+# over WHATEVER DEPTH RANGE IS CURRENTLY ON SCREEN, and folds the answer into the
+# trim table.  The visible range is the control: zoom onto the transmit artifact
+# to align the electrical path, or onto the front wall of a flat plate at normal
+# incidence to align the acoustic one.  The second is the real calibration - the
+# artifact only knows about the pulser and the crosstalk path - but the artifact
+# is always there, which makes it the one you can re-check against at any time.
+#
+# ONLY VALID WHERE THE ELEMENTS SHOULD AGREE.  It aligns every element to the
+# average of all of them, so the gated range has to be flat across the aperture.
+# A point target traces a hyperbola and would be "corrected" into a line, which
+# is exactly wrong.  Artifact: fine.  Flat plate at normal incidence: fine.
+# Anything with structure across X: not fine.
+#
+# CYCLE SKIPPING is the trap.  The waveform is a modulated carrier, so a plain
+# correlation peaks once per carrier period and a slip of one whole cycle is
+# accepted as a confident zero.  So: an ENVELOPE correlation first (rectified and
+# smoothed over one period, so no carrier and no ambiguity) fixes which cycle we
+# are on, then the carrier correlation refines inside +/- half a period.
+#-------------------------------------------------------------------------------
+CAL_SWEEPS = 32             # UI ticks averaged before measuring (~1 s)
+CAL_GATE   = 4096           # max samples correlated
+CAL_COARSE = 48             # +/- samples, envelope search
+CAL_MINQ   = 0.5            # normalised peak below this = leave that element be
+
+cal = {"run": False, "n": 0, "acc": None}
+
+def _xcorr(x, r, maxlag):
+    """Per-row lag of x against r in fractional samples, with the normalised
+    peak alongside.  POSITIVE LAG = x sits LATER than r.
+
+    A fixed core of x is correlated against a sliding r, so every lag uses the
+    same number of samples - an overlap that shrank with lag would bias the peak
+    toward zero.  Parabolic interpolation over the three points around the peak
+    gives the sub-sample part."""
+    n, g = x.shape
+    M    = int(maxlag)
+    core = x[:, M:g - M]
+    core = core - core.mean(axis=1, keepdims=True)
+    cn   = np.einsum("ij,ij->i", core, core)
+    nl   = 2 * M + 1
+    c    = np.empty((n, nl))
+    for k in range(nl):
+        L   = k - M                          # the reference slides back by L
+        seg = r[:, M - L:g - M - L]
+        seg = seg - seg.mean(axis=1, keepdims=True)
+        c[:, k] = (np.einsum("ij,ij->i", core, seg) /
+                   np.sqrt(cn * np.einsum("ij,ij->i", seg, seg) + 1e-9))
+    ii   = np.arange(n)
+    best = c.argmax(axis=1)
+    pk   = c[ii, best]
+    y0   = c[ii, np.clip(best - 1, 0, nl - 1)]
+    y2   = c[ii, np.clip(best + 1, 0, nl - 1)]
+    den  = y0 - 2.0 * pk + y2
+    frac = np.where(np.abs(den) > 1e-9, 0.5 * (y0 - y2) / den, 0.0)
+    frac = np.where((best > 0) & (best < nl - 1), np.clip(frac, -1.0, 1.0), 0.0)
+    return (best - M) + frac, pk
+
+def measure_offsets(a):
+    """a: (N_ELEM, ns) float, the averaged gate.  Returns (ns_late, quality),
+    zero-median so a calibration never walks the whole image through range."""
+    a = a - a.mean(axis=1, keepdims=True)
+
+    # Carrier period straight off the data, so this does not care what the
+    # pulser is set to or whether it is chirping.
+    m = a.mean(axis=0)
+    S = np.abs(np.fft.rfft(m * np.hanning(m.size)))
+    S[0] = 0.0
+    f_car = float(np.argmax(S)) * FS_HZ / m.size
+    per   = FS_HZ / max(f_car, 2e5)
+
+    # stage 1 - envelope, one peak only
+    w   = max(2, int(round(per)))
+    cs  = np.cumsum(np.abs(a), axis=1)
+    env = (cs[:, w:] - cs[:, :-w]) / w
+    mc  = min(CAL_COARSE, (env.shape[1] - 4) // 2)
+    lag_c, _ = _xcorr(env, np.repeat(env.mean(axis=0, keepdims=True), N_ELEM, 0), mc)
+    lag_c = np.round(lag_c)
+
+    # stage 2 - realign whole samples, then refine on the carrier.  The roll
+    # wraps, so the outer mc samples are garbage and get cut.
+    b = np.empty_like(a)
+    for e in range(N_ELEM):
+        b[e] = np.roll(a[e], -int(lag_c[e]))
+    b  = b[:, mc:b.shape[1] - mc]
+    mf = max(2, int(round(per / 2)))
+    lag_f, q = _xcorr(b, np.repeat(b.mean(axis=0, keepdims=True), N_ELEM, 0), mf)
+
+    lag = lag_c + lag_f
+    return (lag - np.median(lag)) * NS_PER_SAMP, q
+
+def start_cal():
+    if cal["run"]:
+        return
+    with buf_lk:
+        cal["acc"] = np.zeros((N_ELEM, cfg["samps"]), np.float64)
+    cal["n"], cal["run"] = 0, True
+    set_cal_msg("averaging %d sweeps..." % CAL_SWEEPS, "#fd7")
+
+def step_cal():
+    """One accumulation tick, driven from update()."""
+    with buf_lk:
+        if cal["acc"].shape[1] != raw_buf.shape[1]:      # depth changed under us
+            cal["run"] = False
+            set_cal_msg("depth changed - cancelled", "#f77")
+            return
+        cal["acc"] += raw_buf
+        cal["n"]   += 1
+    if cal["n"] >= CAL_SWEEPS:
+        cal["run"] = False
+        finish_cal()
+
+def finish_cal():
+    s0, s1 = view_slice()
+    a = cal["acc"][:, s0:s1] / float(cal["n"])
+    if a.shape[1] > CAL_GATE:
+        a = a[:, :CAL_GATE]                  # from the TOP of the visible range
+    if a.shape[1] < 4 * CAL_COARSE:
+        set_cal_msg("zoom out - gate too short to search", "#f77")
+        return
+
+    sat   = float(np.mean(np.abs(a) >= 2040.0))
+    ns, q = measure_offsets(a)
+
+    good = q >= CAL_MINQ
+    if not good.any():
+        set_cal_msg("no correlation (best %.2f) - nothing applied" % q.max(), "#f77")
+        return
+
+    # The measurement says how LATE each element is; the trim delays the fire,
+    # so correcting it means trimming that much OFF.  Elements that did not
+    # correlate keep what they had rather than being dragged to a guess.
+    for e in range(N_ELEM):
+        if good[e]:
+            trim_ns[e] -= float(ns[e])
+    mid = float(np.median([trim_ns[e] for e in range(N_ELEM) if good[e]]))
+    for e in range(N_ELEM):
+        trim_ns[e] -= mid                    # keep the table centred in range
+    upload_trim()
+    sync_trim_ui()
+
+    res = ns[good]
+    msg = ("applied: was %.1f ns rms, %.0f ns p-p over %d samp"
+           % (res.std(), res.max() - res.min(), a.shape[1]))
+    if not good.all():
+        msg += "  (%d el skipped)" % int((~good).sum())
+    if sat > 0.02:
+        msg += "  [%.0f%% clipped - gate a quieter range]" % (sat * 100)
+    set_cal_msg(msg, "#fd7" if (sat > 0.02 or not good.all()) else "#7f8")
+
+def zero_cal():
+    for e in range(N_ELEM):
+        trim_ns[e] = 0.0
+    upload_trim()
+    sync_trim_ui()
+    set_cal_msg("trim table flat", "#7f8")
+
+def save_cal():
+    """Write the table every other host reads at startup.  gate_us records WHERE
+    it was measured, which is the first thing to check when a calibration looks
+    wrong - one taken over a point target is a different animal from one taken
+    over the artifact."""
+    trim_save_file(trim_ns,
+                   host="waterfall_host.py",
+                   fs_hz=FS_HZ,
+                   bias_cyc=TRIM_BIAS,
+                   gate_us=[round(v, 2) for v in view_us()])
+    set_cal_msg("saved %s" % os.path.basename(TRIM_FILE), "#7f8")
+
+def load_cal():
+    t, note = trim_load_file(n_elem=N_ELEM)
+    trim_ns[:] = t
+    upload_trim()
+    sync_trim_ui()
+    set_cal_msg(note, "#7f8" if note.startswith("trim loaded") else "#fd7")
+
 
 #-------------------------------------------------------------------------------
 # resize / fullscreen
@@ -629,6 +937,8 @@ root.bind("<F11>", toggle_fs)
 root.bind("<Escape>", lambda _e: root.attributes("-fullscreen", False))
 
 def update():
+    if cal["run"]:
+        step_cal()
     if not paused.get() and stats["dirty"]:
         stats["dirty"] = False
         render_img()
@@ -642,6 +952,7 @@ def update():
              f"   frames {stats['frames']}   frame drops {stats['drops']}"
              f"   resyncs {stats['resyncs']}"
              f"   sample holes {stats['seq_bad']}/{stats['seq_chk']} chk"
+             + ("" if pulser.arm else "   PULSER OFF - select PULSER RUN")
              + ("" if stats["alive"] else "   *** STREAM STOPPED ***"),
         fg="#7f8" if (stats["drops"] == 0 and stats["resyncs"] == 0
                       and stats["seq_bad"] == 0) else "#fa5")
@@ -651,6 +962,10 @@ root.after(100, update)
 
 def on_close():
     stats["alive"] = False
+    try:
+        pulser.set_arm(False)
+    except SystemExit:
+        pass
     try:
         send_cmd(cmd(OP_STOP), "stop")
     except SystemExit:
@@ -662,5 +977,5 @@ def on_close():
     root.destroy()
 
 root.protocol("WM_DELETE_WINDOW", on_close)
-print("streaming - close the window to stop.")
+print("ready - select PULSER RUN to transmit; close the window to stop.")
 root.mainloop()

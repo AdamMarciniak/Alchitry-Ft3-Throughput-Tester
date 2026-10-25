@@ -1,0 +1,37 @@
+{
+  "schema": "usb3-bench-build",
+  "version": 1,
+  "state": "passed",
+  "created_utc": "2026-09-08T00:57:28.599205+00:00",
+  "part": "xc7a35tftg256-2",
+  "board": "AuV2",
+  "vivado": "E:\\Vivado\\2025.2\\Vivado\\bin\\vivado.bat",
+  "source_sha256": {
+    "source/rtl/afe5804_ctrl.v": "64ecba8d751975b50ea1f72dc3d9cb91bde805e95b67fa31ed5cf803ed689ab3",
+    "source/rtl/afe_rx.v": "693e61efbced28a6ffaa532c7a6f4a1b8baea387cde45fc2d9593a9f0e7dde6a",
+    "source/rtl/afe_stream.v": "37a67cb57745a2da22bb701fa69859655aa28878a21a43a092e09b2aa8d13287",
+    "source/rtl/alchitry_top.v": "8a8ddc813fcf3a4a6a16ac78c43317972a3b2eeb4a68e5d89c56bb1936dac221",
+    "source/rtl/ctrl_decode.v": "699eb2df6482b8af4b6c114729df71ed33877114c968c1f27c53679c37c89f55",
+    "source/rtl/dac7554_ramp.v": "f07a136a074eaf5e033e07a8963ecdc4197b0f4f5ed142a6af443d972328012b",
+    "source/rtl/ft601_if.v": "05b300ef7afadf8fba06b16f4e73f4e4e1e4f04e22819fdb4c3477d2f1605cbd",
+    "source/rtl/tx_sequencer.v": "ad8bbf47c7469937a66b53e2c84c1c464319d93519c8b117babd768a381239b8",
+    "source/constraints/au_ft.xdc": "9e122ac3939505d9a34a4c4e456440917a2423b0ff8244e1465d1c75d42e951a",
+    "source/constraints/pulser.xdc": "ec1261bbac770ce326ec0f072969a2a16432f61dd794f9138ebf79044996e6f3",
+    "source/tests/tb_ctrl_lease.v": "c58cf8cee41ce88c9c677cf9c9660eb159dce4810112aeabe885273402c8de54",
+    "source/bench_build.tcl": "1977e876707658fd8aa1dff9aa8aa4ef3ad974d1344104dcb29c26bd3e240e7a",
+    "source/bench_vivado.ps1": "976c12b203e4155b3cd89c8878fda7360ef9d52aaad17f54e8685f101c59b61b",
+    "source/bench_lease_sim.ps1": "c4dfb88758ba4e8d954b8b4fd24ddcfb2800444e93cd7397dd358a37856c8ade",
+    "source/bench_build.py": "40ea5008ccb86e3434d1bc2c4e809cdfa1c8db7bdf408aee93b404b90d0a8f6d"
+  },
+  "checks": {
+    "setup_slack_ns": 0.223,
+    "hold_slack_ns": 0.036,
+    "drc_failures": 0
+  },
+  "capabilities": [
+    "boot_disarmed",
+    "tx_lease_v1"
+  ],
+  "bitstream_sha256": "5a8781ebf7531e2726ca8332768e08e58f0fafe2667b173ca844d45c3eae23f7",
+  "lease_simulation": "passed"
+}

@@ -39,7 +39,7 @@
 //   may be after the window opened; rx_write simply holds off until it lands.
 //   Samples are not lost meanwhile because the ADC FIFO is accumulating from
 //   the instant the window opened - it is the elastic buffer for exactly this,
-//   and it holds 1024 words (~51 us).  Overrun that and samples are dropped
+//   and it holds 4096 words (~205 us).  Overrun that and samples are dropped
 //   with a sequence-tag discontinuity, which is visible on the host, rather
 //   than the gate moving, which is not.
 //     4. S_DAMP: snap tgc_code back to tgc_start and hold off seq_gap clk
@@ -58,14 +58,19 @@
 //   data at all - the ADC stream goes quiet rather than showing free-running
 //   noise.  That is the point: every frame now has a known time origin.
 //
-//   If the pulser fires faster than a window can be captured and drained
-//   (element period < seq_dly + window + seq_gap) the extra tx_sync pulses are
-//   ignored and only every Nth burst is captured.  Frames are never torn; the
-//   effective frame rate just drops.  Give the pulser an rx window at least as
-//   long as the capture window to avoid it.
+//   capture_ready now feeds the pulser: after its nominal quiet window it
+//   waits for the actual drain and DAC gap before changing elements. This
+//   prevents USB stalls from silently skipping physical firings. The receive
+//   origin still never waits on USB. Runtime-info flags bit 2 advertises the
+//   capture-ready interlock. Unsolicited tx_sync while busy is still ignored.
 //////////////////////////////////////////////////////////////////////////////////
 
-module ctrl_decode (
+`ifndef USB3_BENCH_BUILD_ID
+`define USB3_BENCH_BUILD_ID 32'h00000000
+`endif
+module ctrl_decode #(
+    parameter integer LEASE_CYCLES_PER_MS = 100000
+) (
     input  wire        clk,             // clk_in (100 MHz onboard)
     input  wire        rst,             // rst_sys
 
@@ -95,6 +100,7 @@ module ctrl_decode (
     input  wire        tx_sync,         // 1-cycle pulse at the first HV edge
     input  wire [5:0]  tx_elem,         // element closed in the mux tree, valid
                                         //   from the LE latch through the burst
+    output wire        capture_ready,  // same clock: next shot may be scheduled
 
     // Real transmit sequencer (tx_sequencer.v) config registers.  The
     // sequencer runs on its own timebase; the receive window above is slaved
@@ -116,6 +122,9 @@ module ctrl_decode (
     output reg         pls_ch_wr,       // 1-cycle pulse
     output reg  [7:0]  pls_ch_addr,
     output reg  [15:0] pls_ch_data,
+    output reg         pls_tr_wr,       // 1-cycle pulse
+    output reg  [5:0]  pls_tr_addr,     // ELEMENT index, not list slot
+    output reg  [11:0] pls_tr_data,     // transmit trim, clk cycles
 
     // AFE5804 register write (to afe5804_ctrl ext port)
     output reg  [23:0] afe_word,        // {addr[7:0], data[15:0]}
@@ -139,7 +148,9 @@ module ctrl_decode (
                      OP_AFE_REG   = 8'h0A,   // payload: {addr[7:0], data[15:0]}
                      OP_SEQ_LEN   = 8'h0B,   // payload[15:0]: ADC words per receive window
                      OP_SEQ_DLY   = 8'h0C,   // payload: pulse->receive delay, clk cycles
-                     OP_SEQ_TGC   = 8'h0D,   // payload: TGC acc increment per captured word
+                     OP_SEQ_TGC   = 8'h0D,   // payload: TGC acc increment per window
+                                             //   word (50 ns of real time - the ramp
+                                             //   is clocked, not drain-driven)
                      OP_SEQ_GAP   = 8'h0E,   // payload: receive-end->pulse damp, clk cycles
                      OP_SEQ_TGC0  = 8'h0F,   // payload[11:0]: TGC start (min) DAC code
 
@@ -159,6 +170,10 @@ module ctrl_decode (
                      OP_PLS_FCLR    = 8'h1A, // clear a latched pulser fault
                      OP_PLS_CHIRP   = 8'h1B, // payload: {addr[7:0], drive[15:0]}
                                              //   chirp-table write, one half cycle
+                     OP_PLS_TRIM    = 8'h1D, // payload: {elem[5:0], cycles[11:0]}
+                                             //   per-element transmit trim
+                     OP_PLS_LEASE   = 8'h1E, // 1..5000 ms host lease; 0 disables only while disarmed
+                     OP_INFO_NONCE  = 8'h1F, // nonce echoed by SRC_INFO, writable only while disarmed
                      OP_PLS_CLEN    = 8'h1C; // payload[7:0]: chirp half cycles,
                                              //   0 = fixed burst (n_cycles/t_drive)
 
@@ -168,7 +183,8 @@ module ctrl_decode (
 
     localparam [1:0] SRC_PATTERN = 2'd0,
                      SRC_ADC     = 2'd1,
-                     SRC_SEQ     = 2'd2;
+                     SRC_SEQ     = 2'd2,
+                     SRC_INFO    = 2'd3; // disarmed runtime build/configuration query
 
     // FWFT: one word per cycle whenever present
     assign ctrl_rd_en = !ctrl_empty;
@@ -188,6 +204,15 @@ module ctrl_decode (
     reg [23:0] tgc_inc;
     reg [11:0] tgc_start;
 
+    // Optional unattended-run lease. Once enabled, missing renewals park the
+    // pulser even if USB or the host process has stopped. Renewal never arms it.
+    reg lease_enabled;
+    reg [12:0] lease_ms;
+    reg [16:0] lease_tick;
+    reg [23:0] info_nonce;
+    wire lease_expiring = lease_enabled && (lease_ms == 1) &&
+                          (lease_tick == LEASE_CYCLES_PER_MS-1);
+
     //--------------------------------------------------------------------------
     // Command execution
     //--------------------------------------------------------------------------
@@ -196,6 +221,7 @@ module ctrl_decode (
         afe_wr        <= 1'b0;
         pls_el_wr     <= 1'b0;
         pls_ch_wr     <= 1'b0;
+        pls_tr_wr     <= 1'b0;
         pls_fault_clr <= 1'b0;
 
         if (rst) begin
@@ -213,10 +239,12 @@ module ctrl_decode (
             tgc_start  <= 12'd0;          // ramp starts at DAC code 0
             cmd_count  <= 8'h0;
 
-            // Pulser defaults: the settings validated on the scope.  arm=1 so
-            // the transmit chain free-runs from power-up with no host present,
-            // exactly as before this control path existed.
-            pls_arm       <= 1'b1;
+            // Programming/reset must not start transmission during a bench run.
+            pls_arm       <= 1'b0;
+            lease_enabled <= 1'b0;
+            lease_ms      <= 13'd0;
+            lease_tick    <= 17'd0;
+            info_nonce    <= 24'd0;
             pls_n_cycles  <= 8'd2;        // 2 positive + 2 negative pulses
             pls_t_drive   <= 16'd10;      // 100 ns per pulse
             pls_t_dead    <= 16'd4;       //  40 ns between polarities
@@ -230,7 +258,21 @@ module ctrl_decode (
             pls_chirp_len <= 8'd0;        // fixed burst until a host asks for a chirp
             pls_ch_addr   <= 8'd0;
             pls_ch_data   <= 16'd0;
-        end else if (ctrl_rd_en) begin
+            pls_tr_addr   <= 6'd0;
+            pls_tr_data   <= 12'd0;   // trim_tab itself resets to all-zero
+        end else begin
+            if (lease_enabled) begin
+                if (lease_ms == 0) begin
+                    pls_arm <= 1'b0;
+                end else if (lease_tick == LEASE_CYCLES_PER_MS-1) begin
+                    lease_tick <= 17'd0;
+                    lease_ms <= lease_ms - 1'b1;
+                    if (lease_ms == 1) pls_arm <= 1'b0;
+                end else begin
+                    lease_tick <= lease_tick + 1'b1;
+                end
+            end
+          if (ctrl_rd_en) begin
             cmd_count <= cmd_count + 1'b1;
 
             case (opcode)
@@ -257,7 +299,20 @@ module ctrl_decode (
                 OP_SEQ_TGC0:  tgc_start  <= payload[11:0];
 
                 // ---- transmit sequencer ------------------------------------
-                OP_PLS_ARM:     pls_arm       <= payload[0];
+                OP_PLS_ARM:     pls_arm <= payload[0] &&
+                    (!lease_enabled || ((lease_ms != 0) && !lease_expiring));
+                OP_PLS_LEASE: begin
+                    if ((payload >= 1) && (payload <= 5000)) begin
+                        lease_enabled <= 1'b1;
+                        lease_ms <= payload[12:0];
+                        lease_tick <= 17'd0;
+                    end else if ((payload == 0) && !pls_arm) begin
+                        lease_enabled <= 1'b0;
+                        lease_ms <= 13'd0;
+                        lease_tick <= 17'd0;
+                    end
+                end
+                OP_INFO_NONCE: if (!pls_arm) info_nonce <= payload;
                 OP_PLS_NCYC:    pls_n_cycles  <= payload[7:0];
                 OP_PLS_TDRIVE:  pls_t_drive   <= payload[15:0];
                 OP_PLS_TDEAD:   pls_t_dead    <= payload[15:0];
@@ -277,10 +332,18 @@ module ctrl_decode (
                     pls_ch_data <= payload[15:0];
                     pls_ch_wr   <= 1'b1;
                 end
+                // Addressed by ELEMENT index, not list slot - see the trim
+                // table note in tx_sequencer.v.
+                OP_PLS_TRIM: begin
+                    pls_tr_addr <= payload[17:12];
+                    pls_tr_data <= payload[11:0];
+                    pls_tr_wr   <= 1'b1;
+                end
                 OP_PLS_CLEN:    pls_chirp_len <= payload[7:0];
 
                 default:      ;           // NOP, lock word, anything unknown
             endcase
+          end
         end
     end
 
@@ -303,8 +366,37 @@ module ctrl_decode (
     reg [23:0] tgc_acc;
     reg        hdr_pend;                        // header owed to the TX FIFO
 
+    // GAIN TIMEBASE.  The VCA applies its gain at SAMPLE time, so the TGC ramp
+    // must advance with the clock, not with rx_write: draining is whenever the
+    // bus allows, and advancing the ramp on drain events made gain-vs-depth a
+    // function of USB backpressure - stalled samples were taken at a stale
+    // gain, then the ramp sprinted at up to 5x real time while the FIFO
+    // caught up.  Same principle as the range gate above: anything that is
+    // part of the time base must not be able to wait on the TX FIFO.
+    // rt_cnt counts seq_len words of REAL window time (one word = 2 samples =
+    // 5 clk at 40 MSPS); tgc_inc keeps its per-word meaning, so no host or
+    // opcode change.  The +/-100 ppm drift of the free-running ADC oscillator
+    // over a window is nanoseconds - noise against a ~us DAC update.
+    reg [15:0] rt_cnt;                          // window words left, real time
+    reg [2:0]  rt_div;                          // 5 clk = one 50 ns word
+
     wire seq_run = streaming && (src == SRC_SEQ);
     wire tx_ok   = !tx_full && !tx_wr_rst_busy;
+
+    // Backpressure can extend S_RX beyond its nominal acoustic window. Do not
+    // advance the physical element while that RF is still draining. Observe
+    // an empty ADC FIFO once between shots to exclude an old backlog. Do not
+    // require empty on the grid-tick edge: fresh ADC words recur periodically.
+    // Other sources retain standalone pulser operation.
+    reg drain_clean = 1'b0;
+    always @(posedge clk) begin
+        if (rst || !seq_run || ((sstate == S_ARMED) && tx_sync))
+            drain_clean <= 1'b0;
+        else if (((sstate == S_DAMP) || (sstate == S_ARMED)) && adc_empty)
+            drain_clean <= 1'b1;
+    end
+    assign capture_ready = !seq_run ||
+                           ((sstate == S_ARMED) && drain_clean && tx_ok);
 
     // The header may go out during the delay OR after the window has opened -
     // whichever the FIFO allows first.  Data waits for it so the frame is never
@@ -327,6 +419,8 @@ module ctrl_decode (
             frame_cnt <= 16'd0;
             hdr_pend  <= 1'b0;
             tgc_acc   <= {tgc_start, 12'd0};
+            rt_cnt    <= 16'd0;
+            rt_div    <= 3'd0;
         end else case (sstate)
             S_DAMP: begin                       // let the DAC min-step ring out
                 dly_cnt <= dly_cnt - 1'b1;
@@ -352,6 +446,8 @@ module ctrl_decode (
                 if (hdr_write) hdr_pend <= 1'b0;
                 if (dly_cnt == 24'd0) begin
                     rx_cnt <= (seq_len == 16'd0) ? 16'd1 : seq_len;
+                    rt_cnt <= (seq_len == 16'd0) ? 16'd1 : seq_len;
+                    rt_div <= 3'd4;
                     sstate <= S_RX;             // unconditional - that is the point
                 end
             end
@@ -360,16 +456,29 @@ module ctrl_decode (
             // entry to S_RX) has the ADC FIFO buffering from the true window
             // start.  seq_dly = 0 is therefore fine: the header simply lands
             // after the window opened and costs FIFO slack, not range accuracy.
-            S_RX: if (hdr_write) hdr_pend <= 1'b0;
-            else if (rx_write) begin            // one ADC word captured
-                rx_cnt <= rx_cnt - 1'b1;
-                if (rx_cnt == 16'd1) begin
-                    frame_cnt <= frame_cnt + 1'b1;
-                    tgc_acc   <= {tgc_start, 12'd0};  // gain back to minimum
-                    dly_cnt   <= seq_gap;
-                    sstate    <= S_DAMP;
-                end else begin
-                    tgc_acc <= tgc_sum[24] ? 24'hFFFFFF : tgc_sum[23:0];
+            S_RX: begin
+                // Gain ramp on the real-time counter (see rt_cnt above), NOT
+                // on rx_write.  Runs for exactly the window's duration, then
+                // holds at its final value until the drain finishes.
+                if (rt_cnt != 16'd0) begin
+                    if (rt_div != 3'd0) rt_div <= rt_div - 3'd1;
+                    else begin
+                        rt_div  <= 3'd4;
+                        rt_cnt  <= rt_cnt - 16'd1;
+                        tgc_acc <= tgc_sum[24] ? 24'hFFFFFF : tgc_sum[23:0];
+                    end
+                end
+                if (hdr_write) hdr_pend <= 1'b0;
+                else if (rx_write) begin        // one ADC word drained
+                    rx_cnt <= rx_cnt - 1'b1;
+                    if (rx_cnt == 16'd1) begin
+                        // Written after the ramp branch above, so on a shared
+                        // cycle the snap back to minimum wins.
+                        frame_cnt <= frame_cnt + 1'b1;
+                        tgc_acc   <= {tgc_start, 12'd0};  // gain back to minimum
+                        dly_cnt   <= seq_gap;
+                        sstate    <= S_DAMP;
+                    end
                 end
             end
             default: sstate <= S_DAMP;          // unreachable encodings
@@ -385,7 +494,7 @@ module ctrl_decode (
     wire limit_hit = (word_limit != 32'h0) && (words_sent >= word_limit);
     wire tx_ready  = streaming && !limit_hit && tx_ok;
 
-    wire pat_write = tx_ready && (src == SRC_PATTERN);
+    wire pat_write = tx_ready && ((src == SRC_PATTERN) || ((src == SRC_INFO) && !pls_arm));
     wire adc_write = tx_ready && (src == SRC_ADC) && !adc_empty;
 
     // Sequencer frames bypass word_limit: a frame must never be cut short.
@@ -415,6 +524,24 @@ module ctrl_decode (
 
     always @* begin
         case (src)
+            SRC_INFO: case (counter[3:0])
+                0: tx_din = 32'hB34D0001;
+                1: tx_din = {8'd0, info_nonce};
+                2: tx_din = `USB3_BENCH_BUILD_ID;
+                3: tx_din = {16'h0001, 13'd0, 1'b1, lease_enabled, pls_arm};
+                4: tx_din = {19'd0, lease_ms};
+                5: tx_din = {16'd0, seq_len};
+                6: tx_din = {8'd0, seq_dly};
+                7: tx_din = {8'd0, seq_gap};
+                8: tx_din = {20'd0, tgc_start};
+                9: tx_din = {8'd0, tgc_inc};
+                10: tx_din = {8'd0, pls_n_cycles, pls_t_drive};
+                11: tx_din = {16'd0, pls_t_dead};
+                12: tx_din = {8'd0, pls_t_settle};
+                13: tx_din = {8'd0, pls_t_inhibit};
+                14: tx_din = {8'd0, pls_t_ring};
+                15: tx_din = {8'd0, pls_t_rx};
+            endcase
             // elem is 6 bits, so the zero guard above it is 2 bits wide and a
             // host header test is (word >> 22) == 0x384.
             // Driven off hdr_pend, not the state: the header can now be written

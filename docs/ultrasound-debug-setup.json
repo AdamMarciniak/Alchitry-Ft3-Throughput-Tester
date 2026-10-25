@@ -1,0 +1,14 @@
+{
+  "description": "Owner-reported setup as of 2026-09-07. Historical context, not measurements or hardware readback for a new run. Update this file after hardware changes; record each test's conditions in the host context field.",
+  "probe": "CH6-2; central 48 elements; one element transmits and receives per firing",
+  "geometry": "Measured radius 67.52 mm and arc pitch 0.3375 mm; element order experimentally mapped",
+  "mux": "MAX14866UTM+; three leaf banks, all 16 COM inputs tied within each bank; three root COM inputs tied, other 13 root gaps open",
+  "pulser": "TC6320TG-G driven by MD1213K6-G; TPS60403DBVR supplies driver -5 V only",
+  "last_reported_hv": "+40 V and -40 V; not sensed by this software",
+  "receive_path": ["probe element", "leaf mux", "root mux", "MD0100N8-G", "BAV99T", "4 inch SMA cable", "33 ohm series resistor", "BAV99HMT116", "100 nF series capacitor", "AFE5804"],
+  "clarifications": ["R13 50 ohm placeholder is unpopulated", "C24 and C25 are solder bridges", "U3 bank-to-ground issue resolved", "AFE gain-control DAC range measured 0–1.2 V"],
+  "clock_and_ground": "40 MHz ADC oscillator. AFE and pulser/mux on separate boards; connected by SMA ground and several approximately 6 inch ground wires.",
+  "trim_calibration": "Waterfall auto-cal performed with probe in air. Three anomalous trim entries suspected open connections; all three element IDs not confirmed. A selected flat trim table is a separate test condition.",
+  "previous_target": "3 mm wire perpendicular to imaging plane, approximately 5–10 cm deep in water; bright response with sideways arcs",
+  "schematic_reference": "docs/schematic-connectivity-2026-09-07.md"
+}

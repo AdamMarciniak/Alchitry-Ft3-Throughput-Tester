@@ -1,8 +1,9 @@
 //==============================================================================
 // AFE5804 controller - Alchitry Au V2 (XC7A35T-2FTG256I)
 //
-// Boots, initialises the AFE, auto-aligns the LVDS word boundary using the
-// sync pattern, then idles ready for capture.  No manual alignment needed.
+// Boots, initialises the AFE, scans the LVDS data eye with the AFE's deskew
+// pattern, then aligns the word boundary with its sync pattern.  The eye centre
+// is measured at every boot rather than assumed from a hard-coded tap.
 //
 // LEDs
 //   [7] FPGA heartbeat
@@ -195,7 +196,13 @@ endmodule
 
 module afe5804_ctrl #(
   parameter CLK_HZ = 100_000_000,
-  parameter BAUD   = 2_000_000
+  parameter BAUD   = 2_000_000,
+  parameter AUTO_EYE = 1,
+  // Fixed-tap boot path.  Keep these independent: OUT1 and FCLK have
+  // different package/PCB delays.  Values below are overridable at the top
+  // level and are loaded before the runtime BITSLIP word-phase search.
+  parameter [4:0] ALIGN_DAT_TAP  = 5'd14,
+  parameter [4:0] ALIGN_FCLK_TAP = 5'd14
 )(
   input  wire       clk,
   input  wire       rst_n,
@@ -228,11 +235,9 @@ module afe5804_ctrl #(
   //--------------------------------------------------------------------------
   // Calibration constants
   //--------------------------------------------------------------------------
-  // Re-measure with the fixed scan: press 'd' then 'A'.  Expect a narrow fail
-  // zone; the scanner centres the pass window automatically.  Put the number
-  // it reports here.  (The old value of 21/26 came from a scan whose metric
-  // was rotation-sensitive and cannot be trusted.)
-  localparam [4:0] ALIGN_TAP = 5'd14;      // <-- Tested using script, center of eye
+  // AUTO_EYE=0 and UART 'K' use the calibrated fixed-tap path.  BITSLIP is
+  // still searched on every alignment; its power-up word phase is not a board
+  // calibration constant and must not be hardcoded from one host-tool run.
   localparam [3:0] MAX_SLIPS = 4'd12;
 
   // 0x42: D15,D7 forced '1' | D0 DIFF_CLK | D2 EN_DCC | D3 EXT_REF_VCM
@@ -392,7 +397,8 @@ module afe5804_ctrl #(
              S_SCAN   = 5'd14, S_SFIND = 5'd15, S_SPRNT = 5'd16,
              A_SYNC   = 5'd17, A_TAP   = 5'd18, A_CLR   = 5'd19,
              A_CHK    = 5'd20, A_SLIP  = 5'd21, A_OFF   = 5'd22,
-             S_DCAP   = 5'd23, S_DRD   = 5'd24, S_DLO   = 5'd25, S_DHI = 5'd26;
+             S_DCAP   = 5'd23, S_DRD   = 5'd24, S_DLO   = 5'd25, S_DHI = 5'd26,
+             A_DSKW   = 5'd27, A_SCAN  = 5'd28, A_ASYNC = 5'd29;
 
   reg [4:0]  seq       = S_RSTLOW;
   reg [4:0]  ret_state = S_ECHO1;
@@ -418,6 +424,7 @@ module afe5804_ctrl #(
   reg [4:0]  cur_start = 5'd0;
   reg [5:0]  best_len  = 6'd0;
   reg [4:0]  best_tap  = 5'd0;
+  reg        scan_auto = 1'b0;
 
   wire [23:0] rw = rom[romi];
 
@@ -433,6 +440,7 @@ module afe5804_ctrl #(
     if (rst) begin
       seq <= S_RSTLOW; timer <= 0; romi <= 0; from_rom <= 1'b1;
       afe_rst_n <= 1'b0; ph <= 3'b000; rawcnt <= 0; ext_pending <= 1'b0;
+      scan_auto <= 1'b0;
     end else begin
       case (seq)
 
@@ -452,7 +460,8 @@ module afe5804_ctrl #(
 
         S_FETCH: begin
           if (rw[23:16] == 8'hFE) begin
-            ph <= 3'b100; seq <= A_SYNC;          // -> auto-align
+            ph <= 3'b100;
+            seq <= (AUTO_EYE != 0) ? A_DSKW : A_SYNC;
           end else if (rw[23:16] == 8'hFF) begin
             delay_us <= rw[15:0]; timer <= 0; seq <= S_DELAY;
           end else begin
@@ -480,7 +489,46 @@ module afe5804_ctrl #(
           end else timer <= timer + 1'b1;
         end
 
-        //==================== auto word alignment ==========================
+        //==================== automatic eye + word alignment ===============
+        // PAT_DESKEW is the datasheet's constant 010101010101 word, so each
+        // deserialized 6-bit half must stay constant at a sound sampling tap.
+        // Scan all 32 IDELAY positions, choose the centre of the longest pass
+        // window, then change to PAT_SYNC (111111000000) for BITSLIP alignment.
+        A_DSKW: begin
+          spi_word  <= {8'h45, 16'h0001};        // deskew pattern on
+          from_rom  <= 1'b0;
+          ret_state <= A_SCAN;
+          ph        <= 3'b100;
+          seq       <= S_ISSUE;
+        end
+
+        A_SCAN: begin
+          scan_tap <= 0; map_d <= 0; scan_ph <= 0; timer <= 0;
+          best_len <= 0; best_tap <= 0; cur_len <= 0; j <= 0;
+          dat_tap  <= 0; fclk_tap <= 0; tap_load <= 1'b1;
+          scan_auto <= 1'b1;
+          seq <= S_SCAN;
+        end
+
+        A_ASYNC: begin
+          scan_auto <= 1'b0;
+          if (best_len == 0) begin
+            ph  <= 3'b110;                       // no stable eye: fail honestly
+            seq <= S_IDLE;
+          end else begin
+            dat_tap  <= best_tap;
+            fclk_tap <= best_tap;
+            tap_load <= 1'b1;
+            spi_word  <= {8'h45, 16'h0002};      // sync pattern on
+            from_rom  <= 1'b0;
+            ret_state <= A_CLR;
+            slips     <= 4'd0;
+            timer     <= 0;
+            seq       <= S_ISSUE;
+          end
+        end
+
+        // Fixed-tap word re-align used by UART 'K' and AUTO_EYE=0.
         A_SYNC: begin
           spi_word  <= {8'h45, 16'h0002};        // sync pattern on
           from_rom  <= 1'b0;
@@ -491,8 +539,8 @@ module afe5804_ctrl #(
         end
 
         A_TAP: begin
-          dat_tap  <= ALIGN_TAP;
-          fclk_tap <= ALIGN_TAP;
+          dat_tap  <= ALIGN_DAT_TAP;
+          fclk_tap <= ALIGN_FCLK_TAP;
           tap_load <= 1'b1;
           timer    <= 0;
           seq      <= A_CLR;
@@ -567,6 +615,7 @@ module afe5804_ctrl #(
                        scan_tap <= 0; map_d <= 0; scan_ph <= 0; timer <= 0;
                        best_len <= 0; best_tap <= 0; cur_len <= 0; j <= 0;
                        dat_tap  <= 0; fclk_tap <= 0; tap_load <= 1'b1;
+                       scan_auto <= 1'b0;
                        seq <= S_SCAN;
                      end
               8'h77: begin rawcnt <= 0; seq <= S_RAW; end                                     // w
@@ -661,7 +710,10 @@ module afe5804_ctrl #(
               best_tap <= cur_start + cur_len[5:1];         // centre of run
             end
             cur_len <= 0;
-            if (j == 6'd32) begin j <= 0; seq <= S_SPRNT; end
+            if (j == 6'd32) begin
+              j <= 0;
+              seq <= scan_auto ? A_ASYNC : S_SPRNT;
+            end
             else            j <= j + 1'b1;
           end
         end

@@ -30,7 +30,7 @@
 # prints is what it has SENT, not what the hardware confirms.  Settings persist
 # in the FPGA until the next command or a reset.
 
-import sys, time
+import sys, time, os, json
 
 CLK_HZ       = 100_000_000          # FPGA clk_in
 NS_PER_CYCLE = 1e9 / CLK_HZ         # 10.0 ns
@@ -49,6 +49,84 @@ OP_PLS_ELEM    = 0x19   # payload: {addr[5:0], data[5:0]} element-list write
 OP_PLS_FCLR    = 0x1A   # clear a latched pulser fault
 OP_PLS_CHIRP   = 0x1B   # payload: {addr[7:0], drive[15:0]} chirp-table write
 OP_PLS_CLEN    = 0x1C   # payload[7:0]: chirp half cycles, 0 = fixed burst
+OP_PLS_TRIM    = 0x1D   # payload: {elem[5:0], cycles[11:0]} transmit-trim write
+
+# Per-element transmit trim, in clk cycles (10 ns).  The FPGA holds the HV edge
+# this long after the ADC-grid tick that opens the capture window, so a bigger
+# trim puts that element's echoes LATER (deeper) in its window.  Unsigned in the
+# hardware, so a calibration that needs to pull an element EARLIER has to push
+# every other element later instead: the host works in signed nanoseconds around
+# TRIM_BIAS and the bias is what buys the negative half of the range.  It is a
+# constant across the aperture, so it lands in t0 and costs nothing but a fixed
+# 2 us of settle.
+TRIM_MAX     = 4095                 # 12 bits in the RTL
+TRIM_BIAS    = 200                  # cycles.  The range is ASYMMETRIC: an
+                                    # element can be pulled 2 us EARLY (down to
+                                    # trim 0) but pushed 38.95 us late.  Only
+                                    # the early side costs anything, and 2 us is
+                                    # ~200x any calibration seen so far.
+
+# --- trim calibration file -----------------------------------------------------
+# THE CANONICAL PLACE THE PER-ELEMENT TRIM LIVES.  waterfall_host.py measures it
+# and writes this file; every host that drives a PulserCtl reads it at startup
+# and pushes it in push_all(), so a calibration survives closing the app, and -
+# because the FPGA's trim_tab resets to zero - survives reprogramming the part.
+# Values are signed NANOSECONDS, so the file does not care what clk_in is.
+#
+# A missing or broken file is NOT an error: it degrades to a flat table, which
+# is exactly the uncalibrated behaviour, and the note comes back for the caller
+# to print.  A host must never fail to start because a calibration is absent.
+TRIM_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "settings", "trim.json")
+
+def trim_load_file(path=None, n_elem=None):
+    """Read a saved trim table.  Returns (trim_ns, note).
+
+    trim_ns is always n_elem long; a short file leaves the rest at 0.  note is a
+    one-line human description, never an exception."""
+    path   = TRIM_FILE if path is None else path
+    n_elem = N_ELEM_MAX if n_elem is None else int(n_elem)
+    flat   = [0.0] * n_elem
+    if not os.path.exists(path):
+        return flat, "no trim file - aperture uncalibrated"
+    try:
+        with open(path) as f:
+            d = json.load(f)
+        t = list(d.get("trim_ns") or [])
+    except Exception as ex:
+        return flat, "trim file unreadable (%s) - running flat" % ex
+    if not t:
+        return flat, "trim file has no table - running flat"
+    out = list(flat)
+    for i in range(min(n_elem, len(t))):
+        try:
+            out[i] = float(t[i])
+        except (TypeError, ValueError):
+            return flat, "trim file has a bad entry at %d - running flat" % i
+    lo, hi = min(out), max(out)
+    rms = (sum(v * v for v in out) / len(out)) ** 0.5
+    note = ("trim loaded: %.1f ns rms, %.0f ns p-p, saved %s"
+            % (rms, hi - lo, d.get("saved", "?")))
+    if len(t) != n_elem:
+        note += "  [file has %d elements, this host wants %d]" % (len(t), n_elem)
+    return out, note
+
+def trim_save_file(trim_ns, path=None, **extra):
+    """Write a trim table.  extra goes into the json alongside for provenance -
+    the gate it was measured over, which host measured it, and so on."""
+    path = TRIM_FILE if path is None else path
+    d = {"saved":   time.strftime("%Y-%m-%d %H:%M:%S"),
+         "n_elem":  len(trim_ns),
+         "clk_hz":  CLK_HZ,
+         "trim_ns": [round(float(v), 1) for v in trim_ns]}
+    d.update(extra)
+    dirname = os.path.dirname(path)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(d, f, indent=2)
+    return path
+
 
 # --- datasheet floors, enforced in RTL too -------------------------------------
 # The FPGA clamps these regardless of what we send; they are repeated here so
@@ -59,9 +137,9 @@ OP_PLS_CLEN    = 0x1C   # payload[7:0]: chirp half cycles, 0 = fixed burst
 T_SETTLE_MIN_US  = 4.0
 T_INHIBIT_MIN_US = 4.5
 # TC6320 turn-off is t_d(OFF) 20 ns + t_f 15 ns = 35 ns worst case.  Below this
-# both FETs can conduct at once.  NOT clamped in RTL - the combinational
-# interlock catches the static case, but a short dead time is still a real
-# shoot-through risk once HV is connected.
+# both FETs can conduct at once.  The RTL clamps this too: the combinational
+# interlock catches the static input combination, but it cannot stop physical
+# turn-off tails overlapping when the commanded dead time is too short.
 T_DEAD_MIN_NS = 40.0
 
 N_ELEM_MAX = 48
@@ -181,6 +259,13 @@ class PulserCtl:
         # (burst shape or chirp).  A receive-side matched filter caches its
         # reference against this, so it rebuilds exactly when the pulse moves.
         self.tx_gen = 0
+        # Per-element transmit trim, signed ns, host-side mirror of trim_tab.
+        # Read here and SENT BY push_all(), so every host picks up the last
+        # calibration without knowing anything about it.  Reading a file in a
+        # constructor is worth it for that: the alternative is each host
+        # remembering to do it, and the one that forgets images out of phase
+        # with no symptom except softness.
+        self.trim_ns, self.trim_note = trim_load_file()
 
     # -- derived ---------------------------------------------------------------
     def _chirp_edges(self):
@@ -240,9 +325,9 @@ class PulserCtl:
         self._send(self._cmd(OP_PLS_TDRIVE, ns_to_cyc(ns)), "pls_tdrive")
 
     def set_t_dead_ns(self, ns):
-        self.t_dead_ns = float(ns)
+        self.t_dead_ns = max(T_DEAD_MIN_NS, float(ns))
         self.tx_gen += 1
-        self._send(self._cmd(OP_PLS_TDEAD, ns_to_cyc(ns)), "pls_tdead")
+        self._send(self._cmd(OP_PLS_TDEAD, ns_to_cyc(self.t_dead_ns)), "pls_tdead")
         # The chirp table stores DRIVEN widths; the half period the transducer
         # sees is width + dead.  A new dead time therefore changes every half
         # period unless the table is rebuilt around it.
@@ -283,6 +368,52 @@ class PulserCtl:
         else:
             self._send(self._cmd(OP_PLS_ELEM, (0 << 6) | self.single_elem), "pls_elem")
             self._send(self._cmd(OP_PLS_NELEM, 1), "pls_nelem")
+
+    # -- per-element transmit trim ---------------------------------------------
+    def write_trim(self, elem, cycles):
+        """Raw trim write: element 0..47 <- delay in clk cycles, 0..TRIM_MAX."""
+        c = max(0, min(TRIM_MAX, int(cycles)))
+        self._send(self._cmd(OP_PLS_TRIM,
+                             ((int(elem) & 0x3F) << 12) | c), "pls_trim")
+        return c
+
+    def upload_trim_ns(self, trim_ns):
+        """Push a whole calibration table given in SIGNED nanoseconds.
+
+        trim_ns[i] is how much LATER element i should fire.  TRIM_BIAS is added
+        so the negative half is reachable; entries that would still fall outside
+        the hardware range are clamped, and the clamped count comes back so a
+        caller can say so rather than silently mis-calibrating."""
+        clamped = 0
+        out     = list(trim_ns)
+        for e, ns in enumerate(trim_ns):
+            want = TRIM_BIAS + int(round(float(ns) / NS_PER_CYCLE))
+            got  = self.write_trim(e, want)
+            if got != want:
+                clamped += 1
+            out[e] = (got - TRIM_BIAS) * NS_PER_CYCLE   # what the FPGA holds
+        self.trim_ns = out
+        return clamped
+
+    def clear_trim(self):
+        """Flat table: every element back to the same TRIM_BIAS."""
+        for e in range(N_ELEM_MAX):
+            self.write_trim(e, TRIM_BIAS)
+        self.trim_ns = [0.0] * N_ELEM_MAX
+
+    def load_trim(self, path=None):
+        """Re-read the calibration file and push it.  Returns the note."""
+        self.trim_ns, self.trim_note = trim_load_file(path, N_ELEM_MAX)
+        self.upload_trim_ns(self.trim_ns)
+        return self.trim_note
+
+    def save_trim(self, path=None, **extra):
+        return trim_save_file(self.trim_ns, path, **extra)
+
+    def trim_summary(self):
+        v = self.trim_ns or [0.0]
+        rms = (sum(x * x for x in v) / len(v)) ** 0.5
+        return "trim %.1f ns rms, %.0f ns p-p" % (rms, max(v) - min(v))
 
     def clear_fault(self):
         self._send(self._cmd(OP_PLS_FCLR), "pls_fclr")
@@ -370,6 +501,7 @@ class PulserCtl:
         self.set_t_ring_us(self.t_ring_us)
         self.set_t_rx_us(self.t_rx_us)
         self.set_single_elem(self.single_elem)   # also sets the list length
+        self.upload_trim_ns(self.trim_ns)        # per-element transmit trim
         self.set_chirp_on(self.chirp_on)         # table + length, or length 0
         self.set_arm(self.arm)                   # arm last
 
@@ -388,10 +520,10 @@ class PulserCtl:
                      cyc_to_ns(ns_to_cyc(self.t_dead_ns)),
                      self.f0_hz() / 1e6, self.burst_ns()))
         return ("pulser: %s  %s  settle %.1f us  inhibit %.1f us  "
-                "rx %.0f us  %s  frame %.2f ms"
+                "rx %.0f us  %s  frame %.2f ms  %s"
                 % ("RUN" if self.arm else "STOPPED", tx,
                    self.t_settle_us, self.t_inhib_us, self.t_rx_us,
-                   w, self.frame_ms()))
+                   w, self.frame_ms(), self.trim_summary()))
 
 
 # =============================================================================
@@ -721,7 +853,7 @@ def build_pulser_panel(parent, ctl, FG="#9ab", BG="#101418", GRID="#1e2a33",
                         lambda v: int(v),  0, 0, intvar=True)
     tdrive,  w_tdrive  = slider("width ns",   10, 500, 10,  ctl.set_t_drive_ns,  ctl.t_drive_ns,
                         ns_to_cyc,         0, 1)
-    tdead,   w_tdead   = slider("dead ns",    10, 200, 10,  ctl.set_t_dead_ns,   ctl.t_dead_ns,
+    tdead,   w_tdead   = slider("dead ns",    T_DEAD_MIN_NS, 200, 10, ctl.set_t_dead_ns, ctl.t_dead_ns,
                         ns_to_cyc,         0, 2)
     tsettle, w_tsettle = slider("settle us",  T_SETTLE_MIN_US,  40, 0.5, ctl.set_t_settle_us,
                         ctl.t_settle_us,   us_to_cyc,   0, 3)

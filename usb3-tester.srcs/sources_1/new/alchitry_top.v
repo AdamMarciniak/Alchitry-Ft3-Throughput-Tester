@@ -124,7 +124,7 @@ module alchitry_top #(
     assign ft_reset = &por_cnt;
 
     //--------------------------------------------------------------------------
-    // AFE5804: SPI init + LVDS auto-align sequencer (self-boots at power-up).
+    // AFE5804: SPI init + calibrated LVDS alignment (self-boots at power-up).
     // The UART debug console stays live on the Au's own USB2 port @ 2 Mbaud.
     //--------------------------------------------------------------------------
     wire [7:0]  afe_led;
@@ -135,8 +135,15 @@ module alchitry_top #(
     wire        afe_wr;
 
     afe5804_ctrl #(
-        .CLK_HZ (100_000_000),
-        .BAUD   (2_000_000)
+        .CLK_HZ         (100_000_000),
+        .BAUD           (2_000_000),
+        // host/settings/afe_eye_latest.json, 2026-08-18 18:32 PDT:
+        // 128 captures/tap, 256 validation captures, zero sync/ramp errors.
+        // Disable the old shared-tap scanner so it cannot overwrite these
+        // independent centres with one value.
+        .AUTO_EYE       (0),
+        .ALIGN_DAT_TAP  (5'd10),
+        .ALIGN_FCLK_TAP (5'd9)
     ) u_afe (
         .clk          (clk_in),
         .rst_n        (rst_n),
@@ -163,6 +170,7 @@ module alchitry_top #(
     wire [31:0] adc_word;
     wire        adc_empty;
     wire        adc_rd_en;
+    wire        adc_sync_tog;     // sample-grid phase, to tx_sequencer
 
     afe_stream u_stream (
         .samp_clk (afe_samp_clk),
@@ -172,7 +180,8 @@ module alchitry_top #(
         .rd_clk   (clk_in),
         .rd_en    (adc_rd_en),
         .dout     (adc_word),
-        .empty    (adc_empty)
+        .empty    (adc_empty),
+        .sync_tog (adc_sync_tog)
     );
 
     wire [31:0] ctrl_word;        // RX FIFO -> decoder (host command stream)
@@ -193,6 +202,7 @@ module alchitry_top #(
     // because ctrl_decode is instantiated before the sequencer that drives it.
     wire        pulse_tx_sync;
     wire [5:0]  pulse_element;
+    wire        capture_ready;
 
     // ctrl_decode -> tx_sequencer configuration (same clk_in domain, no CDC)
     wire        pls_arm;
@@ -212,6 +222,9 @@ module alchitry_top #(
     wire        pls_ch_wr;
     wire [7:0]  pls_ch_addr;
     wire [15:0] pls_ch_data;
+    wire        pls_tr_wr;
+    wire [5:0]  pls_tr_addr;
+    wire [11:0] pls_tr_data;
 
     ctrl_decode u_ctrl (
         .clk            (clk_in),
@@ -235,6 +248,7 @@ module alchitry_top #(
         // the element the mux tree really had closed.
         .tx_sync        (pulse_tx_sync),
         .tx_elem        (pulse_element),
+        .capture_ready  (capture_ready),
 
         .pls_arm        (pls_arm),
         .pls_fault_clr  (pls_fault_clr),
@@ -253,6 +267,9 @@ module alchitry_top #(
         .pls_ch_wr      (pls_ch_wr),
         .pls_ch_addr    (pls_ch_addr),
         .pls_ch_data    (pls_ch_data),
+        .pls_tr_wr      (pls_tr_wr),
+        .pls_tr_addr    (pls_tr_addr),
+        .pls_tr_data    (pls_tr_data),
 
         .afe_word       (afe_word),
         .afe_wr         (afe_wr),
@@ -341,6 +358,11 @@ module alchitry_top #(
         .clk             (clk_in),
         .rst             (rst_sys),
 
+        // Burst launch holds for this grid tick so the capture start lands at
+        // a constant offset from the burst instead of a random 0-50 ns one.
+        .adc_sync_tog    (adc_sync_tog),
+        .capture_ready   (capture_ready),
+
         .arm             (pls_arm),
         .start_frame     (1'b0),
         .continuous      (1'b1),
@@ -362,6 +384,9 @@ module alchitry_top #(
         .el_wr_addr      (pls_el_addr),
         .el_wr_data      (pls_el_data),
         .cfg_list_len    (pls_list_len),
+        .tr_wr           (pls_tr_wr),
+        .tr_wr_addr      (pls_tr_addr),
+        .tr_wr_data      (pls_tr_data),
 
         .mux_clk         (mux_clk),
         .mux_din         (mux_din),
@@ -403,12 +428,17 @@ module alchitry_top #(
     //--------------------------------------------------------------------------
     // TX FIFO : clk_in (write, decoder) -> clk_ft (read, FT601 core).
     // Deep BRAM buffer so the 100 MHz pattern source can run ahead of the bus.
+    // 8192 words (32 KB) - together with the deepened ADC FIFO this gives the
+    // sequencer ~2.5 receive windows of total elasticity against FT601 TXE
+    // stalls, where 2048+1024 gave 12.3 kB and ~1% of windows lost samples
+    // mid-trace at 10 cm (see afe_stream.v).  BRAM cost: +6 RAMB36 of the 44
+    // that were free.
     //--------------------------------------------------------------------------
     xpm_fifo_async #(
         .FIFO_MEMORY_TYPE ("block"),         // fast path: deep BRAM buffer
         .WRITE_DATA_WIDTH (32),
         .READ_DATA_WIDTH  (32),
-        .FIFO_WRITE_DEPTH (2048),
+        .FIFO_WRITE_DEPTH (8192),
         .READ_MODE        ("fwft"),
         .FIFO_READ_LATENCY(0),
         .USE_ADV_FEATURES ("1000"),

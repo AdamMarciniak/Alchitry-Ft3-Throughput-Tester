@@ -805,7 +805,7 @@ const TX_FSM = [
   ["S_WAITRX","remainder","Wait out the rest of the receive window with the chain completely idle, then issue the next element's shift. Also the drain path at the end of a non-continuous frame."],
   ["S_TCS","20 ns","t_CS guard from the last chain clock edge to LE falling."],
   ["S_LATCH","50 ns","LE low. The switches move here and element_current updates."],
-  ["S_SETTLE","≥ 4 µs","t_ON / t_OFF. Analog node quiet at ground; nothing else may happen."],
+  ["S_SETTLE","≥ 4 µs","t_ON / t_OFF. Analog node quiet at ground; nothing else may happen. After the timer the launch holds up to 200 ns more for the next ADC sample-grid tick, so the capture start sits at a constant offset from the burst instead of a random 0–50 ns one (the ADC free-runs against the sequencer clock). A dead ADC stream times out after 630 ns rather than hanging the pulser."],
   ["S_FIRE_P","t_drive","ina 0→1: idle → +HV. tx_sync pulses on entry to the first one."],
   ["S_DEAD_A","t_dead","ina 1→0: +HV → idle."],
   ["S_FIRE_N","t_drive","inb 1→0: idle → −HV."],

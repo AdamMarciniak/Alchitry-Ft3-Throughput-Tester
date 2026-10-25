@@ -55,6 +55,13 @@
 # live one - zoom, sound speed, dynamic range, gain, calipers and CAPTURE all
 # work on the past exactly as they do on the present.
 #
+# Video export: mark IN and OUT on the timeline ([ and ], keys i and o, or drag
+# the flags) and "export video…" writes that range out through ffmpeg.  Every
+# frame goes back through the beamformer at the export resolution, so 4K is
+# reconstructed at 4K rather than upscaled from the window, with the axes,
+# calipers, M-line and the settings footer painted to match.  H.264 High /
+# yuv420p / bt709 at CRF, i.e. what YouTube ingests without re-wrapping.
+#
 # Geometry: CH6-2 convex array, 67.5 mm radius, 0.3375 mm pitch, apex at (0, 0),
 # elements pointing radially outward; monostatic (tx == rx), i.e. classic SAFT.
 # We drive the CENTRE 48 of the probe's 192 elements, so the sub-aperture stays
@@ -95,8 +102,20 @@
 # same single AFE channel, so the receive path is identical for every one of
 # them - only the mux tree moves between shots.
 import ctypes as C, sys, time, threading, os, struct, collections, json
+import subprocess, shutil, tempfile
 import numpy as np
 import moderngl
+import rf_debug
+from rf_debug_ui import DebugMixin
+
+pipeline_lock = threading.RLock()
+debug_command_hook = None
+debug_probe_consumer = None
+debug_startup_commands = []
+debug_discard_words = 0
+debug_replay_only = False
+recorded_tx_reference = None
+DEBUG_SLIDERS = {}
 
 from PySide6.QtCore import Qt, QTimer, QRectF, QPointF, Signal
 from PySide6.QtGui import (QSurfaceFormat, QImage, QPixmap, QPainter, QPen,
@@ -105,7 +124,9 @@ from PySide6.QtGui import (QSurfaceFormat, QImage, QPixmap, QPainter, QPen,
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QSlider, QPushButton,
                                QCheckBox, QHBoxLayout, QVBoxLayout, QScrollArea,
                                QFrame, QDialog, QFileDialog, QSizePolicy,
-                               QLineEdit, QInputDialog)
+                               QLineEdit, QInputDialog, QComboBox, QDoubleSpinBox,
+                               QGridLayout, QProgressDialog, QMessageBox,
+                               QDialogButtonBox)
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 # PulserCtl is UI-agnostic - it only wants (send_cmd, cmd) - so the transmit
@@ -113,7 +134,7 @@ from PySide6.QtOpenGLWidgets import QOpenGLWidget
 # it is Tk, and this host is Qt, so the panel is rebuilt below in _pulser_row().
 # HELP is the same tooltip text either way, which is the part worth not forking.
 from pulser_ctrl import (PulserCtl, HELP as PLS_HELP, N_ELEM_MAX,
-                         T_SETTLE_MIN_US, T_INHIBIT_MIN_US,
+                         T_DEAD_MIN_NS, T_SETTLE_MIN_US, T_INHIBIT_MIN_US,
                          ns_to_cyc as pls_ns_to_cyc,
                          us_to_cyc as pls_us_to_cyc)
 
@@ -141,7 +162,14 @@ HDR_SHIFT = 16 + ELEM_BITS              # 22: first bit above the element field
 HDR_MAGIC = 0xE1 << (24 - HDR_SHIFT)    # 0x384: top byte 0xE1, guard bits zero
 assert N_ELEM <= 1 << ELEM_BITS
 
-C_DEF    = 1540.0           # m/s, soft tissue
+# Startup values below marked "settings/latest.json 2026-08-15" are the working
+# point that was actually on screen for the last saved image, baked in so the
+# window opens where the evening left off rather than at the textbook defaults.
+# Every one of them is still a live control - this only moves where they start.
+C_DEF    = 1496.0           # m/s (settings/latest.json 2026-08-15; 1540 = the
+                            # textbook soft-tissue figure).  Also sizes the
+                            # capture window in depth_to_words(), so a lower c
+                            # buys a slightly longer window for the same cm.
 
 # CH6-2, derived from the probe face rather than a datasheet: the rubber
 # measures 62.32 mm end to end in a straight line (chord c) with the apex
@@ -205,7 +233,11 @@ T0_NS_DEF, T0_NS_MIN, T0_NS_MAX, T0_NS_STEP = 0.0, -2000, 4000, 10
 # 70% is the default: 23 dB of clutter for 41% of the main lobe, and past ~80%
 # the curve flattens while the signal keeps draining away.  It IS a real 3.9 dB
 # of SNR, so on deep or weak targets back it off - hence the slider.
-APOD_DEF = 0.7
+#
+# Starts at 85% rather than the 70% knee (settings/latest.json 2026-08-15): with
+# the capture-start jitter noted below sitting at -27 dB, the extra taper is
+# still buying visible clutter reduction at a depth where the SNR can pay for it.
+APOD_DEF = 0.85
 
 # --- coherence factor ---------------------------------------------------------
 # Apodization is the only clutter control a plain delay-and-sum beamformer has,
@@ -226,8 +258,8 @@ APOD_DEF = 0.7
 # CF^0 = 1 and nothing changes), 1 is the standard factor, and above 1 is more
 # aggressive - each unit is roughly another 34 dB on fully incoherent energy.
 #
-# It defaults OFF because it changes what the image MEANS, in three ways worth
-# knowing before turning it up:
+# It changes what the image MEANS, in three ways worth knowing before turning it
+# up (and worth re-reading, because the startup value below is no longer zero):
 #
 #   * brightness stops being proportional to backscatter.  CF is a detection
 #     aid, not a measurement, and full_scale() no longer describes the level
@@ -244,7 +276,11 @@ APOD_DEF = 0.7
 # dims the wire rather than the arc around it, the aperture is not yet in phase
 # and the geometry is worth another pass.  Swept against pitch with CF at 1, the
 # peak is far sharper than the envelope alone.
-CF_DEF = 0.0
+# 0.36 (settings/latest.json 2026-08-15): a third of the standard factor, which
+# is enough to pull the haze down without flattening speckle - and, per the note
+# above, gentle enough that a slightly out-of-phase aperture does not eat the
+# target with it.  Set the slider to 0 for a plain delay-and-sum image.
+CF_DEF = 0.36
 
 # --- receive bandpass ---------------------------------------------------------
 # The Hilbert mask has to zero the negative half of the spectrum anyway, so
@@ -276,6 +312,32 @@ BAND_ON_DEF = True
 BAND_F0_DEF, BAND_BW_DEF = 4.0, 5.0     # MHz, centre and full width
 BAND_TAPER = 0.35                       # of the width, split over both skirts
 
+# --- frequency compounding ----------------------------------------------------
+# Split the selected receive passband into three power-complementary sub-bands,
+# beamform each one independently, then combine their detected powers.  Anatomy
+# stays registered while the wavelength-dependent speckle changes, so the power
+# sum has lower speckle contrast than a single coherent full-band image.
+#
+# The sub-band crossovers are sin/cos pairs: q_left^2 + q_right^2 == 1.  Together
+# with the outer bandpass this means the three masks preserve the full band's
+# spectral power instead of making the image arbitrarily brighter or darker.
+# Three bands are the useful ceiling here.  At the 5 MHz default passband each
+# is about 1.7 MHz wide (c/2B ~= 0.45 mm), already near the axial resolution of
+# the normal two-cycle pulse; more bands would mostly trade detail for smoothness.
+FREQ_COMP_DEF   = False
+FREQ_COMP_BANDS = 3
+FREQ_COMP_XFADE = 0.06       # crossover width as a fraction of the full band
+
+# --- probe passband -----------------------------------------------------------
+# The CH6-2's nameplate two-way response, and the yardstick the transmit
+# readout scores the drive against (tx_in_probe_band).  It is NOT measured -
+# nothing in this host ever sees the transducer's response - so treat it as the
+# label on the box, good to maybe half a megahertz at the skirts.  It earns its
+# place anyway: drive outside it radiates nothing at all, and a chirp slider
+# will happily ask for 7.3 MHz on a probe that dies at 6 without one thing on
+# screen saying so.  Change these two numbers if the probe changes.
+PROBE_LO_MHZ, PROBE_HI_MHZ = 2.0, 6.0
+
 # --- pulse compression (matched filter) ---------------------------------------
 # The receive half of coded excitation.  With the pulser chirping, every echo
 # is the whole sweep long - tens of microseconds - and the raw envelope smears
@@ -286,15 +348,16 @@ BAND_TAPER = 0.35                       # of the width, split over both skirts
 # a 20 us chirp carries ~15 dB more energy than a 2-cycle burst at the same
 # voltage, and compression delivers it at c/2B axial resolution.
 #
-# The reference is built from the same quantised switching edges the FPGA
-# fires (pulser.tx_waveform), so it tracks the chirp sliders exactly.  What it
-# does NOT include is the transducer's two-way response; the bandpass above
-# effectively stands in for that, and the two multiply into one weight array.
+# The reference is built from the commanded quantised switching edges
+# (pulser.tx_waveform). It does not measure the pulser, probe or two-way analog
+# response. The receive bandpass limits the spectrum but cannot calibrate that
+# response's phase or amplitude; real echoes can still leave range sidelobes.
 # The FFT is padded by the reference length so the correlation cannot wrap the
 # deep end of the window onto the shallow end.
 #
-# Correlation peaks at each echo's ARRIVAL time, the same registration the
-# plain envelope has, so the depth axis and t0 calibration are untouched.  It
+# Correlation uses the reference's start as lag zero. The actual acoustic and
+# analog group delay remains, so check range calibration on a known reflector
+# when changing the waveform or compression reference. It
 # works on the fixed burst too (it is just a short matched filter there); it
 # defaults off because with an uncoded 2-cycle burst it mostly re-shades the
 # image without buying resolution.  Sidelobes of the compressed pulse ring
@@ -322,11 +385,41 @@ MF_ON_DEF = False
 # noise-dominated far field drops ~9 dB while real tissue barely moves.
 AVG_DEF, AVG_MAX = 1, 16
 
-DEPTH_CM_DEF = 8            # ~104 us window
+DEPTH_CM_DEF = 14           # ~187 us window (settings/latest.json 2026-08-15)
 DLY_US_DEF   = 5            # pulse -> receive settling
 GAP_US_DEF   = 50           # receive end -> next pulse (DAC ring-out)
-TGC_MIN_DEF, TGC_MAX_DEF = 0, 4095
-DYN_DEF, GAIN_DEF = 50, 0
+# TGC min starts well up the range (settings/latest.json 2026-08-15): the ramp
+# runs lo -> hi across the window, so lifting the FLOOR lifts the near field with
+# it.  0 is the flat-out-of-the-box value; drop it back if the near meter clips.
+TGC_MIN_DEF, TGC_MAX_DEF = 834, 4095
+# 56 dB / +36 dB with auto gain OFF (settings/latest.json 2026-08-15).  The gain
+# figure only means anything against the absolute full_scale() reference, which
+# is why AUTO_DEF goes with it - turning auto back on cancels it outright.
+DYN_DEF, GAIN_DEF = 56, 36
+AUTO_DEF = False
+
+# Greyscale transfer curve applied AFTER the log window, as a symmetric S about
+# mid-grey.  1.00 is the identity, i.e. the plain linear-in-dB ramp this host
+# has always drawn; below 1.00 steepens the middle of the ramp and rolls off
+# both ends.
+#
+# Why a scanner wants this: log compression maps a dB window onto 0..1 with a
+# constant dB-per-grey-level, which spends just as much of the ramp on the
+# noise floor and on the specular highlights as it does on tissue - and tissue
+# is the only part anyone reads.  The S borrows contrast from both ends, where
+# nothing is being judged, and gives it to the middle, where speckle lives.
+# The cost is real and worth stating: the ends genuinely lose contrast, so a
+# strong curve makes it harder to tell "just above noise" from "noise", and
+# flattens the top of a bright specular target.  It is a display curve only -
+# the beamformer, the dB meters, and the reverb readout never see it.
+#
+# It is NOT a substitute for getting the level right.  Fix dyn/gain first so
+# tissue actually fills the window (a frame whose peak only reaches half grey
+# is a level problem, and the curve will only stretch the noise with it), then
+# reach for this.  ~0.55-0.70 is a sane working range.
+# 0.65 (settings/latest.json 2026-08-15), inside the working range named above;
+# 1.00 is the identity ramp this host drew before.
+CURVE_DEF, CURVE_MIN = 0.65, 0.30
 
 ZOOM_MIN, ZOOM_MAX = 1.0, 24.0
 
@@ -338,8 +431,8 @@ ZOOM_MIN, ZOOM_MAX = 1.0, 24.0
 #      4 cm  1.3 GB      16 cm  2.4 GB      40 cm  2.8 GB
 #      8 cm  1.9 GB      30 cm  2.7 GB
 #
-# 2 GB buys the full 40 s out to ~10 cm - which covers the default 8 cm working
-# depth - and clamps to ~29 s at 16 cm and ~17 s at 40 cm rather than failing.
+# 2 GB buys the full 40 s out to ~10 cm and clamps beyond it rather than failing:
+# ~39 s at the 14 cm startup depth, ~29 s at 16 cm, ~17 s at 40 cm.
 # Raise CINE_MB if you want the deep end too; the readout reports what is
 # actually held, so a short loop at depth is visible rather than silent.
 CINE_SECONDS = 40.0         # how far back the loop reaches
@@ -360,6 +453,17 @@ SPEED_MIN, SPEED_MAX, SPEED_DEF = 0.1, 4.0, 1.0     # replay rate vs acquisition
 def full_scale(apod=None):
     a = APOD_DEF if apod is None else apod
     return float(n_alive() * 2048 * 2) * (1.0 - 0.5 * a)
+
+# CPU twin of scurve() in the COMPRESS shader - see CURVE_DEF.  The M-mode
+# strip greyscales itself in numpy rather than through the GL pipeline, and a
+# strip drawn on a different transfer curve from the image above it is a lie,
+# so both call their own copy of the same formula.  Keep them in step.
+def scurve_np(v, p=None):
+    p = float(state["curve"]) if p is None else float(p)
+    if p >= 0.999:
+        return v
+    u = 2.0 * v - 1.0
+    return 0.5 + 0.5 * np.sign(u) * np.power(np.abs(u), p)
 
 # --- dead elements ------------------------------------------------------------
 # Elements that receive nothing (open probe element, connector pin, or joint).
@@ -404,10 +508,17 @@ def parse_dead(s):
 dead = {"set": set(), "gen": 0}
 
 def n_alive():
-    return max(1, N_ELEM - len(dead["set"]))
+    return max(1, int(alive_mask().sum()))
 
 def alive_mask():
-    m = np.ones(N_ELEM, dtype=np.float32)
+    m = np.zeros(N_ELEM, dtype=np.float32)
+    ctl = globals().get("pulser")
+    if ctl is None:
+        m[:] = 1
+    elif ctl.single_elem is not None:
+        m[ctl.single_elem] = 1
+    else:
+        m[:ctl.n_elem] = 1
     d = dead["set"]                 # one read: rebound, never mutated in place
     if d:
         m[sorted(d)] = 0.0
@@ -427,13 +538,14 @@ def set_dead(s):
 #   far  = RMS of everything after the near gate: the tissue detector.  Read
 #          it as a delta against the air baseline at identical settings.
 # The bg reference is BG_AVG averaged sweeps; each incoming row is re-aligned
-# to the reference off the artifact itself (the ADC free-runs against the
-# burst, so capture start jitters ~2 samples; plain subtraction would leave a
-# phase-slip residue only ~6 dB down, aligned gets ~16 dB).
+# to the reference off the artifact itself.  Current RTL locks transmit launch
+# to an ADC-grid marker, so residual motion should be far below the old ~2-sample
+# error; keeping this alignment makes the subtraction tolerate what remains.
 GATE_NEAR = 5
 BG_AVG    = 16
 level = {"near": -99.0, "far": -99.0}
-bg    = {"ref": None, "acc": None, "n": 0, "want": 0, "on": False}
+bg    = {"ref": None, "acc": None, "first": None, "n": 0, "want": 0,
+         "on": False}
 
 # --- per-element capture-start jitter -----------------------------------------
 # The alignment above was built to make the SUBTRACTION work, but the number it
@@ -447,25 +559,19 @@ bg    = {"ref": None, "acc": None, "n": 0, "want": 0, "on": False}
 # artifact is an exact fiducial for the whole trace, and shifting the row back
 # by -d puts all 48 elements on one time base referenced to the burst.
 #
-# Two things displace the window, and this catches both:
-#   * the ADC free-runs against clk_in and afe_stream's FIFO is 32 bits = two
-#     samples wide, so the window can only start on a 50 ns boundary.  That is
-#     the "~2 samples" in the note above, and at 3.57 MHz it is 18.5 deg RMS of
-#     per-element phase error - which costs only 0.2 dB of coherent gain but
-#     puts the diffuse clutter floor at sigma^2/N = -27 dB.  That is 9 dB ABOVE
-#     what 70% apodization buys, i.e. the apod slider is currently masked by it.
-#   * ctrl_decode's S_HDR waits for the TX FIFO to accept the header before
-#     opening the window, so bus backpressure slides the range gate by the
-#     stall duration.  Unbounded, and invisible to the `holes` counter, which
-#     only fires when a stall outlasts the ADC FIFO's 51 us of slack.
+# The RTL now fixes both original large terms: transmit launch waits for an
+# ADC-grid toggle, and the range gate no longer waits for the USB/header FIFO.
+# The phase marker still crosses through a two-flop synchronizer into the
+# 100 MHz pulser domain, so a residual of roughly one 10 ns system-clock period
+# is possible.  Analog propagation and marginal LVDS capture can add more.  The
+# artifact measurement remains the direct way to distinguish that from motion.
 #
 # Correcting it needs a bg reference, and NOT the subtraction: the two are
 # independent, so the checkbox is separate.
 #
-# MAXLAG is +/-8 samples = +/-200 ns.  Wider than the ~2 samples the FIFO can
-# produce, because a backpressure slip is much larger; if a shift rails at the
-# limit the true peak is outside the window and the row is left uncorrected
-# rather than dragged to a wrong answer.
+# MAXLAG is +/-8 samples = +/-200 ns, deliberately much wider than the expected
+# residual.  If a shift rails at the limit the true peak is outside the window
+# and the row is left uncorrected rather than dragged to a wrong answer.
 # CYCLE SKIPPING is the trap here, and it is why there are two stages below.
 # The artifact is a modulated carrier, so correlating it against the reference
 # finds a peak every carrier period - 11.2 samples at 3.57 MHz.  A slip of 9
@@ -478,11 +584,9 @@ bg    = {"ref": None, "acc": None, "n": 0, "want": 0, "on": False}
 # carrier correlation refines inside it.  Rows where the two disagree by more
 # than half a period are rejected rather than guessed at.
 #
-# This bounds what the correction is good for.  The 50 ns FIFO quantisation is
-# a fifth of a carrier period and is handled exactly.  A backpressure gate slip
-# of hundreds of ns is beyond the coarse search and shows up as railed/weak -
-# detected, reported, but NOT corrected.  That one needs the S_HDR fix in RTL;
-# no amount of host arithmetic recovers a window that opened microseconds late.
+# This bounds what the correction is good for.  Large transport faults are now
+# rejected by the complete-sweep/tag checks; this path is for small residual
+# timing error, not for trying to repair a torn acquisition.
 JIT_ON_DEF = False          # needs a reference first, so off at startup
 # Correlate over a FIXED window, not the near gate.  The near gate is samps/5,
 # which is 78 us at 30 cm, but the artifact is ring-down in the first ~20 us -
@@ -546,9 +650,19 @@ def measure_shifts(rf, ref, g):
     jitter correction are two consumers of the same number."""
     n = rf.shape[0]
     nl = 2 * MAXLAG + 1
-    # Carrier period in samples, from the receive band centre - the user sets
-    # that to the drive frequency, so it tracks a change of f0.
-    per = FS_HZ / max(state["band_f0"] * 1e6, 1e5)
+    # Carrier period in samples.  The artifact IS the transmit burst, so its
+    # carrier is the DRIVE frequency - not the receive band centre, which is
+    # free to sit far from the drive (harmonic listening, noise hunting)
+    # without silently mis-sizing the envelope smoothing and the alias gate
+    # here.  measure_shifts runs on RAW rf, before the bandpass, so the
+    # artifact keeps its drive-frequency carrier whatever the band says.
+    try:
+        f_car = float(pulser.f0_hz())
+    except Exception:                   # replay with no pulser attached
+        f_car = 0.0
+    if not (2e5 < f_car < FS_HZ * 0.5):
+        f_car = state["band_f0"] * 1e6
+    per = FS_HZ / max(f_car, 1e5)
     coarse = _coarse_shift(rf, ref, g, per)
     # Correlate a FIXED core segment against a sliding reference, rather than
     # letting the overlap shrink with lag.  Constant length at every lag means
@@ -626,13 +740,30 @@ def _condition(rf, samps, live):
         float(np.sqrt(np.mean(np.square(m[:, g:])))) / 2048.0 + 1e-12)
     if live and bg["want"] > 0:
         if bg["acc"] is None or bg["acc"].shape != rf.shape:
-            bg["acc"] = np.zeros_like(rf)
-            bg["n"]   = 0
-        bg["acc"] += rf
+            bg["acc"]   = np.zeros_like(rf)
+            bg["first"] = None
+            bg["n"]     = 0
+        # ALIGN each sweep onto the first before averaging.  The whole point
+        # of the reference is to measure capture-start jitter, and averaging
+        # unaligned rows smears the artifact's carrier by that same jitter: at
+        # 50 ns p-p the 16-sweep mean loses most of its carrier, live sweeps
+        # then correlate below JIT_MINCORR against it, and de-jitter reports
+        # used=0 - silently dead exactly when it is needed most.  Aligning to
+        # the first sweep keeps the reference as sharp as a single sweep with
+        # sqrt(BG_AVG) less noise, which is what the correlator wants.
+        if bg["first"] is None:
+            bg["first"] = rf.copy()
+            bg["acc"]  += rf
+        else:
+            s, ok, _ = measure_shifts(rf, bg["first"], min(g, JIT_GATE))
+            # positive s = this sweep's artifact sits LATER than the first's,
+            # so roll it back by -s; rows with no usable fiducial go in as-is.
+            bg["acc"] += _aligned_bg(rf, -s, ok)
         bg["n"]   += 1
         bg["want"] -= 1
         if bg["want"] == 0:
             bg["ref"], bg["acc"] = bg["acc"] / bg["n"], None
+            bg["first"] = None
     # One measurement, up to two consumers.  Skipped entirely when neither the
     # subtraction nor the correction wants it, so the default path is unchanged.
     ref  = bg["ref"]
@@ -715,10 +846,17 @@ BG, PLOT_BG, FRAME_C = "#101418", "#0a0e12", "#33505f"
 FG, DIM, OK_C, WARN_C = "#9ab", "#5c7080", "#77ff88", "#ffaa55"
 MEAS_C, MEAS_HOT = "#ffd24a", "#ff8c3a"
 MLINE_C = "#4dffd2"         # M-line: deliberately not caliper yellow
+MARK_C  = "#ff6f9c"         # cine in/out marks: not caliper yellow either
 
 argv = [a.lower() for a in sys.argv[1:]]
 mode = {"signed": any(a.startswith("sig") for a in argv)}
-FORCE_SIM = any(a.startswith("sim") for a in argv)
+REPLAY_PATH = None
+if "--replay" in sys.argv:
+    replay_arg = sys.argv.index("--replay") + 1
+    if replay_arg >= len(sys.argv) or sys.argv[replay_arg].startswith("--"):
+        raise SystemExit("Usage: python host/tfm_gl_host.py --replay recording.rf.npz")
+    REPLAY_PATH = sys.argv[replay_arg]
+FORCE_SIM = any(a.startswith("sim") for a in argv) or REPLAY_PATH is not None
 flip["on"] = any(a.startswith("flip") for a in argv)    # startup array direction
 set_dead(next((a.split("=", 1)[1] for a in argv if a.startswith("dead=")),
               DEAD_DEF))                                # dead=  (empty) uses none
@@ -740,10 +878,12 @@ set_cfg(depth_to_words(DEPTH_CM_DEF))
 # live UI state read by the render thread / shader uniforms
 state = {"c": C_DEF, "dly_us": float(DLY_US_DEF), "accept": float(ACCEPT_DEF),
          "apod": float(APOD_DEF), "cf": float(CF_DEF), "t0_ns": float(T0_NS_DEF),
-         "dyn": float(DYN_DEF), "gain": float(GAIN_DEF), "auto": True,
+         "dyn": float(DYN_DEF), "gain": float(GAIN_DEF), "auto": bool(AUTO_DEF),
+         "curve": float(CURVE_DEF),
          "frozen": False, "depth_cm": DEPTH_CM_DEF,
          "band_on": bool(BAND_ON_DEF), "band_f0": float(BAND_F0_DEF),
-         "band_bw": float(BAND_BW_DEF), "jit": bool(JIT_ON_DEF),
+         "band_bw": float(BAND_BW_DEF), "freq_comp": bool(FREQ_COMP_DEF),
+         "jit": bool(JIT_ON_DEF),
          "mf": bool(MF_ON_DEF)}
 
 def band_edges():
@@ -755,6 +895,12 @@ def band_edges():
     half = 0.5 * state["band_bw"] * 1e6
     return (max(0.0, state["band_f0"] * 1e6 - half),
             min(FS_HZ / 2.0, state["band_f0"] * 1e6 + half))
+
+def compound_band_edges():
+    """Nominal non-overlap edges of the displayed frequency-compound bands."""
+    lo, hi = band_edges()
+    e = np.linspace(lo, hi, FREQ_COMP_BANDS + 1)
+    return tuple((float(e[i]), float(e[i + 1])) for i in range(FREQ_COMP_BANDS))
 
 # visible window into the scene: zoom factor plus the centre it is about
 view = {"zoom": 1.0, "cx": 0.0, "cz": None}
@@ -802,6 +948,13 @@ if not HW:
     print("running in SIMULATION mode - synthetic phantom, no FPGA.")
 
 def send_cmd(word, name=""):
+    if debug_replay_only and not (((word >> 24) & 255) == 0x10 and (word & 1) == 0):
+        return
+    if debug_command_hook is not None:
+        debug_command_hook(word, name)
+    else:
+        debug_startup_commands.append({"host_monotonic_s": time.perf_counter(),
+                                       "name": name, "word_hex": f"{word:08x}"})
     if not HW:
         return
     buf  = (C.c_ubyte * 4).from_buffer_copy(struct.pack("<I", word & 0xFFFFFFFF))
@@ -815,7 +968,7 @@ def send_cmd(word, name=""):
 def cmd(op, payload=0):
     return ((op & 0xFF) << 24) | (payload & 0xFFFFFF)
 
-def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
+def us_to_cycles(us): return int(round(float(us) * CLK_HZ / 1_000_000))
 
 # --- the pulser's receive window must cover ours ------------------------------
 # The transmit sequencer runs on its OWN timebase: it fires the next element
@@ -826,7 +979,7 @@ def us_to_cycles(us): return int(us) * (CLK_HZ // 1_000_000)
 #   capture cycle (dly + win + gap) > element period
 #       -> the sequencer is still in S_DAMP when the next tx_sync arrives, that
 #          burst is ignored, and the frame rate halves.  Harmless but slow; at
-#          the 8 cm default this was already happening (159 us vs 139 us).
+#          8 cm this was already happening (159 us vs 139 us).
 #
 #   dly + win > element period
 #       -> the capture window is still open when the NEXT element transmits, so
@@ -847,6 +1000,23 @@ PLS_RX_MARGIN_US = 10       # slack on top of dly + window + gap
 # host does NOT expose: the panel below has no "rx us" slider, because the rule
 # above owns it and a manual slider would just fight the depth control.
 pulser = PulserCtl(send_cmd, cmd)
+
+# ...and the startup values this host wants on top of those, from
+# settings/latest.json 2026-08-15.  Set here rather than in pulser_ctrl.DEFAULTS
+# because that dict IS the shared part: tfm_host.py reads the same one, and its
+# plain-burst default should stay plain.  These are only attribute writes - no
+# command goes out - so push_all() below (or the panel, without hardware) sends
+# them exactly as if the sliders had been dragged there by hand.
+#
+# A 5.2 -> 2.6 MHz DOWN-sweep in 1 us: short enough that the compressed pulse is
+# barely longer than the plain burst, swept downward so the low end - which the
+# probe passes best and tissue attenuates least - arrives last and comes back
+# from depth.  Tick "chirp" off for the stock n_cycles burst.
+pulser.chirp_on     = True
+pulser.chirp_f0_mhz = 5.2
+pulser.chirp_f1_mhz = 2.6
+pulser.chirp_us     = 1.0
+pulser.arm = False            # configure first; PULSER RUN explicitly starts a debug run
 
 def pulser_rx_us(dly_us, gap_us):
     return cfg["win_us"] + float(dly_us) + float(gap_us) + PLS_RX_MARGIN_US
@@ -877,6 +1047,7 @@ if HW:
     print("locking RX window (0xA5A55A5A)...")
     send_cmd(LOCK_WORD, "lock")
     time.sleep(0.05)
+    send_cmd(cmd(0x10, 0), "startup_disarm")
     send_cmd(cmd(OP_RST_CNT), "rst_cnt")    # implies STOP, zeroes word count
     send_cmd(cmd(OP_SET_SRC, SRC_SEQ), "set_src")
     send_seq_config(TGC_MIN_DEF, TGC_MAX_DEF, DLY_US_DEF, GAP_US_DEF)
@@ -916,7 +1087,8 @@ else:
 # shared state: reader thread <-> render
 #===============================================================================
 buf_lk  = threading.Lock()
-raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)  # full-res windows
+raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)  # sweep being assembled
+live_buf = np.zeros_like(raw_buf)                            # last complete sweep
 carry   = np.empty(0, dtype=np.uint32)
 
 class RfAverage:
@@ -975,8 +1147,9 @@ rf_avg = RfAverage()
 
 stats = {"bytes": 0, "win_bytes": 0, "t0": time.perf_counter(), "mbps": 0.0,
          "frames": 0, "win_frames": 0, "fps": 0.0, "drops": 0, "resyncs": 0,
+         "complete_sweeps": 0, "win_sweeps": 0, "sweep_hz": 0.0,
          "seq_bad": 0, "seq_chk": 0,
-         "skips": 0,
+         "skips": 0, "bad_sweeps": 0,
          "last_fcnt": None, "alive": True, "dirty": False}
 perf  = {"gpu_ms": 0.0, "cpu_ms": 0.0, "hil_ms": 0.0}
 
@@ -994,8 +1167,21 @@ replay    = {"rf": None}
 def request_replay(rf):
     """Ask the Hilbert worker to publish this recorded sweep (int16 (N, samps))."""
     with replay_lk:
-        replay["rf"] = rf
+        replay["rf"] = np.array(rf, copy=True)  # detach cine slots and file mappings
     hil_ev.set()
+
+def publish_replay_sync(rf):
+    """Same transform, run on the CALLING thread and published immediately.
+
+    Scrubbing wants the asynchronous path - the UI must not block on an FFT.
+    The video exporter wants the opposite: it has to know the texture holds
+    frame k before it grabs frame k, and 'ask the worker and hope' would race
+    every frame.  Same _condition + analytic as the worker, so an exported
+    frame is bit-identical to the scrubbed one."""
+    samps = rf.shape[1]
+    out = prepare_analytic(rf, samps, live=False)
+    with hil_lk:
+        hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
 
 #===============================================================================
 # cine loop: rolling recording of the raw RF, one entry per completed sweep
@@ -1011,6 +1197,7 @@ class Cine:
     def __init__(self):
         self.lk   = threading.Lock()
         self.buf  = collections.deque()     # (t_perf, (N, samps) int16), oldest first
+        self.quality = collections.deque()
         self.free = []                      # slots recycled off the tail
         self.shape, self.cap, self.fbytes = None, 1, 0
         self.recording = True
@@ -1023,25 +1210,32 @@ class Cine:
     def reset(self):
         with self.lk:
             self.buf.clear()
+            self.quality.clear()
             self.free.clear()
             self.shape = None
 
-    def push(self, src):
+    def push(self, src, quality=None):
         """One completed sweep.  Called from the reader thread with buf_lk held,
         so it has to stay cheap - one ~0.1 ms copy into a recycled slot."""
         if not self.recording:
             return
         t = time.perf_counter()
         with self.lk:
+            if not self.recording:
+                return
             if self.shape != tuple(src.shape):      # depth changed under us
                 self.buf.clear(); self.free.clear()
+                self.quality.clear()
                 self._configure(src.shape)
             while self.buf and (len(self.buf) >= self.cap or
                                 t - self.buf[0][0] > CINE_SECONDS):
                 self.free.append(self.buf.popleft()[1])
+                self.quality.popleft()
             a = self.free.pop() if self.free else np.empty(self.shape, np.int16)
             np.copyto(a, src)
             self.buf.append((t, a))
+            self.quality.append(quality or {"valid": True, "valid_elements": list(range(N_ELEM)),
+                                            "source": "simulation"})
 
     def status(self):
         """(frames, seconds held, MB resident) for the readout."""
@@ -1067,15 +1261,29 @@ class Cine:
 
 cine = Cine()
 _prev_elem = -1             # last element id seen, for sweep-boundary detection
+_sweep_seen = np.zeros(N_ELEM, dtype=bool)
+_sweep_bad = np.zeros(N_ELEM, dtype=bool)
+_sweep_fcnt = np.full(N_ELEM, -1, dtype=np.int64)
+_sweep_ok = True
+# FAIL OPEN.  Rejecting damaged sweeps is right while most sweeps are clean,
+# but an all-or-nothing gate turns any PERSISTENT defect (one repeatedly
+# skipped element, a recurring tag hole, a misbehaving new bitstream) into a
+# fully black screen with no image to debug against.  A degraded picture with
+# the `rejected` counter climbing tells you what is wrong; black tells you
+# nothing.  After REJECT_MAX consecutive rejects the sweep is published
+# anyway, with missing rows zeroed and quality flags retained for export.
+# It still counts in bad_sweeps.
+REJECT_MAX = 8              # consecutive rejects before publishing regardless
+_rej_run = 0
 
 def seq_check(raw16):
     """Look for holes INSIDE a receive window.
 
     afe_stream.v tags every 12-bit sample with a 4-bit rolling counter in the
     top nibble, and when the ADC FIFO backs up it drops whole sample pairs
-    SILENTLY (afe_stream.v: `wpush <= !wfull`).  That FIFO is 1024 words deep -
-    about 51 us of slack - while a receive window at 8 cm is ~104 us, so a
-    stall longer than the slack punches a time hole into the middle of a trace.
+    SILENTLY (afe_stream.v: `wpush <= !wfull`).  That FIFO is now 4096 words
+    deep - about 205 us of slack - but a longer stall can still punch a time
+    hole into the middle of a trace.
 
     The frame still arrives with the right length and the right header, so
     frame_count stays continuous and 'drops' stays at zero.  The sequence tag
@@ -1084,21 +1292,28 @@ def seq_check(raw16):
     changes from frame to frame - i.e. flickering dark patches deeper in the
     window while the surface echo stays put.
 
-    Checked on one frame per USB chunk: near enough free, and a fault happening
-    often enough to see as flicker shows up within a second."""
+    Every frame is checked.  The returned mask lets batch() reject the whole
+    sweep containing a damaged row; displaying it would put every sample after
+    the hole at the wrong depth and destroy phase coherence."""
     if raw16.shape[0] == 0:
-        return
-    t = (raw16[0] >> 12).astype(np.int16)        # tag counts +1 per SAMPLE
-    d = np.diff(t)
-    stats["seq_bad"] += int(np.count_nonzero((d != 1) & (d != -15)))
-    stats["seq_chk"] += 1
+        return np.zeros(0, dtype=bool)
+    t = (raw16 >> 12).astype(np.int16)           # tag counts +1 per SAMPLE
+    d = np.diff(t, axis=1)
+    bad = (d != 1) & (d != -15)
+    stats["seq_bad"] += int(np.count_nonzero(bad))
+    stats["seq_chk"] += raw16.shape[0]
+    return np.any(bad, axis=1)
 
 def batch(fr):
     """fr: (m, frame_words) uint32, all rows verified to start with a header."""
-    global _prev_elem
+    global _prev_elem, _sweep_ok, _rej_run
     hdr   = fr[:, 0]
     elems = ((hdr >> 16) & ELEM_MASK).astype(np.int32)
     fcnt  = (hdr & 0xFFFF).astype(np.int64)
+    counter_bad = np.zeros(len(fcnt), dtype=bool)
+    if stats["last_fcnt"] is not None:
+        counter_bad[0] = ((int(fcnt[0]) - stats["last_fcnt"]) & 0xFFFF) != 1
+    counter_bad[1:] = (np.diff(fcnt) & 0xFFFF) != 1
     if stats["last_fcnt"] is not None and \
        ((int(fcnt[0]) - stats["last_fcnt"]) & 0xFFFF) != 1:
         stats["drops"] += 1
@@ -1116,40 +1331,108 @@ def batch(fr):
     stats["skips"] += int(np.sum(de[de > 1] - 1))
 
     raw16 = np.ascontiguousarray(fr[:, 1:]).view(np.uint16)
-    seq_check(raw16)
+    bad_rows = seq_check(raw16) | counter_bad
     u = (raw16 & 0x0FFF).astype(np.int32)
     c = np.where(u >= 2048, u - 4096, u) if mode["signed"] else u - 2048
     c = c.astype(np.int16)
     keep = elems < N_ELEM                   # ignore ids the array cannot hold
 
-    # raw_buf is written in place, so the only instant it holds one coherent
-    # sweep is just before the element id wraps.  Split the chunk there and
-    # snapshot in the gaps - that records every sweep, at the acquisition rate,
-    # rather than whatever the display happened to sample.  A chunk spans ~2-3
-    # sweeps at 8 cm, so this loop runs a couple of times per 1 MB transfer.
-    wraps = np.nonzero(np.diff(np.concatenate(([_prev_elem], elems))) < 0)[0]
+    # Build one sweep in raw_buf, then copy it into live_buf only at a verified
+    # element-id wrap.  The old path woke the Hilbert worker at the end of every
+    # USB batch, when raw_buf usually held the tail of one sweep and stale rows
+    # from the previous one.  A skipped element made the stale row persist for
+    # a whole sweep.  Both cases are phase-incoherent and look like boiling,
+    # horizontal jitter and spotty coherence-factor dropouts.
+    #
+    # A USB batch spans several sweeps, so keep the row copies vectorized within
+    # each no-wrap segment.  cine receives every clean sweep; live_buf keeps the
+    # newest one for the display worker.
+    wraps = np.nonzero(np.diff(np.concatenate(([_prev_elem], elems))) <= 0)[0]
     lo = 0
+    published = False
+
+    def ingest(a, b):
+        global _sweep_ok
+        if b <= a:
+            return
+        good_id = keep[a:b]
+        if np.any(~good_id):
+            _sweep_ok = False
+        rr = elems[a:b][good_id]
+        if rr.size == 0:
+            return
+        # Existing rows mean a duplicate id; duplicates inside rr need the
+        # unique test because boolean advanced indexing observes the old mask.
+        if np.any(_sweep_seen[rr]) or np.unique(rr).size != rr.size:
+            _sweep_ok = False
+        if np.any(bad_rows[a:b][good_id]):
+            _sweep_ok = False
+        raw_buf[rr] = c[a:b][good_id]
+        _sweep_seen[rr] = True
+        _sweep_bad[rr] |= bad_rows[a:b][good_id]
+        _sweep_fcnt[rr] = fcnt[a:b][good_id]
+
     for w in wraps:
         w = int(w)
-        k = keep[lo:w]
-        raw_buf[elems[lo:w][k]] = c[lo:w][k]
-        cine.push(raw_buf)
+        ingest(lo, w)
+        expected = ([pulser.single_elem] if pulser.single_elem is not None else list(range(pulser.n_elem)))
+        complete = _sweep_ok and bool(np.all(_sweep_seen[expected]))
+        quality = {"valid": bool(complete),
+                   "valid_elements": np.flatnonzero(_sweep_seen & ~_sweep_bad).tolist(),
+                   "missing_elements": [e for e in expected if not _sweep_seen[e]],
+                   "bad_elements": np.flatnonzero(_sweep_bad).tolist(),
+                   "element_frame_counters": _sweep_fcnt.tolist(),
+                   "transport_counters": {k: int(stats[k]) for k in
+                       ("drops", "resyncs", "seq_bad", "seq_chk", "skips", "bad_sweeps")}}
+        if complete:
+            stats['complete_sweeps'] += 1
+            stats['win_sweeps'] += 1
+            np.copyto(live_buf, raw_buf)
+            cine.push(raw_buf, quality)
+            published = True
+            _rej_run = 0
+        elif bool(np.any(_sweep_seen)):
+            stats["bad_sweeps"] += 1
+            _rej_run += 1
+            if _rej_run >= REJECT_MAX:      # fail open - see REJECT_MAX above
+                np.copyto(live_buf, raw_buf)
+                cine.push(raw_buf, quality)
+                published = True
+                _rej_run = 0
+        _sweep_seen.fill(False)
+        _sweep_bad.fill(False)
+        _sweep_fcnt.fill(-1)
+        raw_buf.fill(0)            # absent rows must never masquerade as current RF
+        _sweep_ok = True
         lo = w
-    k = keep[lo:]
-    raw_buf[elems[lo:][k]] = c[lo:][k]
+    ingest(lo, elems.size)
     _prev_elem = int(elems[-1])
 
     stats["frames"]     += fr.shape[0]
     stats["win_frames"] += fr.shape[0]
-    stats["dirty"] = True
-    hil_ev.set()
+    if published:
+        stats["dirty"] = True
+        hil_ev.set()
 
 def process(words):
     """Frame parser.  Fast path: back-to-back aligned frames, fully vectorized.
     A header is 0xE1 in the top byte with the guard bits above the element
     field zero -> (word >> HDR_SHIFT) == HDR_MAGIC."""
-    global carry
+    global carry, debug_discard_words
+    consumer = debug_probe_consumer
+    if consumer is not None:
+        consumer(words)
+        return
     with buf_lk:
+        if debug_replay_only or debug_discard_words == -1:
+            return
+        if debug_discard_words > 0:
+            skip = min(words.size, debug_discard_words)
+            debug_discard_words -= skip
+            words = words[skip:]
+            carry = np.empty(0, np.uint32)
+            if not words.size:
+                return
         FW = cfg["frame_words"]
         w = np.concatenate((carry, words)) if carry.size else words
         pos, n = 0, w.size
@@ -1178,8 +1461,17 @@ def reader():
     n = C.c_ulong(0)
     while stats["alive"]:
         for i in range(NBUF):
-            if d3.FT_GetOverlappedResult(h, C.byref(ovs[i]), C.byref(n),
-                                         C.c_int(1)) != FT_OK:
+            n.value = 0
+            result = d3.FT_GetOverlappedResult(h, C.byref(ovs[i]), C.byref(n), C.c_int(1))
+            if not stats["alive"]:
+                return
+            if result == 19:  # a disarmed pulser produces no SRC_SEQ data
+                stats["read_timeouts"] = stats.get("read_timeouts", 0) + 1
+                # Discarded partial bytes make the next sweep discontinuous.
+                stats["timeout_bytes_discarded"] = stats.get("timeout_bytes_discarded", 0) + n.value
+                queue(i)
+                continue
+            if result != FT_OK:
                 if stats["alive"]:
                     print("read error - stream stopped")
                     stats["alive"] = False
@@ -1195,6 +1487,8 @@ def reader():
         if dt >= 0.5:
             stats["mbps"] = stats["win_bytes"] / dt / 1e6
             stats["fps"]  = stats["win_frames"] / dt
+            stats['sweep_hz'] = stats['win_sweeps'] / dt
+            stats['win_sweeps'] = 0
             stats["win_bytes"], stats["win_frames"] = 0, 0
             stats["t0"] = time.perf_counter()
 
@@ -1216,6 +1510,9 @@ def sim_reader():
     tx  = (_R * np.sin(_th)).astype(np.float32)
     tz  = (_R * (np.cos(_th) - 1.0)).astype(np.float32)
     while stats["alive"]:
+        if debug_replay_only or debug_discard_words == -1:
+            time.sleep(0.03)
+            continue
         with buf_lk:
             samps, c = cfg["samps"], state["c"]
         t = (np.arange(samps, dtype=np.float32) / FS_HZ)[None, :]
@@ -1230,22 +1527,28 @@ def sim_reader():
         with buf_lk:
             if cfg["samps"] == samps:
                 raw_buf[:] = np.clip(a, -2048, 2047).astype(np.int16)
+                np.copyto(live_buf, raw_buf)
                 cine.push(raw_buf)          # one synthetic sweep == one frame
                 stats["dirty"] = True
                 hil_ev.set()
                 stats["frames"] += N_ELEM
                 stats["win_frames"] += N_ELEM
+                stats['complete_sweeps'] += 1
+                stats['win_sweeps'] += 1
                 stats["bytes"] += samps * 2 * N_ELEM
                 stats["win_bytes"] += samps * 2 * N_ELEM
         dt_w = time.perf_counter() - stats["t0"]
         if dt_w >= 0.5:
             stats["mbps"] = stats["win_bytes"] / dt_w / 1e6
             stats["fps"]  = stats["win_frames"] / dt_w
+            stats['sweep_hz'] = stats['win_sweeps'] / dt_w
+            stats['win_sweeps'] = 0
             stats["win_bytes"], stats["win_frames"] = 0, 0
             stats["t0"] = time.perf_counter()
         time.sleep(1.0 / 30.0)
 
-threading.Thread(target=reader if HW else sim_reader, daemon=True).start()
+reader_thread = threading.Thread(target=reader if HW else sim_reader, daemon=True)
+reader_thread.start()
 
 #===============================================================================
 # M-mode
@@ -1293,9 +1596,25 @@ def _ramp(v):
     return 0.5 - 0.5 * np.cos(np.pi * np.clip(v, 0.0, 1.0))
 
 def mline_sample(an, samps, a, b, npts=MM_PTS):
-    """(N, samps, 2) analytic RF -> (npts,) envelope along the segment a..b.
+    """Analytic RF -> (npts,) envelope along the segment a..b.
+
+    A normal frame is (N, samps, 2).  Frequency compounding publishes
+    (bands, N, samps, 2); each band is beamformed with the same delays and the
+    detected powers are summed, exactly like the fragment shader.
 
     Transcription of the BEAMFORM fragment shader; see the note above."""
+    if an.ndim == 4:
+        if an.shape[0] != FREQ_COMP_BANDS:
+            raise ValueError("frequency-compound frame has %d bands, expected %d"
+                             % (an.shape[0], FREQ_COMP_BANDS))
+        power = np.zeros(npts, np.float32)
+        for band in an:
+            mag = mline_sample(band, samps, a, b, npts)
+            power += mag * mag
+        return np.sqrt(power).astype(np.float32)
+    if an.ndim != 3:
+        raise ValueError("analytic RF must have 3 or 4 dimensions")
+
     E     = elem_uniform()                              # (N,4) x, z, nx, nz
     alive = alive_mask()                                # (N,)
     f     = np.linspace(0.0, 1.0, npts, dtype=np.float32)
@@ -1510,6 +1829,12 @@ def mm_push(col):
         audio_fb["pos"] = float((dif * np.arange(dif.size)).sum()
                                 / tot / max(dif.size - 1, 1))
 
+def prepare_analytic(rf, samps, live=False):
+    with pipeline_lock:
+        cond, sh = _condition(np.asarray(rf, dtype=np.float32), samps, live=live)
+        return analytic(cond, samps, sh)
+
+
 def hilbert_worker():
     """The analytic-signal transform is the only CPU-heavy step left (~6 ms for
     48 elements with numpy).  Run it here rather than in paintGL so it never
@@ -1530,8 +1855,7 @@ def hilbert_worker():
         if rep is not None:
             samps = rep.shape[1]
             t0 = time.perf_counter()
-            cond, sh = _condition(rep.astype(np.float32), samps, live=False)
-            out = analytic(cond, samps, sh)
+            out = prepare_analytic(rep, samps, live=False)
             perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
             with hil_lk:
                 hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
@@ -1543,14 +1867,13 @@ def hilbert_worker():
                 continue
             stats["dirty"] = False
             samps = cfg["samps"]
-            rf = raw_buf.copy()         # int16: the averager sums it exactly
+            rf = live_buf.copy()        # immutable, complete 48-element sweep
         # Averaging goes here, not in the reader: the copy above is already off
         # the USB path, and the cine ring keeps storing RAW sweeps so a recorded
         # loop can be re-averaged (or not) at replay time.
         rf = rf_avg.push(rf)
         t0 = time.perf_counter()
-        cond, sh = _condition(rf, samps, live=True)
-        out = analytic(cond, samps, sh)
+        out = prepare_analytic(rf, samps, live=True)
         perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
         if state["frozen"]:             # froze mid-transform: do not stomp the
             continue                    # frame the user just paused on
@@ -1618,6 +1941,33 @@ def _hilb_mask(nfft, lo_hz, hi_hz):
         wgt *= r((f - lo_hz) / t) * r((hi_hz - f) / t)
     return wgt.astype(np.float32)      # float32 keeps the multiply in complex64
 
+def _compound_hilb_masks(nfft, lo_hz, hi_hz):
+    """Three power-complementary sub-band masks over the normal Hilbert mask.
+
+    At each FFT bin sum(mask[b]**2) equals base_mask**2 (within float error),
+    including the raised-cosine outer passband.  The GPU can therefore sum the
+    independently beamformed band powers without a brightness correction.
+    Narrow sin/cos crossfades avoid the time ringing a hard spectral cut would
+    create while keeping neighbouring bands mostly decorrelated."""
+    base = _hilb_mask(nfft, lo_hz, hi_hz)
+    f    = np.arange(nfft, dtype=np.float64) * (FS_HZ / nfft)
+    cuts = np.linspace(lo_hz, hi_hz, FREQ_COMP_BANDS + 1)[1:-1]
+    span = max(float(hi_hz - lo_hz), 1.0)
+    xf   = max(span * FREQ_COMP_XFADE, FS_HZ / nfft)
+
+    # Start as hard, non-overlapping partitions, then replace a narrow region
+    # around each seam with a cos/sin power-complementary crossfade.
+    q = np.zeros((FREQ_COMP_BANDS, nfft), dtype=np.float64)
+    which = np.searchsorted(cuts, f, side="right")
+    q[which, np.arange(nfft)] = 1.0
+    for i, cut in enumerate(cuts):
+        x = (f - (cut - 0.5 * xf)) / xf
+        m = (x > 0.0) & (x < 1.0)
+        th = 0.5 * np.pi * x[m]
+        q[i,     m] = np.cos(th)
+        q[i + 1, m] = np.sin(th)
+    return (q * base[None, :]).astype(np.float32)
+
 # --- sub-sample time shift ----------------------------------------------------
 # A shift of d samples is exp(-2j*pi*k*d/nfft) on the spectrum, so correcting a
 # measured displacement s means multiplying by exp(+2j*pi*k*s/nfft).  Building
@@ -1684,15 +2034,100 @@ _mf_ref = {"gen": None, "ref": None}
 def mf_reference():
     """Transmit waveform at the ADC rate, cached against pulser.tx_gen so it
     rebuilds exactly when a burst/chirp setting is sent and never else."""
+    if recorded_tx_reference is not None:
+        _mf_ref["gen"] = ("recording", id(recorded_tx_reference))
+        return recorded_tx_reference
     if _mf_ref["gen"] != pulser.tx_gen:
         _mf_ref.update(gen=pulser.tx_gen,
                        ref=np.asarray(pulser.tx_waveform(FS_HZ),
                                       dtype=np.float32))
     return _mf_ref["ref"]
 
+# --- what the pulser is ACTUALLY transmitting ---------------------------------
+# The chirp sliders are a request, not a readout.  Every switching edge is
+# rounded onto the 100 MHz clock grid (chirp_edges_cyc), so the frequency that
+# comes out is only ever an approximation of the one asked for, and the
+# approximation coarsens with frequency: a half period at 2 MHz is 25 clock
+# cycles and rounds to 0.2%, at 7 MHz it is 7.1 cycles and rounds to 1.3%.
+# f0_hz() does not help for a chirp - it returns the arithmetic mean of the two
+# sliders and never looks at the waveform at all.
+#
+# So measure it: FFT the same quantised waveform mf_reference() hands the
+# matched filter.  That array IS the commanded drive, edge for edge.
+#
+# Two things this deliberately is not.
+#
+#   * It is the DRIVE, not the FIELD.  The transducer's two-way response
+#     multiplies it and is measured nowhere in this host, so a line that looks
+#     perfectly healthy here radiates nothing whatever if it sits outside the
+#     probe's band.  That is what tx_in_probe_band is for, and why it is on the
+#     same readout rather than buried somewhere else.
+#   * The drive is hard-switched +/-1, so it carries the odd harmonics of a
+#     square wave.  The third is at -9.5 dB - comfortably under the -6 dB edges
+#     below, so it cannot widen them, but it holds a ninth of the power and
+#     WOULD drag a whole-spectrum centroid upwards by a good fraction of a
+#     megahertz.  Hence the centroid is taken over the -6 dB support only.
+#
+# The -6 dB edges are the useful pair for a chirp (they span the sweep); the
+# peak is the useful single number for a fixed burst.  Both are reported
+# because which one is meaningful depends on a mode the reader can see anyway.
+_tx_spec = {"gen": None, "freq": None, "pwr": None, "val": None}
+def _tx_spec_now():
+    """Cached (freq_mhz, power, (peak, mid, lo, hi)) for the commanded drive.
+
+    Keyed on pulser.tx_gen - the counter the pulser bumps on any transmit-shape
+    command - so this rebuilds when the burst moves and never on a frame."""
+    ref = mf_reference()
+    reference_key = _mf_ref["gen"]
+    if _tx_spec["gen"] != reference_key:
+        # Pad hard.  A 1 us burst puts raw bins 1 MHz apart, which is coarser
+        # than the -6 dB width being measured; 8x padding interpolates the lobe
+        # finely enough that the edges stop stepping as the sliders move.
+        n    = max(4096, 1 << int(np.ceil(np.log2(max(len(ref), 2) * 8))))
+        mag  = np.abs(np.fft.rfft(ref, n))
+        freq = np.fft.rfftfreq(n, 1.0 / FS_HZ) / 1e6
+        # Skip DC: an unbalanced burst (odd half-cycle count) has a baseline
+        # term that is not a frequency and must not win the peak search.
+        g    = int(np.searchsorted(freq, 0.2))
+        pk   = g + int(np.argmax(mag[g:]))
+        idx  = np.flatnonzero(mag >= 0.5 * mag[pk])     # -6 dB
+        idx  = idx[idx >= g]
+        if idx.size == 0:                               # cannot happen; cheap
+            idx = np.array([pk])
+        # Outermost crossings, not the contiguous run: a chirp's passband
+        # ripples and dips below half a few times across the sweep, and the
+        # span is what matters, not the first dropout.
+        lo, hi = float(freq[idx[0]]), float(freq[idx[-1]])
+        p      = mag[idx].astype(np.float64) ** 2
+        mid    = float((freq[idx] * p).sum() / max(p.sum(), 1e-30))
+        _tx_spec.update(gen=reference_key, freq=freq,
+                        pwr=mag.astype(np.float64) ** 2,
+                        val=(float(freq[pk]), mid, lo, hi))
+    return _tx_spec
+
+def tx_spectrum():
+    """(peak, mid, lo, hi) of the commanded drive in MHz; lo/hi are -6 dB."""
+    return _tx_spec_now()["val"]
+
+def tx_in_probe_band():
+    """Fraction of commanded drive energy landing inside the probe's passband.
+
+    Reads as a headroom figure, not a score: a hard-switched square drive keeps
+    only 8/pi^2 = 81% of its energy in the fundamental however well it is
+    placed, so ~0.8 is the practical ceiling and anything near it is fine.  It
+    is the low readings that carry the information - 0.2 means four fifths of
+    the drive is going somewhere the transducer cannot radiate it."""
+    d = _tx_spec_now()
+    m = (d["freq"] >= PROBE_LO_MHZ) & (d["freq"] <= PROBE_HI_MHZ)
+    return float(d["pwr"][m].sum() / max(d["pwr"].sum(), 1e-30))
+
 _hilb = {"key": None, "wgt": None}
 def analytic(rf, samps, shifts=None):
-    """(N, samps) real -> (N, samps, 2) float32 interleaved re/im.
+    """Real RF -> float32 analytic signal(s), interleaved re/im.
+
+    Normal output is (N, samps, 2).  With frequency compounding enabled it is
+    (FREQ_COMP_BANDS, N, samps, 2): one independently filtered analytic frame
+    per power-complementary receive sub-band.
 
     The only per-frame CPU work in the whole pipeline (~6 ms for 48 elements
     with numpy, ~3 ms with scipy installed).  Everything else is on the GPU.
@@ -1707,25 +2142,28 @@ def analytic(rf, samps, shifts=None):
     samples from measure_shifts(); each row is moved back by -shift so all 48
     land on one timebase referenced to the transmit burst."""
     mf   = state["mf"]                 # read ONCE, like the band below
+    comp = state["freq_comp"] and state.get("debug_view", 0) == 0
     ref  = mf_reference() if mf else None
     nfft = next_fast_len(samps + (ref.size if mf else 0))
-    key  = (nfft, mf, _mf_ref["gen"] if mf else None) + band_edges()
+    lo, hi = band_edges()
+    key  = (nfft, mf, _mf_ref["gen"] if mf else None, comp, lo, hi)
     if _hilb["key"] != key:            # the UI thread moves the settings, and
-        wgt = _hilb_mask(nfft, *key[3:])            # key and weight must agree
+        wgt = (_compound_hilb_masks(nfft, lo, hi) if comp
+               else _hilb_mask(nfft, lo, hi))
         if mf:
             # Divide by the reference energy so a perfect echo compresses to
             # its own amplitude rather than to (amplitude * sum ref^2) - the
             # brightness scale stays comparable when the checkbox is toggled.
             R   = np.fft.fft(ref.astype(np.float64), nfft)
-            wgt = (wgt * np.conj(R) /
-                   max(float(np.dot(ref, ref)), 1e-9)).astype(np.complex64)
+            corr = np.conj(R) / max(float(np.dot(ref, ref)), 1e-9)
+            wgt = (wgt * (corr[None, :] if wgt.ndim == 2 else corr)
+                   ).astype(np.complex64)
         _hilb.update(key=key, wgt=wgt)
     if shifts is not None:
         k0, j = _split_shift(-np.asarray(shifts, dtype=np.float64))
         if np.any(k0):
             rf = _roll_rows(rf, k0)
     X = _fft(rf, n=nfft, axis=1, **_FFT_KW)
-    X *= _hilb["wgt"]
     if shifts is not None:
         # Per-element, so it cannot broadcast; the loop avoids materialising a
         # (48, nfft) gather, which at 30 cm would be 6 MB of traffic per frame.
@@ -1735,13 +2173,22 @@ def analytic(rf, samps, shifts=None):
         for i in range(X.shape[0]):
             if j[i]:
                 X[i] *= tbl[j[i]]
-    an = _ifft(X, axis=1, **_FFT_KW)[:, :samps]
-    out = np.empty((N_ELEM, samps, 2), dtype=np.float32)
+    if comp:
+        # One forward FFT, then one inverse transform per sub-band.  The leading
+        # dimension is intentionally kept through the hand-off so detection and
+        # power summation happen AFTER beamforming, where speckle decorrelates.
+        Y  = X[None, :, :] * _hilb["wgt"][:, None, :]
+        an = _ifft(Y, axis=2, **_FFT_KW)[:, :, :samps]
+    else:
+        X *= _hilb["wgt"]
+        an = _ifft(X, axis=1, **_FFT_KW)[:, :samps]
+    out = np.empty(an.shape + (2,), dtype=np.float32)
     out[..., 0] = an.real
     out[..., 1] = an.imag
     return out
 
-threading.Thread(target=hilbert_worker, daemon=True).start()
+hilbert_thread = threading.Thread(target=hilbert_worker, daemon=True)
+hilbert_thread.start()
 
 #===============================================================================
 # shaders
@@ -1766,7 +2213,9 @@ BEAMFORM = """
 in vec2 v_uv;
 out float f_mag;
 
-uniform sampler2D rf;          // RG32F, width = samps, height = N (re, im)
+uniform sampler2D rf0;         // RG32F, width = samps, height = N (re, im)
+uniform sampler2D rf1;         // frequency-compound bands 2 and 3; rf0 only when off
+uniform sampler2D rf2;
 uniform vec4  elems[%(N)d];    // (x, z, nx, nz): position m, outward normal
 uniform vec4  viewbox;         // x0, x1, z0, z1 in metres
 uniform float c, dly_s, fs;    // sound speed m/s, pulse->rx delay s, sample rate
@@ -1776,6 +2225,8 @@ uniform float apod;            // Tukey fraction, 0 = rect, 1 = full Hann
 uniform float t0_s;            // fixed lens/electronic round-trip offset
 uniform float alive[%(N)d];    // 0 = dead element, excluded from the sum
 uniform float cf_pow;          // coherence-factor exponent, 0 = off
+uniform float freq_comp;       // 1 = RSS of three independently beamformed bands
+uniform int debug_view;        // 0 weighted, 1 ordinary DAS, 2 coherence map
 
 // Half-Hann ramp: 0 at v = 0, 1 at v >= 1, flat slope at both ends so the
 // weight has no corner to ring on.
@@ -1785,8 +2236,12 @@ void main() {
     vec2 p = vec2(mix(viewbox.x, viewbox.y, v_uv.x),
                   mix(viewbox.z, viewbox.w, 1.0 - v_uv.y));
     vec2  acc  = vec2(0.0);     // coherent (complex) sum - the image
+    vec2  acc1 = vec2(0.0);     // the two extra frequency-compound bands
+    vec2  acc2 = vec2(0.0);
     float wsum = 0.0;           // sum w         -- the two CF denominators,
     float psum = 0.0;           // sum w |s|^2   -- same weights as acc uses
+    float psum1 = 0.0;
+    float psum2 = 0.0;
     float inv_w = 1.0 / samps;
     float a = max(apod, 1e-4);          // a = 0 would divide by zero below
     for (int i = 0; i < %(N)d; i++) {
@@ -1801,20 +2256,37 @@ void main() {
             // Index window: v runs 0 at the array centre to 1 at either end,
             // so one ramp handles both ends and stays symmetric under `flip`.
             float v = abs(2.0 * (float(i) / %(Nm1)s) - 1.0);
-            float w = ramp((1.0 - v) / a);
+            float w = apod <= 0.0 ? 1.0 : ramp((1.0 - v) / a);
             // Angular window: u runs 0 at the acceptance edge to 1 on axis.
             // Tapering the outer `a` of the cone is what stops an element from
             // entering the sum at full weight and stepping the image.
             float u = (cosa - cos_acc) / max(1.0 - cos_acc, 1e-6);
-            w *= ramp(u / a);
-            vec2 s = texture(rf, vec2((t + 0.5) * inv_w,
-                                      (float(i) + 0.5) / %(N)d.0)).rg;
+            w *= apod <= 0.0 ? 1.0 : ramp(u / a);
+            vec2 uv = vec2((t + 0.5) * inv_w,
+                           (float(i) + 0.5) / %(N)d.0);
+            vec2 s = texture(rf0, uv).rg;
             acc  += w * s;
             wsum += w;
             psum += w * dot(s, s);      // |s|^2 for the analytic sample
+            if (freq_comp > 0.5) {
+                vec2 s1 = texture(rf1, uv).rg;
+                vec2 s2 = texture(rf2, uv).rg;
+                acc1  += w * s1;
+                acc2  += w * s2;
+                psum1 += w * dot(s1, s1);
+                psum2 += w * dot(s2, s2);
+            }
         }
     }
     float mag = length(acc);    // envelope of the coherent sum
+    if (debug_view == 2) {
+        f_mag = clamp(dot(acc, acc) / max(wsum * psum, 1e-20), 0.0, 1.0);
+        return;
+    }
+    if (debug_view == 1) {
+        f_mag = mag;
+        return;
+    }
     if (cf_pow > 0.0) {
         // How much of that sum was actually in phase.  Same weights top and
         // bottom, so a pixel every element agrees on gives 1.0 whatever the
@@ -1823,7 +2295,24 @@ void main() {
         float cf = dot(acc, acc) / max(wsum * psum, 1e-20);
         mag *= pow(clamp(cf, 0.0, 1.0), cf_pow);
     }
-    f_mag = mag;
+    if (freq_comp < 0.5) {
+        f_mag = mag;                    // preserve the original path exactly
+        return;
+    }
+
+    // Incoherent frequency compounding: apply coherence independently (it is a
+    // per-band phase test), then add DETECTED powers.  The CPU masks are power-
+    // complementary, so no /3 brightness correction belongs here.
+    float p0 = mag * mag;
+    float p1 = dot(acc1, acc1);
+    float p2 = dot(acc2, acc2);
+    if (cf_pow > 0.0) {
+        float cf1 = p1 / max(wsum * psum1, 1e-20);
+        float cf2 = p2 / max(wsum * psum2, 1e-20);
+        p1 *= pow(clamp(cf1, 0.0, 1.0), 2.0 * cf_pow);
+        p2 *= pow(clamp(cf2, 0.0, 1.0), 2.0 * cf_pow);
+    }
+    f_mag = sqrt(max(p0 + p1 + p2, 0.0));
 }
 """ % {"N": N_ELEM, "Nm1": "%.1f" % (N_ELEM - 1)}
 
@@ -1851,12 +2340,31 @@ out vec4 f_color;
 uniform sampler2D magtex;
 uniform sampler2D maxtex;      // 1x1, frame peak
 uniform float dyn_db, gain_db, full_scale, auto_gain;
+uniform float curve;           // S-curve exponent, 1.0 = linear-in-dB ramp
+uniform int debug_view;
+
+// Symmetric S about mid-grey: fold the ramp to u in [-1, 1], raise |u| to a
+// power below 1 (which pushes it AWAY from 0), unfold.  Slope is p|u|^(p-1),
+// so it is steepest at mid-grey and falls to p at both ends - midtones gain
+// contrast, the floor and the highlights give it up.  Fixed points at 0, 0.5
+// and 1 mean black stays black and the window edges do not move.
+float scurve(float v, float p) {
+    if (p >= 0.999) return v;               // identity: skip the pow entirely
+    float u = 2.0 * v - 1.0;
+    return 0.5 + 0.5 * sign(u) * pow(abs(u), p);
+}
+
 void main() {
     float mag  = texture(magtex, v_uv).r;
+    if (debug_view == 2) {
+        f_color = vec4(vec3(clamp(mag, 0.0, 1.0)), 1.0);
+        return;
+    }
     float peak = mix(full_scale, max(texelFetch(maxtex, ivec2(0, 0), 0).r, 1e-9),
                      auto_gain);
     float db = 20.0 * log(mag / peak + 1e-9) / log(10.0);
     float v  = clamp((db + gain_db + dyn_db) / dyn_db, 0.0, 1.0);
+    v = scurve(v, curve);
     f_color  = vec4(v, v, v, 1.0);
 }
 """
@@ -1871,7 +2379,9 @@ class BModeGL(QOpenGLWidget):
         self.mag_fbo = self.mag_tex = None
         self.reduce = []            # [(fbo, tex, (w, h), (srcw, srch))]
         self.rf_tex = None
+        self.rf_tex_bands = []      # one normally, FREQ_COMP_BANDS when enabled
         self.tex_samps = 0
+        self.tex_bands = 0
         self.tex_gen = -1
         self.elem_key = None         # (geom gen, direction) in the 'elems' uniform
         self.dead_key = None         # dead["gen"] in the 'alive' uniform
@@ -1897,7 +2407,9 @@ class BModeGL(QOpenGLWidget):
         self.elem_key = (geom["gen"], flip["on"])   # what the uniform holds
         self.prog_bf['alive'].write(alive_mask().tobytes())
         self.dead_key = dead["gen"]
-        self.prog_bf['rf'].value = 0
+        self.prog_bf['rf0'].value = 0
+        self.prog_bf['rf1'].value = 1
+        self.prog_bf['rf2'].value = 2
         self.prog_cp['magtex'].value = 0
         self.prog_cp['maxtex'].value = 1
         # full_scale is not constant any more - it tracks the apodization, so
@@ -1965,16 +2477,28 @@ class BModeGL(QOpenGLWidget):
             if hil["data"] is None or hil["gen"] == self.tex_gen:
                 return
             data, samps, gen = hil["data"], hil["samps"], hil["gen"]
-        if self.tex_samps != samps or self.rf_tex is None:
-            if self.rf_tex is not None:
-                self._release([self.rf_tex])
-            self.rf_tex = self.ctx.texture((samps, N_ELEM), 2, dtype='f4')
-            # LINEAR gives the fractional-delay interpolation; sampling exactly at
-            # (i + 0.5)/N in y hits a texel centre, so rows never bleed together
-            self.rf_tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
-            self.rf_tex.repeat_x = self.rf_tex.repeat_y = False
-            self.tex_samps = samps
-        self.rf_tex.write(data)
+        if data.ndim == 3:
+            bands = (data,)
+        elif data.ndim == 4 and data.shape[0] == FREQ_COMP_BANDS:
+            bands = tuple(data)
+        else:
+            raise ValueError("analytic upload has unexpected shape %r" % (data.shape,))
+        nb = len(bands)
+        if (self.tex_samps != samps or self.tex_bands != nb or
+                not self.rf_tex_bands):
+            self._release(self.rf_tex_bands)
+            self.rf_tex_bands = []
+            for _ in range(nb):
+                tex = self.ctx.texture((samps, N_ELEM), 2, dtype='f4')
+                # LINEAR gives fractional-delay interpolation; y is sampled at
+                # row centres, so the extra band textures never bleed elements.
+                tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
+                tex.repeat_x = tex.repeat_y = False
+                self.rf_tex_bands.append(tex)
+            self.rf_tex = self.rf_tex_bands[0]     # legacy readiness checks
+            self.tex_samps, self.tex_bands = samps, nb
+        for tex, band in zip(self.rf_tex_bands, bands):
+            tex.write(band)
         self.tex_gen = gen
 
     def _beamform(self, fbo, size, vb):
@@ -1987,9 +2511,10 @@ class BModeGL(QOpenGLWidget):
         if self.elem_key != key:
             p['elems'].write(elem_uniform().tobytes())
             self.elem_key = key
-        if self.dead_key != dead["gen"]:            # dead list edited live
+        dead_key = (dead["gen"], pulser.n_elem, pulser.single_elem)
+        if self.dead_key != dead_key:
             p['alive'].write(alive_mask().tobytes())
-            self.dead_key = dead["gen"]
+            self.dead_key = dead_key
         p['viewbox'].value = (float(vb[0]), float(vb[1]),
                               float(vb[2]), float(vb[3]))
         p['c'].value       = float(state["c"])
@@ -1999,8 +2524,15 @@ class BModeGL(QOpenGLWidget):
         p['cos_acc'].value = float(np.cos(np.radians(state["accept"])))
         p['apod'].value    = float(state["apod"])
         p['cf_pow'].value  = float(state["cf"])
+        p['debug_view'].value = int(state.get("debug_view", 0))
         p['t0_s'].value    = float(state["t0_ns"]) * 1e-9
-        self.rf_tex.use(0)
+        comp = len(self.rf_tex_bands) == FREQ_COMP_BANDS
+        p['freq_comp'].value = 1.0 if comp else 0.0
+        # Bind rf0 to unused units in the one-band case.  The uniform branch
+        # does not sample them, but keeping every sampler complete avoids driver-
+        # specific validation surprises.
+        for unit in range(FREQ_COMP_BANDS):
+            self.rf_tex_bands[min(unit, len(self.rf_tex_bands) - 1)].use(unit)
         fbo.use()
         fbo.viewport = (0, 0, size[0], size[1])
         self.vao_bf.render(moderngl.TRIANGLE_STRIP)
@@ -2023,6 +2555,8 @@ class BModeGL(QOpenGLWidget):
         self.prog_cp['dyn_db'].value    = float(state["dyn"])
         self.prog_cp['gain_db'].value   = float(state["gain"])
         self.prog_cp['auto_gain'].value = 1.0 if state["auto"] else 0.0
+        self.prog_cp['curve'].value     = float(state["curve"])
+        self.prog_cp['debug_view'].value = int(state.get("debug_view", 0))
         fbo.use()
         fbo.viewport = (0, 0, size[0], size[1])
         self.vao_cp.render(moderngl.TRIANGLE_STRIP)
@@ -2872,11 +3406,12 @@ def settings_snapshot(main, note=""):
     lo, hi = band_edges()
     gl = main.scene.gl
     n_cine, cine_s, cine_mb = cine.status()
-    return {
+    result = {
+        "settings_schema": 1,
         "saved":   time.strftime("%Y-%m-%d %H:%M:%S"),
         "note":    note,
         "host":    os.path.basename(__file__),
-        "source":  "hardware" if HW else "simulation",
+        "source":  "file replay" if getattr(main, "debug_offline", False) else ("hardware" if HW else "simulation"),
         "argv":    sys.argv[1:],
         # The same one-liner that footers a capture, so a settings file and a
         # saved PNG can be matched up by eye.
@@ -2910,7 +3445,22 @@ def settings_snapshot(main, note=""):
             "t_rx_us":       pulser.t_rx_us,      # driven by depth, not a slider
             "n_elem":        pulser.n_elem,
             "single_elem":   pulser.single_elem,  # None = walk the aperture
+            # Which per-element trim calibration was live for this frame.  A
+            # snapshot that looks defocused is a different problem depending on
+            # whether this was loaded or flat, so record it, not just its rms.
+            "trim_note":     pulser.trim_note,
+            "trim_ns":       [round(v, 1) for v in pulser.trim_ns],
             "f0_mhz":        round(pulser.f0_hz() / 1e6, 3),
+            # f0_mhz above is nominal - for a chirp it is just the mean of the
+            # two sliders.  These four are measured off the quantised waveform
+            # the FPGA actually fires, and drive_in_band scores them against
+            # the probe's passband.  See tx_spectrum().
+            "drive_pk_mhz":  round(tx_spectrum()[0], 3),
+            "drive_mid_mhz": round(tx_spectrum()[1], 3),
+            "drive_lo_mhz":  round(tx_spectrum()[2], 3),
+            "drive_hi_mhz":  round(tx_spectrum()[3], 3),
+            "drive_in_band": round(tx_in_probe_band(), 3),
+            "probe_band_mhz": [PROBE_LO_MHZ, PROBE_HI_MHZ],
             "burst_us":      round(pulser.burst_ns() / 1e3, 3),
             "element_period_us": round(pulser.element_period_us(), 2),
             "frame_ms":      round(pulser.frame_ms(), 3),
@@ -2923,6 +3473,12 @@ def settings_snapshot(main, note=""):
             "band_bw_mhz":   state["band_bw"],
             "band_lo_mhz":   round(lo / 1e6, 3),  # after the Nyquist clamp
             "band_hi_mhz":   round(hi / 1e6, 3),
+            "frequency_compounding": state["freq_comp"],
+            "frequency_compound_bands": FREQ_COMP_BANDS if state["freq_comp"] and state.get("debug_view", 0) == 0 else 1,
+            "frequency_compound_edges_mhz": [
+                [round(a / 1e6, 3), round(b / 1e6, 3)]
+                for a, b in compound_band_edges()
+            ] if state["freq_comp"] and state.get("debug_view", 0) == 0 else [],
             "avg_sweeps":    rf_avg.n,
             "avg_held":      rf_avg.depth(),      # < avg_sweeps while filling
             "matched_filter": state["mf"],
@@ -2950,8 +3506,10 @@ def settings_snapshot(main, note=""):
             "alive":        n_alive(),
         },
         "display": {
+            "debug_view": state.get("debug_view", 0),
             "dyn_db":     state["dyn"],
             "gain_db":    state["gain"],
+            "curve":      state["curve"],
             "auto_gain":  state["auto"],
             "signed":     mode["signed"],
             "zoom":       round(view["zoom"], 3),
@@ -2968,12 +3526,15 @@ def settings_snapshot(main, note=""):
         "stream": {
             "frozen":       state["frozen"],
             "mbps":         round(stats["mbps"], 1),
-            "sweeps_per_s": round(stats["fps"] / N_ELEM, 1),
+            "sweeps_per_s": round(stats['sweep_hz'], 1),
+            "complete_sweeps": stats['complete_sweeps'],
+            "packet_equivalent_sweeps_per_s": round(stats["fps"] / N_ELEM, 1),
             "frames":       stats["frames"],
             "drops":        stats["drops"],
             "resyncs":      stats["resyncs"],
             "holes":        [stats["seq_bad"], stats["seq_chk"]],
             "skips":        stats["skips"],
+            "bad_sweeps":   stats["bad_sweeps"],
             "cine_frames":  n_cine,
             "cine_seconds": round(cine_s, 2),
             # where the play head is when frozen: negative = seconds back from
@@ -2982,11 +3543,26 @@ def settings_snapshot(main, note=""):
                               if state["frozen"] and main.review else None),
         },
     }
+    if state["frozen"] and getattr(main, "debug_epoch", None) and not getattr(main, "debug_loading", False):
+        # Acquired RF keeps the settings it was collected with during review.
+        for section in ("acquisition", "transmit"):
+            result[section] = json.loads(json.dumps(main.debug_epoch[section]))
+    result["observations"] = {
+        "pulser_requested_armed_now": pulser.arm,
+        "usb_read_timeouts": stats.get("read_timeouts", 0),
+        "timeout_bytes_discarded": stats.get("timeout_bytes_discarded", 0),
+        "register_readback": "unavailable; settings describe host requests",
+        "loaded_fpga_build": "unknown",
+        "last_capability_query": getattr(main, "debug_firmware_info", None),
+    }
+    result["provenance"] = getattr(main, "debug_source", {})
+    result["setup_context"] = getattr(main, "debug_setup", {})
+    return result
 
 def write_settings(main, note=""):
     """Write latest.json + a stamped copy, each with the current image beside
     it.  Returns the stamped json path, or None if nothing could be written."""
-    stamp = time.strftime("%Y%m%d_%H%M%S")
+    stamp = time.strftime("%Y%m%d_%H%M%S") + f"_{time.time_ns() % 1000000000:09d}"
     snap  = settings_snapshot(main, note)
     snap["image"] = None
     try:
@@ -3004,8 +3580,7 @@ def write_settings(main, note=""):
                 snap["image"] = f"{stamp}.png"
                 shot.save(os.path.join(SETTINGS_DIR, "latest.png"), "PNG")
         for name in (f"{stamp}.json", "latest.json"):
-            with open(os.path.join(SETTINGS_DIR, name), "w") as f:
-                json.dump(snap, f, indent=2, default=_plain)
+            rf_debug.atomic_json(os.path.join(SETTINGS_DIR, name), snap)
     except OSError as e:
         print(f"FAILED to save settings: {e}")
         return None
@@ -3061,6 +3636,12 @@ def mkslider(row, label, lo, hi, val, on_change=None, on_release=None,
         s.sliderReleased.connect(lambda: on_release(s.value()))
     l.addWidget(lab); l.addWidget(s); l.addWidget(vl)
     row.addWidget(box)
+    def restore(value):
+        previous = s.blockSignals(True)
+        s.setValue(int(round(value)))
+        s.blockSignals(previous)
+        vl.setText(f"{value:g}{unit}")
+    DEBUG_SLIDERS[label] = (s, restore)
     return s
 
 def mkfslider(row, label, lo, hi, step, val, on_change, width=104, unit="",
@@ -3099,6 +3680,13 @@ def mkfslider(row, label, lo, hi, step, val, on_change, width=104, unit="",
             w.setToolTip(tip)
     l.addWidget(lab); l.addWidget(s); l.addWidget(vl)
     row.addWidget(box)
+    def restore(value):
+        previous = s.blockSignals(True)
+        s.setValue(int(round(value / step)))
+        s.blockSignals(previous)
+        last["q"] = quant(value) if quant else None
+        vl.setText(f"{fmt % value}{unit}")
+    DEBUG_SLIDERS[label] = (s, restore)
     return s
 
 #===============================================================================
@@ -3227,15 +3815,26 @@ class Knob(QWidget):
 
 class Timeline(QWidget):
     """Scrub bar over the cine buffer.  Labelled relative to the newest frame,
-    so the strip reads directly as how far back in time you are."""
+    so the strip reads directly as how far back in time you are.
+
+    It also carries the IN/OUT marks that bound a video export.  They are part
+    of the scrub bar rather than a separate control because the only way to
+    choose a clip sensibly is to watch it: park the head on the first frame you
+    want, press [, run forward, press ].  Dragging either flag afterwards
+    adjusts it against the same time axis the head moves on."""
     scrubbed = Signal(float)            # seconds from the oldest held frame
+    marked   = Signal()                 # an in/out mark moved
+
+    GRAB_PX = 7.0                       # flag hit radius
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.span = 0.0                 # seconds held
         self.pos  = 0.0                 # play head
         self.live = True                # recording: no head, whole bar filled
-        self._drag = False
+        self.t_in  = None               # export marks, seconds into the buffer
+        self.t_out = None
+        self._drag = None               # None | "scrub" | "in" | "out"
         self.setFixedHeight(40)
         self.setCursor(Qt.SizeHorCursor)
 
@@ -3250,17 +3849,64 @@ class Timeline(QWidget):
         r = self.track()
         return r.left() + r.width() * (t / self.span if self.span > 0 else 0.0)
 
+    # -- in/out marks ---------------------------------------------------------
+    def clear_marks(self):
+        self.t_in = self.t_out = None
+        self.update()
+        self.marked.emit()
+
+    def set_mark(self, which, t):
+        """Set one mark and keep the pair ordered.  Pushing IN past OUT (or the
+        reverse) moves the other one rather than refusing: the alternative is a
+        control that silently ignores the press you just made."""
+        t = min(max(float(t), 0.0), self.span)
+        if which == "in":
+            self.t_in = t
+            if self.t_out is not None and self.t_out < t:
+                self.t_out = t
+        else:
+            self.t_out = t
+            if self.t_in is not None and self.t_in > t:
+                self.t_in = t
+        self.update()
+        self.marked.emit()
+
+    def selection(self):
+        """(t0, t1) of the export range - the whole loop when unmarked."""
+        t0 = 0.0 if self.t_in is None else self.t_in
+        t1 = self.span if self.t_out is None else self.t_out
+        return min(t0, t1), max(t0, t1)
+
+    def _near_mark(self, x):
+        best, bd = None, self.GRAB_PX
+        for name, t in (("in", self.t_in), ("out", self.t_out)):
+            if t is None:
+                continue
+            d = abs(self._x_at(t) - x)
+            if d <= bd:
+                best, bd = name, d
+        return best
+
     def mousePressEvent(self, ev):
-        if ev.button() == Qt.LeftButton and not self.live and self.span > 0:
-            self._drag = True
-            self.scrubbed.emit(self._t_at(ev.position().x()))
+        if ev.button() != Qt.LeftButton or self.live or self.span <= 0:
+            return
+        x = ev.position().x()
+        m = self._near_mark(x)
+        if m:                           # grabbing a flag must not also seek
+            self._drag = m
+            self.set_mark(m, self._t_at(x))
+        else:
+            self._drag = "scrub"
+            self.scrubbed.emit(self._t_at(x))
 
     def mouseMoveEvent(self, ev):
-        if self._drag:
+        if self._drag == "scrub":
             self.scrubbed.emit(self._t_at(ev.position().x()))
+        elif self._drag in ("in", "out"):
+            self.set_mark(self._drag, self._t_at(ev.position().x()))
 
     def mouseReleaseEvent(self, ev):
-        self._drag = False
+        self._drag = None
 
     def paintEvent(self, ev):
         p = QPainter(self)
@@ -3299,12 +3945,265 @@ class Timeline(QWidget):
             p.drawText(QPointF(tx, r.bottom() + 5 + fm.ascent()), t)
             k += 1
 
+        # export range: everything OUTSIDE it is dimmed, so what is about to be
+        # written is what stays lit
+        if not self.live and (self.t_in is not None or self.t_out is not None):
+            t0, t1 = self.selection()
+            x0, x1 = self._x_at(t0), self._x_at(t1)
+            p.setPen(Qt.NoPen)
+            p.setBrush(QBrush(QColor(0, 0, 0, 120)))
+            if x0 > r.left():
+                p.drawRect(QRectF(r.left(), r.top(), x0 - r.left(), r.height()))
+            if x1 < r.right():
+                p.drawRect(QRectF(x1, r.top(), r.right() - x1, r.height()))
+            p.setPen(QPen(QColor(MARK_C), 1.0))
+            p.setBrush(Qt.NoBrush)
+            p.drawRect(QRectF(x0, r.top() + 0.5, max(1.0, x1 - x0), r.height() - 1))
+            for which, t in (("in", self.t_in), ("out", self.t_out)):
+                if t is None:
+                    continue
+                x = self._x_at(t)
+                d = 6.0 if which == "in" else -6.0      # flag points into the clip
+                p.setPen(Qt.NoPen)
+                p.setBrush(QBrush(QColor(MARK_C)))
+                p.drawRect(QRectF(x - 1.0, r.top() - 4, 2.0, r.height() + 8))
+                p.drawPolygon(QPolygonF([QPointF(x, r.top() - 4),
+                                         QPointF(x + d, r.top() - 4),
+                                         QPointF(x, r.top() + 2)]))
+
         if not self.live:
             x = self._x_at(self.pos)
             p.setPen(Qt.NoPen)
             p.setBrush(QBrush(QColor("#cfe6f5")))
             p.drawRoundedRect(QRectF(x - 2.5, r.top() - 3, 5, r.height() + 6), 2, 2)
         p.end()
+
+#===============================================================================
+# cine -> video export
+#===============================================================================
+# The clip between the IN and OUT marks, re-rendered frame by frame and piped
+# raw into ffmpeg.  Nothing is screen-grabbed: every frame goes back through
+# the beamformer at the export resolution (exactly what CAPTURE does for a
+# still), so a 4K export is genuinely reconstructed at 4K rather than an
+# upscale of a ~900 px window, and the axes, calipers and M-line are painted at
+# the matching scale on top.
+#
+# Frames are resampled onto a fixed output rate rather than written one-per-
+# recorded-sweep.  The recorder runs at whatever the FPGA delivers (~130/s,
+# jittery), which is not a legal video frame rate and would play back at the
+# wrong speed anywhere; picking the frame that was live at each output instant
+# keeps replay honest and makes the speed multiplier exact.
+#
+# Encoding targets what YouTube actually ingests: H.264 High in yuv420p at
+# bt709, closed 2 s GOP, faststart, CRF rather than a bitrate cap.  CRF 18 at
+# 4K lands well inside YouTube's ~45 Mbit/s recommendation while staying at the
+# "cannot see the difference" end - which matters here because ultrasound
+# speckle is high-entropy noise-like detail and is the first thing a codec
+# throws away.  Speckle is also why the files are not small for the duration:
+# there is no static background to predict.
+VID_FOOT = 34                       # footer band under the axes (at scale 1)
+
+VID_RES = [("4K UHD - 3840 x 2160", 3840, 2160),
+           ("1440p - 2560 x 1440",  2560, 1440),
+           ("1080p - 1920 x 1080",  1920, 1080)]
+
+VID_FPS = [24, 25, 30, 50, 60]
+
+#      label                                     crf  x264/x265 preset
+VID_Q = [("archive - near lossless, big file",    14, "slow"),
+         ("high - recommended for YouTube",       18, "medium"),
+         ("compact - smallest, still clean",      22, "medium")]
+
+def find_ffmpeg():
+    """PATH, then $FFMPEG, then the imageio wheel a lot of python installs
+    already carry.  Returns None if there is nothing to pipe into."""
+    exe = os.environ.get("FFMPEG")
+    if exe and os.path.isfile(exe):
+        return exe
+    exe = shutil.which("ffmpeg")
+    if exe:
+        return exe
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
+
+def ffmpeg_cmd(exe, w, h, fps, crf, preset, hevc, path):
+    v = (["-c:v", "libx265", "-preset", preset, "-crf", str(crf + 2),
+          "-tag:v", "hvc1", "-pix_fmt", "yuv420p"] if hevc else
+         ["-c:v", "libx264", "-preset", preset, "-crf", str(crf),
+          "-profile:v", "high", "-pix_fmt", "yuv420p", "-sc_threshold", "0"])
+    return [exe, "-hide_banner", "-loglevel", "error", "-y",
+            "-f", "rawvideo", "-pix_fmt", "rgb24",
+            "-s", f"{w}x{h}", "-r", str(fps), "-i", "-",
+            "-an", *v,
+            "-g", str(int(fps * 2)), "-keyint_min", str(int(fps)),
+            "-colorspace", "bt709", "-color_primaries", "bt709",
+            "-color_trc", "bt709",
+            "-movflags", "+faststart", path]
+
+def qimage_rgb888(img):
+    """Tightly packed RGB bytes.  QImage pads every row out to a 4-byte
+    boundary, and ffmpeg's rawvideo demuxer does not expect that padding, so
+    the stride has to be cut off rather than assumed away."""
+    if img.format() != QImage.Format_RGB888:
+        img = img.convertToFormat(QImage.Format_RGB888)
+    w, h, bpl = img.width(), img.height(), img.bytesPerLine()
+    a = np.frombuffer(memoryview(img.constBits()), np.uint8,
+                      count=bpl * h).reshape(h, bpl)
+    return np.ascontiguousarray(a[:, :3 * w]).tobytes()
+
+def video_scale(fb_w, fb_h, out_w, out_h):
+    """Render scale that makes the composed frame as large as fits inside the
+    output canvas, keeping the on-screen aspect (no stretching, no cropping -
+    a 16:9 canvas around a 4:3 image gets pillarboxed)."""
+    bw, bh = fb_w + ML + MR, fb_h + MT + MB + VID_FOOT
+    return max(0.25, min(out_w / float(bw), out_h / float(bh)))
+
+def render_video_frame(img, vb, measures, mline_ab, foot, s, out_w, out_h,
+                       canvas=None):
+    """One composed video frame: B-mode + axes + calipers + M-line + footer,
+    centred in an exactly (out_w, out_h) canvas.  Every frame in a clip has to
+    be byte-identical in size, hence the fixed canvas and the padding."""
+    if canvas is None:
+        canvas = QImage(out_w, out_h, QImage.Format_RGB888)
+    canvas.fill(QColor(PLOT_BG))
+    iw, ih = img.width(), img.height()
+    ml, mt, mr, mb = int(ML*s), int(MT*s), int(MR*s), int(MB*s)
+    ft = int(VID_FOOT * s)
+    cw, ch = iw + ml + mr, ih + mt + mb + ft
+    p = QPainter(canvas)
+    p.translate(int((out_w - cw) / 2), int((out_h - ch) / 2))
+    r = QRectF(ml, mt, iw, ih)
+    p.drawImage(QPointF(ml, mt), img)
+    paint_axes(p, r, vb, s)
+    paint_measures(p, r, vb, measures, s)
+    if mline_ab is not None:
+        paint_mline(p, r, vb, mline_ab[0], mline_ab[1], None, s)
+    if foot:
+        # shrink to fit rather than clip: the info line is long, and the one
+        # thing worse than small text is a truncated acquisition setting
+        fs = max(6, int(8 * s))
+        while fs > 6:
+            fm = QFontMetrics(QFont("Consolas", fs))
+            if max(fm.horizontalAdvance(t) for t in foot) <= iw:
+                break
+            fs -= 1
+        f = QFont("Consolas", fs)
+        p.setFont(f)
+        fm = QFontMetrics(f)
+        p.setPen(QPen(QColor(DIM)))
+        y = mt + ih + mb + (ft - len(foot) * fm.height()) / 2 + fm.ascent()
+        for t in foot:
+            p.drawText(QPointF(ml, y), t)
+            y += fm.height()
+    p.end()
+    return canvas
+
+class VideoExportDialog(QDialog):
+    """Output options.  The range itself comes from the timeline marks, so this
+    only has to answer 'how is it written', not 'what is written'."""
+    def __init__(self, span_s, n_frames, speed, fb_w, fb_h, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("export cine as video")
+        self.setStyleSheet(APP_QSS)
+        g = QGridLayout(self); g.setContentsMargins(10, 10, 10, 10); g.setSpacing(6)
+
+        def row(i, text, w, tip=""):
+            lb = QLabel(text); lb.setStyleSheet(f"color:{DIM};")
+            if tip:
+                lb.setToolTip(tip); w.setToolTip(tip)
+            g.addWidget(lb, i, 0); g.addWidget(w, i, 1)
+            return w
+
+        self.res = QComboBox()
+        for lab, _, _ in VID_RES:
+            self.res.addItem(lab)
+        row(0, "resolution", self.res,
+            "the clip is RE-BEAMFORMED at this size, not upscaled from the\n"
+            "window - 4K costs render time per frame but is real detail")
+
+        self.fps = QComboBox()
+        for f in VID_FPS:
+            self.fps.addItem(f"{f} fps")
+        self.fps.setCurrentIndex(VID_FPS.index(30))
+        row(1, "frame rate", self.fps,
+            "output rate.  The recorder runs faster than this (~130 sweeps/s),\n"
+            "so at 1x the nearest recorded frame to each output instant is used")
+
+        self.spd = QDoubleSpinBox()
+        self.spd.setRange(SPEED_MIN, SPEED_MAX); self.spd.setSingleStep(0.05)
+        self.spd.setDecimals(2); self.spd.setValue(float(speed))
+        self.spd.setSuffix("x")
+        row(2, "speed", self.spd,
+            "1x is real time.  Below 1x the clip is slowed down - no frames are\n"
+            "invented, each recorded frame is simply held for longer")
+
+        self.q = QComboBox()
+        for lab, _, _ in VID_Q:
+            self.q.addItem(lab)
+        self.q.setCurrentIndex(1)
+        row(3, "quality", self.q,
+            "constant-quality encode (CRF).  Ultrasound speckle is noise-like\n"
+            "detail and is the first thing a codec discards, so 'high' is\n"
+            "already conservative; 'archive' is for keeping, not uploading")
+
+        self.hevc = QCheckBox("H.265 / HEVC (smaller, slower to encode)")
+        self.hevc.setToolTip("YouTube accepts both.  H.264 is the safe default and\n"
+                             "plays everywhere; H.265 is roughly 30% smaller.")
+        g.addWidget(self.hevc, 4, 1)
+
+        self.overlay = QCheckBox("burn in axes, calipers, M-line and settings")
+        self.overlay.setChecked(True)
+        self.overlay.setToolTip("off writes the bare B-mode image only")
+        g.addWidget(self.overlay, 5, 1)
+
+        self.info = QLabel(""); self.info.setStyleSheet(f"color:{DIM};")
+        g.addWidget(self.info, 6, 0, 1, 2)
+        self._span, self._nf = span_s, n_frames
+        self._fb = (fb_w, fb_h)
+        for w in (self.res, self.fps, self.q):
+            w.currentIndexChanged.connect(self._refresh)
+        self.spd.valueChanged.connect(self._refresh)
+        self.hevc.toggled.connect(self._refresh)
+        self._refresh()
+
+        bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        bb.button(QDialogButtonBox.Ok).setText("export…")
+        bb.accepted.connect(self.accept); bb.rejected.connect(self.reject)
+        g.addWidget(bb, 7, 0, 1, 2)
+
+    def _refresh(self):
+        o = self.opts()
+        n = max(1, int(round(self._span / max(o["speed"], 1e-6) * o["fps"])))
+        # crude size guide from the CRF/resolution pair - enough to tell a
+        # 200 MB upload from a 2 GB one before spending ten minutes on it
+        mbps = {14: 90.0, 18: 38.0, 22: 16.0}[o["crf"]] * \
+               (o["w"] * o["h"]) / (3840.0 * 2160.0) * (0.7 if o["hevc"] else 1.0)
+        secs = n / float(o["fps"])
+        # What actually gets rendered inside the canvas.  The frame keeps the
+        # window's aspect, so a tall window is pillarboxed into 16:9 - worth
+        # saying out loud, because the fix is to widen the window before
+        # freezing, not anything in this dialog.
+        fw, fh = self._fb
+        s  = video_scale(fw, fh, o["w"], o["h"])
+        cw = int(fw*s) + int(ML*s) + int(MR*s)
+        ch = int(fh*s) + int(MT*s) + int(MB*s) + int(VID_FOOT*s)
+        bars = ("" if (o["w"] - cw) <= 8 and (o["h"] - ch) <= 8 else
+                f"  (image {cw}x{ch} centred in it - resize the window towards "
+                f"16:9 to fill the frame)")
+        self.info.setText(f"{self._nf} recorded frames → {n} video frames · "
+                          f"{secs:.1f} s at {o['fps']} fps · roughly "
+                          f"{mbps * secs / 8:.0f} MB\n{o['w']}x{o['h']}{bars}")
+
+    def opts(self):
+        lab, w, h = VID_RES[self.res.currentIndex()]
+        _, crf, preset = VID_Q[self.q.currentIndex()]
+        return {"w": w, "h": h, "fps": VID_FPS[self.fps.currentIndex()],
+                "speed": float(self.spd.value()), "crf": crf, "preset": preset,
+                "hevc": self.hevc.isChecked(),
+                "overlay": self.overlay.isChecked()}
 
 #===============================================================================
 # M-mode strip + motion audio
@@ -3319,10 +4218,23 @@ except Exception as _e:
     print(f"[no audio: {_e}]")
 
 AUDIO_SR    = 22050
-AUDIO_F_LO  = 180.0         # pitch at the FAR end of the line
-AUDIO_F_HI  = 1200.0        # pitch at the NEAR end
+AUDIO_F_LO  = 150.0         # band centre at the FAR end of the line
+AUDIO_F_HI  = 900.0         # band centre at the NEAR end
 AUDIO_GATE  = 0.04          # motion below this fraction of peak is silence
 AUDIO_SENS  = 6.0           # motion -> loudness
+
+# The voice is a BAND, not a tone.  Real Doppler audio is broadband - a whole
+# distribution of velocities scattering at once - and it is that spread which
+# makes it a whoosh rather than a whistle.  We have no velocity spectrum to put
+# there (see the class docstring), so the band is synthesised: partials spread
+# log-symmetrically around the centre frequency, each with its own slowly
+# random-walking amplitude.  Their mutual beating is the rustle; the walk is
+# what stops it settling into a chord.
+AUDIO_NPART = 28            # partials across the band
+AUDIO_BW    = 1.05          # half-width in octaves (band spans ~2*BW octaves)
+AUDIO_WALK  = 0.22          # how far the partial amplitudes move per block
+AUDIO_ATK   = 0.55          # envelope follow, rising  (fast: crisp whoosh onset)
+AUDIO_REL   = 0.10          # envelope follow, falling (slow: it swells away)
 
 class MotionAudio:
     """Sonifies the M-line's frame-to-frame change.
@@ -3346,10 +4258,23 @@ class MotionAudio:
 
     def __init__(self, parent):
         self.sink = self.dev = None
-        self.phase, self.amp, self.freq = 0.0, 0.0, AUDIO_F_LO
+        self.amp, self.freq = 0.0, AUDIO_F_LO
         self.gain = 0.5
         self.timer = QTimer(parent)
         self.timer.timeout.connect(self._fill)
+
+        # Partial layout, fixed for the life of the synth.  Ratios are log-spaced
+        # about the centre so the band keeps its shape as the centre slides with
+        # position; the Gaussian weight softens both edges so nothing pings out
+        # as a discrete tone, and the slight downward skew of the top end leaves
+        # more of the energy below centre, which is the half that sounds like
+        # tissue rather than like hiss.
+        self.rng   = np.random.default_rng(0xB100D)
+        self.ratio = 2.0 ** np.linspace(-AUDIO_BW, AUDIO_BW * 0.75, AUDIO_NPART)
+        w = np.exp(-0.5 * (np.log2(self.ratio) / (AUDIO_BW * 0.6)) ** 2)
+        self.wgt  = w / np.sqrt((w * w).sum())   # unit RMS whatever NPART is
+        self.pph  = self.rng.uniform(0.0, 2.0 * np.pi, AUDIO_NPART)
+        self.pamp = self.wgt.copy()
 
     def start(self):
         if not HAVE_AUDIO or self.sink is not None:
@@ -3365,7 +4290,8 @@ class MotionAudio:
         self.sink = QAudioSink(out, fmt)
         self.sink.setBufferSize(AUDIO_SR // 4 * 2)      # ~250 ms
         self.dev  = self.sink.start()
-        self.phase, self.amp = 0.0, 0.0
+        self.amp  = 0.0
+        self.pamp = self.wgt.copy()
         self.timer.start(15)
 
     def stop(self):
@@ -3389,18 +4315,40 @@ class MotionAudio:
 
         # Ramp amplitude and frequency ACROSS the block instead of stepping them
         # at the block boundary - a step is a click, and at 15 ms intervals a
-        # train of them is worse than the tone.  Phase comes from the cumulative
-        # sum of the swept frequency so it stays continuous across blocks too.
-        a1 = self.amp  + (a - self.amp)  * 0.35
+        # train of them is worse than the sound itself.  The envelope follows
+        # asymmetrically, fast up and slow down, so a pulsation arrives as one
+        # whoosh that swells and decays rather than as a burst of chatter that
+        # tracks every wobble in the motion energy.
+        k  = AUDIO_ATK if a > self.amp else AUDIO_REL
+        a1 = self.amp  + (a - self.amp) * k
         f1 = self.freq + (f - self.freq) * 0.25
         av = np.linspace(self.amp,  a1, n)
         fv = np.linspace(self.freq, f1, n)
-        ph = self.phase + 2.0 * np.pi * np.cumsum(fv) / AUDIO_SR
-        self.phase = float(np.mod(ph[-1], 2.0 * np.pi))
+
+        # One phase ramp for the centre; each partial rides it scaled by its own
+        # ratio, and carries its own phase across the block boundary, so the
+        # whole band stays continuous through a frequency slide with a single
+        # cumsum rather than one per partial.
+        cs  = np.cumsum(fv) * (2.0 * np.pi / AUDIO_SR)          # (n,)
+        ph  = self.pph[None, :] + cs[:, None] * self.ratio[None, :]
+        self.pph = np.mod(self.pph + cs[-1] * self.ratio, 2.0 * np.pi)
+
+        # New random target for every partial each block, approached gradually:
+        # the band shimmers instead of stepping, and no partial holds a level
+        # long enough to be heard as a note of its own.
+        pa1  = self.pamp + (self.wgt * self.rng.uniform(0.3, 1.7, AUDIO_NPART)
+                            - self.pamp) * AUDIO_WALK
+        ramp = np.linspace(0.0, 1.0, n)[:, None]
+        pa   = self.pamp[None, :] + (pa1 - self.pamp)[None, :] * ramp
+        self.pamp = pa1
         self.amp, self.freq = float(a1), float(f1)
 
-        w = np.sin(ph) * av * self.gain * 32000.0
-        self.dev.write(np.clip(w, -32767, 32767).astype(np.int16).tobytes())
+        # tanh rather than a hard clip: a noise band has a much worse crest
+        # factor than a sine, so the loud peaks WILL hit the rail, and doing it
+        # softly rounds them off into the whoosh instead of crackling.
+        mix = (np.sin(ph) * pa).sum(axis=1)
+        w   = np.tanh(mix * av * self.gain * 1.7) * 30000.0
+        self.dev.write(w.astype(np.int16).tobytes())
 
 class MModeStrip(QWidget):
     """Position-along-the-line (vertical) vs time (horizontal), newest at the
@@ -3440,6 +4388,7 @@ class MModeStrip(QWidget):
         dyn = max(float(state["dyn"]), 1e-6)
         db  = 20.0 * np.log10(data / max(ref, 1e-9) + 1e-9)
         v   = np.clip((db + float(state["gain"]) + dyn) / dyn, 0.0, 1.0)
+        v   = scurve_np(v)
         img = np.ascontiguousarray((v * 255.0).astype(np.uint8))
 
         self._keep = img
@@ -3461,7 +4410,7 @@ class MModeStrip(QWidget):
 #===============================================================================
 # main window
 #===============================================================================
-class Main(QWidget):
+class Main(DebugMixin, QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(f"TFM B-mode - {N_ELEM} element convex, monostatic "
@@ -3545,11 +4494,19 @@ class Main(QWidget):
                  width=118)
         mkslider(r2, "TGC max", 0, 4095, TGC_MAX_DEF, on_change=self.set_tgc_hi,
                  width=118)
-        mkslider(r2, "dyn range", 20, 80, DYN_DEF, on_change=self.set_dyn,
+        # A wider log window can retain faint gray while lowering display gain
+        # enough to keep a strong reflector from becoming a solid white band.
+        mkslider(r2, "dyn range", 20, 100, DYN_DEF, on_change=self.set_dyn,
                  width=96, unit="dB")
         mkslider(r2, "gain", -40, 40, GAIN_DEF, on_change=self.set_gain,
                  width=96, unit="dB")
-        self.cb_auto = QCheckBox("auto gain"); self.cb_auto.setChecked(True)
+        # Integer percent so it rides the same slider plumbing as coh/apod;
+        # set_curve divides it back down.  100% is the identity.
+        mkslider(r2, "curve", int(round(CURVE_MIN * 100)), 100,
+                 int(round(CURVE_DEF * 100)), on_change=self.set_curve,
+                 width=96, unit="%")
+        self.cb_auto = QCheckBox("auto gain")
+        self.cb_auto.setChecked(state["auto"])
         self.cb_auto.setToolTip("normalise to the per-frame peak; off = absolute "
                                 "scale, use the gain slider.\nNOTE: auto gain "
                                 "cancels every global gain change - use the "
@@ -3617,6 +4574,7 @@ class Main(QWidget):
         # -- probe calibration + transmit ---------------------------------------
         r3 = QHBoxLayout(); r3.setSpacing(2); root.addLayout(r3)
         r4 = QHBoxLayout(); r4.setSpacing(2); root.addLayout(r4)
+        rdebug = QHBoxLayout(); rdebug.setSpacing(4); root.addLayout(rdebug)
         self._calib_row(r3)
         self._pulser_rows(r3, r4)
 
@@ -3661,11 +4619,14 @@ class Main(QWidget):
         for key, fn in ((Qt.Key_Space,  self._space),
                         (Qt.Key_Escape, lambda: self.b_freeze.setChecked(False)),
                         (Qt.Key_Comma,  lambda: self.step(-1)),
-                        (Qt.Key_Period, lambda: self.step(+1))):
+                        (Qt.Key_Period, lambda: self.step(+1)),
+                        (Qt.Key_I,      lambda: self.mark("in")),
+                        (Qt.Key_O,      lambda: self.mark("out"))):
             QShortcut(QKeySequence(key), self).activated.connect(fn)
 
         self._cine_enable(False)
         self.pls_refresh()          # fills the f0/frame-rate readout at startup
+        self.debug_init(globals(), rdebug)
         self.resize(1320, 900)
 
     # -- receive conditioning -------------------------------------------------
@@ -3707,26 +4668,39 @@ class Main(QWidget):
                                self.set_band_bw, width=96, unit="M",
                                fmt="%.1f", tip=band_tip)
 
+        self.cb_freq = QCheckBox("freq compound")
+        self.cb_freq.setChecked(FREQ_COMP_DEF)
+        self.cb_freq.setToolTip(
+            "split the selected receive passband into %d sub-bands, beamform "
+            "each independently, then add their detected powers.\n\nAnatomy "
+            "stays registered while wavelength-dependent speckle changes, so "
+            "the image becomes less grainy. This is INCOHERENT compounding - "
+            "unlike the RF avg control, which removes electronic noise but "
+            "does not remove stationary speckle.\n\nThe masks are power-"
+            "complementary, so brightness is preserved. The cost is %dx the "
+            "inverse FFT and beamformer work, plus lower axial resolution in "
+            "each narrower band. At the 5 MHz default, each band is about "
+            "1.7 MHz wide (roughly 0.45 mm c/2B).\n\nRequires bandpass; "
+            "turning this on enables it automatically. Compare with coherence "
+            "near zero first, because coherence also changes speckle."
+            % (FREQ_COMP_BANDS, FREQ_COMP_BANDS))
+        self.cb_freq.toggled.connect(self.set_freq_comp)
+        row.addWidget(self.cb_freq)
+
         self.cb_mf = QCheckBox("pulse comp")
         self.cb_mf.setChecked(MF_ON_DEF)
         self.cb_mf.setToolTip(
-            "matched filter: cross-correlate the RF with the transmit "
-            "waveform, inside the\nHilbert FFT that already runs.\n\nThis is "
-            "the receive half of coded excitation. With the chirp on, every "
-            "echo is\nthe whole sweep long and the raw envelope smears it "
-            "over that length;\ncompression collapses each echo to ~1/"
-            "bandwidth wide while summing the\nenergy of the full sweep "
-            "(~15 dB over a 2-cycle burst at the same voltage).\n\nThe "
-            "reference is rebuilt from the pulser's own quantised edge times "
-            "whenever\na transmit setting changes, so it always matches what "
-            "is firing NOW - on a\nfrozen or replayed loop recorded with "
-            "different transmit settings it will\nmis-match; re-record after "
-            "changing the chirp.\n\nWorks on the plain burst too (short "
-            "matched filter), where it mostly re-shades\nrather than "
-            "sharpens.  Compressed-pulse range sidelobes ring axially at\n"
-            "about -13 dB for an unweighted chirp; the bandpass skirts "
-            "double as the\ntaper that pushes them down, so leave bandpass "
-            "on and centred on the sweep.")
+            "Pulse compression: correlate signed RF with the commanded transmit "
+            "reference before envelope detection.\n\nThis is separate from the "
+            "chirp checkbox. A longer chirp with compression OFF stretches each "
+            "echo in depth. With compression ON, the usable bandwidth limits "
+            "how short the echo can become.\n\nLive settings rebuild the reference; "
+            "RF replay uses the reference saved in the recording. No new "
+            "transmission is needed to compare compression on/off in replay.\n\n"
+            "The reference does not include measured probe or analog-path response. "
+            "Mismatch can leave axial ringing/sidelobes. Band limiting can reduce "
+            "ringing but also broadens the compressed echo. Verify width and range "
+            "on an isolated reflector; brightness alone is not an SNR measurement.")
         self.cb_mf.toggled.connect(self.set_mf)
         row.addWidget(self.cb_mf)
 
@@ -3756,12 +4730,12 @@ class Main(QWidget):
             "tx_sync, at a fixed delay,\nso where it sits in the window IS the "
             "capture-start error - and every echo\nbehind it is displaced by the "
             "same amount. Shifting each row back by that\namount removes the "
-            "error from the coherent sum.\n\nCatches both sources: the ADC "
-            "free-runs against clk_in and the sample FIFO is\ntwo samples wide, "
-            "so the window can only open on a 50 ns boundary (~18 deg\nRMS at "
-            "3.57 MHz, which puts the clutter floor at -27 dB - ABOVE what 70%\n"
-            "apod buys); and S_HDR slides the range gate under bus backpressure, "
-            "which\nthe holes counter cannot see at all.\n\nNEEDS A BACKGROUND "
+            "error from the coherent sum.\n\nCurrent RTL locks transmit launch to an "
+            "ADC-grid marker and no longer lets\nthe USB/header FIFO move the "
+            "range gate. This measures the small residual\n(two-flop clock "
+            "crossing, analog path, or marginal LVDS capture) rather than\n"
+            "trying to repair a torn sweep; torn sweeps are rejected at ingest."
+            "\n\nNEEDS A BACKGROUND "
             "REFERENCE - press 'capture bg' first. Independent of\n'bg subtract'; "
             "either can be on without the other.\n\nWorks best at avg 1: the "
             "averager blends sweeps that were each displaced\ndifferently, so a "
@@ -3805,7 +4779,15 @@ class Main(QWidget):
         dlg.show()
 
     def set_band_on(self, v):
+        if not v and self.cb_freq.isChecked():
+            self.cb_freq.setChecked(False)
         state["band_on"] = bool(v)
+        self._refresh_rx()
+
+    def set_freq_comp(self, v):
+        if v and not self.cb_band.isChecked():
+            self.cb_band.setChecked(True)
+        state["freq_comp"] = bool(v)
         self._refresh_rx()
 
     def set_band_f0(self, v):
@@ -3927,7 +4909,7 @@ class Main(QWidget):
             int, "", "%.0f", width=64)
         pls("width ns", 10, 500, 10, pulser.t_drive_ns, pulser.set_t_drive_ns,
             pls_ns_to_cyc, "ns", "%.0f")
-        pls("dead ns", 10, 200, 10, pulser.t_dead_ns, pulser.set_t_dead_ns,
+        pls("dead ns", T_DEAD_MIN_NS, 200, 10, pulser.t_dead_ns, pulser.set_t_dead_ns,
             pls_ns_to_cyc, "ns", "%.0f")
         pls("settle us", T_SETTLE_MIN_US, 40, 0.5, pulser.t_settle_us,
             pulser.set_t_settle_us, pls_us_to_cyc, "us", "%.1f")
@@ -3963,8 +4945,9 @@ class Main(QWidget):
         were faster than the capture we would silently keep only every Nth
         element - and with an even N over an even aperture that means seeing
         only the even ones, which looks exactly like half a dead array.
-        send_pls_rx sizes t_rx to make this impossible, so the warning should
-        never appear; it is here to catch that rule being wrong, not the user.
+        send_pls_rx covers nominal capture time. The capture-ready FPGA
+        interlock additionally holds the next shot when USB backpressure extends
+        the actual drain; older bitstreams lack that feedback.
         """
         if pulser.chirp_on:
             tx = ("chirp %.1f-%.1f MHz  burst %.1f us"
@@ -3973,8 +4956,14 @@ class Main(QWidget):
         else:
             tx = ("f0 %.2f MHz  burst %.0f ns"
                   % (pulser.f0_hz() / 1e6, pulser.burst_ns()))
+        # The sliders above are the REQUEST; this is the quantised waveform the
+        # FPGA will really fire, measured.  See tx_spectrum().
+        pk, mid, lo, hi = tx_spectrum()
+        tx += ("   -> drive %.2f-%.2f MHz  pk %.2f  mid %.2f  %.0f%% in %.0f-%.0f"
+               % (lo, hi, pk, mid, 100.0 * tx_in_probe_band(),
+                  PROBE_LO_MHZ, PROBE_HI_MHZ))
         self.pls_lbl.setText(
-            "%s  elem %.0f us  frame %.1f ms (%.1f fps)%s"
+            "%s  elem %.0f us  nominal frame %.1f ms (up to %.1f fps)%s"
             % (tx, pulser.element_period_us(), pulser.frame_ms(),
                1e3 / max(pulser.frame_ms(), 1e-6),
                "" if pulser.arm else "   [STOPPED]"))
@@ -4006,8 +4995,24 @@ class Main(QWidget):
         for b in (self.b_play, self.b_stepb, self.b_stepf, self.b_rep):
             h.addWidget(b)
 
+        # -- export range ------------------------------------------------------
+        self.b_in  = QPushButton("[")
+        self.b_out = QPushButton("]")
+        self.b_clr = QPushButton("×")
+        for b, tip in ((self.b_in,  "mark clip START at the play head  (i)\n"
+                                    "the flags can also be dragged on the bar"),
+                       (self.b_out, "mark clip END at the play head  (o)"),
+                       (self.b_clr, "clear the marks - export the whole loop")):
+            b.setFixedWidth(24)
+            b.setToolTip(tip)
+            h.addWidget(b)
+        self.b_in.clicked.connect(lambda: self.mark("in"))
+        self.b_out.clicked.connect(lambda: self.mark("out"))
+        self.b_clr.clicked.connect(self.clear_marks)
+
         self.tl = Timeline()
         self.tl.scrubbed.connect(self.scrub)
+        self.tl.marked.connect(self._cine_text)
         h.addWidget(self.tl, 1)
 
         self.cine_lbl = QLabel("")
@@ -4015,6 +5020,16 @@ class Main(QWidget):
         self.cine_lbl.setFixedWidth(178)
         self.cine_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         h.addWidget(self.cine_lbl)
+
+        self.b_exp = QPushButton("export video…")
+        self.b_exp.setToolTip(
+            "write the marked range (or the whole loop) as a video file.\n\n"
+            "Every frame is re-beamformed at the export resolution, so a 4K\n"
+            "export is reconstructed at 4K rather than upscaled - and the axes,\n"
+            "calipers, M-line and the settings footer are drawn to match.\n\n"
+            "Needs ffmpeg on PATH (or $FFMPEG).")
+        self.b_exp.clicked.connect(self.export_video)
+        h.addWidget(self.b_exp)
 
         kv = QVBoxLayout(); kv.setSpacing(0); kv.setContentsMargins(2, 0, 0, 0)
         self.knob = Knob(SPEED_MIN, SPEED_MAX, SPEED_DEF)
@@ -4192,6 +5207,8 @@ class Main(QWidget):
     # -- transmit callbacks ---------------------------------------------------
     def set_arm(self, on):
         pulser.set_arm(bool(on)); self.pls_refresh()
+        if hasattr(self, "g"):
+            self.debug_lock_acquisition(state["frozen"])
 
     def set_single(self, on):
         pulser.set_single_elem(self.elem_v if on else None)
@@ -4202,6 +5219,7 @@ class Main(QWidget):
         self.pls_refresh()
     def set_dyn(self, v):     state["dyn"] = float(v);    self.scene.gl.update()
     def set_gain(self, v):    state["gain"] = float(v);   self.scene.gl.update()
+    def set_curve(self, v):   state["curve"] = v / 100.0; self.scene.gl.update()
 
     def _send_tgc(self):
         lo, hi = self.tgc_lo, max(self.tgc_lo, self.tgc_hi)
@@ -4234,8 +5252,16 @@ class Main(QWidget):
         """FREEZE is also the entry point to the cine loop: it stops the
         recorder and takes a stable snapshot of everything still in it, so the
         frames cannot shift under the timeline while it is being scrubbed."""
+        if not v and (getattr(self, "debug_jobs", []) or getattr(self, "debug_offline", False)):
+            previous = self.b_freeze.blockSignals(True)
+            self.b_freeze.setChecked(True)
+            self.b_freeze.blockSignals(previous)
+            return
+        if v and hasattr(self, "g"):
+            self.debug_tick()
         state["frozen"] = v
         self.b_freeze.setText("FROZEN - click to resume" if v else "FREEZE")
+        self.tl.t_in = self.tl.t_out = None      # marks belong to one snapshot
         if v:
             self.review, self.rev_t = cine.freeze()
             self.cur_idx = -1
@@ -4257,10 +5283,12 @@ class Main(QWidget):
             cine.resume()
             self._cine_enable(False)
             hil_ev.set()                  # wake the worker back up
+        self.debug_after_freeze()
 
     # -- cine transport -------------------------------------------------------
     def _cine_enable(self, on):
-        for w in (self.b_play, self.b_stepb, self.b_stepf, self.b_rep):
+        for w in (self.b_play, self.b_stepb, self.b_stepf, self.b_rep,
+                  self.b_in, self.b_out, self.b_clr, self.b_exp):
             w.setEnabled(on)
         self.tl.live = not on
         self.tl.update()
@@ -4305,8 +5333,31 @@ class Main(QWidget):
         if not self.review:
             self.cine_lbl.setText("no frames buffered")
             return
-        self.cine_lbl.setText(f"{self.play_t - self._span():+6.2f} s   "
-                              f"{self.cur_idx + 1}/{len(self.review)}")
+        txt = (f"{self.play_t - self._span():+6.2f} s   "
+               f"{self.cur_idx + 1}/{len(self.review)}")
+        if self.tl.t_in is not None or self.tl.t_out is not None:
+            i0, i1 = self._sel_idx()
+            t0, t1 = self.tl.selection()
+            txt += f"\nclip {t1 - t0:.2f} s · {i1 - i0 + 1} f"
+        self.cine_lbl.setText(txt)
+
+    # -- export range ---------------------------------------------------------
+    def mark(self, which):
+        """Put a clip mark at the play head."""
+        if not self.review or not state["frozen"]:
+            return
+        self.tl.set_mark(which, self.play_t)
+
+    def clear_marks(self):
+        self.tl.clear_marks()
+
+    def _sel_idx(self):
+        """Recorded-frame index range covered by the marks, inclusive."""
+        t0, t1 = self.tl.selection()
+        i0 = int(np.searchsorted(self.rev_t, t0, side="right")) - 1
+        i1 = int(np.searchsorted(self.rev_t, t1, side="right")) - 1
+        n  = len(self.review)
+        return min(max(i0, 0), n - 1), min(max(i1, 0), n - 1)
 
     def scrub(self, t):
         self._play_wall = time.perf_counter()    # dragging must not "catch up"
@@ -4354,6 +5405,179 @@ class Main(QWidget):
         self.speed = float(v)
         self.spd_lbl.setText(f"{v:.2f}x")
 
+    # -- video export ---------------------------------------------------------
+    def export_video(self):
+        if not state["frozen"] or not self.review:
+            return
+        self._stop_play()
+        exe = find_ffmpeg()
+        if exe is None:
+            QMessageBox.warning(
+                self, "ffmpeg not found",
+                "Video export pipes frames into ffmpeg, and there is no ffmpeg "
+                "on PATH.\n\nInstall it (winget install Gyan.FFmpeg, or "
+                "ffmpeg.org/download), or point the FFMPEG environment variable "
+                "at the executable, and try again.\n\nCAPTURE still writes "
+                "single frames as PNG without it.")
+            return
+        t0, t1 = self.tl.selection()
+        i0, i1 = self._sel_idx()
+        if t1 - t0 < 1e-3 or i1 <= i0:
+            QMessageBox.information(
+                self, "empty clip",
+                "The marked range holds one frame or less.\n\nScrub to the "
+                "first frame you want and press [ , then to the last and press "
+                "] - or clear the marks with × to export the whole loop.")
+            return
+        dlg = VideoExportDialog(t1 - t0, i1 - i0 + 1, self.speed,
+                                self.scene.gl.fb_w, self.scene.gl.fb_h, self)
+        if dlg.exec() != QDialog.Accepted:
+            return
+        o = dlg.opts()
+        home = os.path.expanduser("~")
+        vids = os.path.join(home, "Videos")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "export cine video",
+            os.path.join(vids if os.path.isdir(vids) else home,
+                         f"cine_{time.strftime('%Y%m%d_%H%M%S')}.mp4"),
+            "MP4 video (*.mp4)")
+        if not path:
+            return
+        if not path.lower().endswith(".mp4"):
+            path += ".mp4"
+        keep_t = self.play_t
+        try:
+            self._write_video(exe, path, i0, i1, t0, t1, o)
+        finally:
+            # put the transport back where it was: the export walked play_t and
+            # the GL texture across the whole clip
+            self.play_t, self.cur_idx = keep_t, -1
+            self._seek(keep_t, force=True)
+
+    def _write_video(self, exe, path, i0, i1, t0, t1, o):
+        gl   = self.scene.gl
+        w, h, fps = o["w"], o["h"], o["fps"]
+        s    = video_scale(gl.fb_w, gl.fb_h, w, h)
+        n    = max(1, int(round((t1 - t0) / max(o["speed"], 1e-6) * fps)))
+        meas = [list(m) for m in self.scene.ov.measures] if o["overlay"] else []
+        mab  = (mline["a"], mline["b"]) if (o["overlay"] and mline["on"]) else None
+        stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        prog = QProgressDialog("preparing…", "cancel", 0, n, self)
+        prog.setWindowTitle("export video")
+        prog.setStyleSheet(APP_QSS)
+        prog.setWindowModality(Qt.WindowModal)
+        prog.setMinimumDuration(0)
+        prog.setAutoClose(False); prog.setAutoReset(False)
+        prog.setValue(0)
+        QApplication.processEvents()
+
+        log = tempfile.TemporaryFile()
+        # CREATE_NO_WINDOW: ffmpeg is a console program and would otherwise
+        # flash a window over the UI for the length of the encode
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        try:
+            proc = subprocess.Popen(
+                ffmpeg_cmd(exe, w, h, fps, o["crf"], o["preset"], o["hevc"], path),
+                stdin=subprocess.PIPE, stdout=log, stderr=log, creationflags=flags)
+        except OSError as e:
+            prog.close()
+            QMessageBox.critical(self, "export failed", f"could not run ffmpeg:\n{e}")
+            return
+
+        canvas = QImage(w, h, QImage.Format_RGB888)
+        last_i, payload, wrote = -1, None, 0
+        cancelled, broke = False, False
+        t_start = time.perf_counter()
+        try:
+            for k in range(n):
+                if prog.wasCanceled():
+                    cancelled = True
+                    break
+                tt = t0 + (k / float(fps)) * o["speed"]
+                i  = int(np.searchsorted(self.rev_t, min(tt, t1), side="right")) - 1
+                i  = min(max(i, i0), i1)
+                # At 60 fps out and ~130 sweeps/s in, or at any speed below 1x,
+                # the same recorded frame lands on several output frames.  It is
+                # the same picture, so render it once and re-send the bytes -
+                # which is most of the export time at slow speeds.
+                if i != last_i or payload is None:
+                    payload = self._export_frame(i, tt, s, o, meas, mab, canvas,
+                                                 stamp, w, h)
+                    last_i = i
+                if payload is None:
+                    broke = True
+                    break
+                proc.stdin.write(payload)
+                wrote += 1
+                if k % 4 == 0 or k == n - 1:
+                    el  = time.perf_counter() - t_start
+                    eta = el / max(k + 1, 1) * (n - k - 1)
+                    prog.setLabelText(f"frame {k+1} / {n}   ({el:.0f} s elapsed, "
+                                      f"~{eta:.0f} s left)")
+                    prog.setValue(k + 1)
+                    self.tl.pos = tt
+                    self.tl.update()
+                    QApplication.processEvents()
+        except (BrokenPipeError, OSError):
+            broke = True                # ffmpeg died: the log below says why
+        finally:
+            try:
+                proc.stdin.close()
+            except Exception:
+                pass
+            rc = proc.wait()
+            prog.close()
+
+        log.seek(0)
+        msg = log.read().decode("utf-8", "replace").strip()
+        log.close()
+
+        if cancelled:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+            self.set_lbl.setText("video export cancelled")
+            self.set_lbl.setStyleSheet(f"color:{WARN_C};")
+            return
+        if rc != 0 or broke or wrote == 0:
+            print(f"[ffmpeg rc={rc}]\n{msg}")
+            QMessageBox.critical(self, "export failed",
+                                 (msg or f"ffmpeg exited with code {rc}")[:2000])
+            return
+        mb  = os.path.getsize(path) / 1e6 if os.path.exists(path) else 0.0
+        dur = wrote / float(fps)
+        print(f"wrote {path}  ({wrote} frames, {dur:.1f} s, {w}x{h}, {mb:.1f} MB)")
+        # the status bar is rewritten by the 250 ms stats tick, so the result
+        # goes where it will still be readable in a minute
+        self.set_lbl.setText(f"video {os.path.basename(path)} · {dur:.1f} s · "
+                             f"{mb:.1f} MB")
+        self.set_lbl.setStyleSheet(f"color:{OK_C};")
+        self.set_lbl.setToolTip(path)
+
+    def _export_frame(self, i, tt, s, o, meas, mab, canvas, stamp, w, h):
+        """Recorded frame i, re-beamformed at export scale and composed.
+        Returns packed RGB bytes, or None if the GL side had nothing to give."""
+        publish_replay_sync(self._review_rf(i))
+        gl = self.scene.gl
+        # A real repaint, not update(): it forces the upload of the frame just
+        # published and refreshes the max-reduce chain, which is where the
+        # auto-gain reference comes from.  It also means the window shows the
+        # export running rather than one frozen frame.
+        gl.repaint()
+        img, vb = gl.grab_bmode(s)
+        if img is None:
+            return None
+        foot = []
+        if o["overlay"]:
+            self.play_t, self.cur_idx = tt, i
+            foot = [f"{stamp}   frame {i+1}/{len(self.review)}   "
+                    f"{o['fps']} fps · {o['speed']:.2f}x replay",
+                    self.info_line()]
+        render_video_frame(img, vb, meas, mab, foot, s, w, h, canvas)
+        return qimage_rgb888(canvas)
+
     def _space(self):
         if state["frozen"]:
             self.toggle_play()
@@ -4362,7 +5586,7 @@ class Main(QWidget):
 
     def apply_depth(self, v):
         """Depth changes the frame size: stop, drain, swap buffers, reconfigure."""
-        global raw_buf, carry, _prev_elem
+        global raw_buf, live_buf, carry, _prev_elem, _sweep_ok, _rej_run
         words = depth_to_words(v)
         if words == cfg["win_words"]:
             return
@@ -4380,9 +5604,13 @@ class Main(QWidget):
         with buf_lk:
             set_cfg(words)
             raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)
+            live_buf = np.zeros_like(raw_buf)
             carry = np.empty(0, dtype=np.uint32)
             stats["last_fcnt"] = None
             _prev_elem = -1
+            _sweep_seen.fill(False)
+            _sweep_ok = True
+            _rej_run = 0
         send_seq_config(self.tgc_lo, max(self.tgc_lo, self.tgc_hi),
                         int(state["dly_us"]), self.gap)
         send_cmd(cmd(OP_START), "start")
@@ -4396,23 +5624,38 @@ class Main(QWidget):
                 f"apod {state['apod']*100:.0f}%  "
                 # Only when on: CF makes brightness non-quantitative, so a
                 # capture has to carry the fact that it was applied.
-                + (f"coh {state['cf']:.2f}  " if state["cf"] > 0 else "")
+                + (f"coh {state['cf']:.2f}  " if state["cf"] > 0 and state.get("debug_view", 0) == 0 else "")
+                + ({1: "ordinary DAS  ", 2: "CF map 0-1  "}.get(state.get("debug_view", 0), ""))
+                # The measured -6 dB drive span, not the chirp sliders.  Two
+                # captures at different transmit frequencies are not comparable
+                # at all, and until now the caption recorded the RECEIVE band
+                # while saying nothing about what was transmitted into it.
+                + ("drive %.1f-%.1f MHz  " % tx_spectrum()[2:])
+                + (f"burst {pulser.burst_ns()/1000:.2f} us  "
+                   f"pulse-comp {'on' if state['mf'] else 'off'}  ")
                 # Both of these change the noise floor the image sits on, so a
                 # capture is not comparable to another one without them.
                 + ("band %.1f-%.1f MHz  " % tuple(f / 1e6 for f in band_edges())
                    if state["band_on"] else "")
+                + (f"freq-comp x{FREQ_COMP_BANDS}  " if state["freq_comp"] and state.get("debug_view", 0) == 0 else "")
                 + (f"avg {rf_avg.n} sw  " if rf_avg.n > 1 else "")
                 + (f"de-jit {jit['rms_ns']:.1f} ns rms  " if state["jit"] else "")
                 + f"t0 {state['t0_ns']:+.0f} ns  "
                 f"R {geom['R_mm']:.1f} mm  pitch {geom['pitch_mm']:.4f} mm  "
                 f"dyn {state['dyn']:.0f} dB  gain {state['gain']:+.0f} dB  "
-                f"zoom {view['zoom']:.1f}x  TGC {self.tgc_lo}-"
+                # only when it is doing something: 1.00 is the identity, and a
+                # burned-in caption that always says "curve 100%" is noise
+                + (f"curve {state['curve']:.2f}  "
+                   if state["curve"] < 0.999 else "")
+                + f"zoom {view['zoom']:.1f}x  TGC {self.tgc_lo}-"
                 f"{max(self.tgc_lo, self.tgc_hi)}"
                 + (f"  cine {self.play_t - self._span():+.2f} s"
                    if state["frozen"] and self.review else "")
-                + ("" if HW else "  [SIM]"))
+                + ("  [FILE REPLAY]" if getattr(self, "debug_offline", False) else ("" if HW else "  [SIM]")))
 
     def do_capture(self):
+        if state["frozen"] and self.review:
+            publish_replay_sync(self._review_rf(self.cur_idx))
         img, vb = self.scene.gl.grab_bmode()
         if img is None:
             return
@@ -4487,12 +5730,14 @@ class Main(QWidget):
         """Dump the whole control state to host/settings/.  Shift attaches a
         note - the one thing the sliders cannot record is what the probe was
         pointed at, and that is usually the first question later."""
-        note = ""
+        note = self.debug_note.text()
         if QApplication.keyboardModifiers() & Qt.ShiftModifier:
             note, ok = QInputDialog.getText(self, "save settings",
                                             "note (what are we looking at?)")
             if not ok:
                 return
+        if state["frozen"] and self.review and not getattr(self, "debug_loading", False):
+            publish_replay_sync(self._review_rf(self.cur_idx))
         path = write_settings(self, note.strip())
         if path is None:
             self.set_lbl.setText("save FAILED - see console")
@@ -4503,6 +5748,7 @@ class Main(QWidget):
 
     # -- frame / status -------------------------------------------------------
     def _tick(self):
+        self.debug_tick()
         self.scene.sync_view()
         gl = self.scene.gl
         if gl.tex_gen != hil["gen"] or gl.rf_tex is None:
@@ -4541,6 +5787,7 @@ class Main(QWidget):
         self.rx_lbl.setText(
             ("band %.1f-%.1f MHz" % (lo / 1e6, hi / 1e6)
              if state["band_on"] else "band off")
+            + (f" · freq-comp x{FREQ_COMP_BANDS}" if state["freq_comp"] else "")
             + (f" · avg {rf_avg.depth()}/{rf_avg.n}" if rf_avg.n > 1 else ""))
         # The jitter number is a MEASUREMENT, so show it whenever it is being
         # taken - the spread is worth reading even with the correction off, and
@@ -4579,31 +5826,43 @@ class Main(QWidget):
         # without any frame being lost, which is what flickering dark patches
         # deeper in the window look like.
         bad = (stats["drops"] or stats["resyncs"] or stats["seq_bad"]
-               or stats["skips"])
+               or stats["skips"] or stats["bad_sweeps"])
         self.status.setText(
-            f" {stats['mbps']:6.1f} MB/s   {stats['fps']/N_ELEM:6.1f} sweeps/s"
+            f" {stats['mbps']:6.1f} MB/s   {stats['sweep_hz']:6.1f} valid sweeps/s"
             f"   frames {stats['frames']}   drops {stats['drops']}"
             f"   resyncs {stats['resyncs']}"
             f"   holes {stats['seq_bad']}/{stats['seq_chk']}"
             f"   skips {stats['skips']}"
+            f"   rejected {stats['bad_sweeps']} sw"
             f"   |  gpu {perf['gpu_ms']:.2f} ms   ui {perf['cpu_ms']:.2f} ms"
             f"   hilbert {perf['hil_ms']:.1f} ms ({FFT_LIB}, off-thread)"
             + ("" if stats["alive"] else "   *** STREAM STOPPED ***"))
         self.status.setStyleSheet(f"color:{WARN_C if bad else OK_C};")
 
     def closeEvent(self, ev):
+        if self.debug_jobs:
+            self.debug_label.setText("Wait for the RF file operation to finish before closing")
+            ev.ignore()
+            return
         stats["alive"] = False
         self.audio.stop()                 # release the device before teardown
         hil_ev.set()                      # let the worker notice and exit
         if HW:
             try:
+                send_cmd(cmd(0x10, 0), "disarm_on_close")
                 send_cmd(cmd(OP_STOP), "stop")
             except SystemExit:
                 pass
-            time.sleep(0.1)
-            for i in range(NBUF):
-                d3.FT_ReleaseOverlapped(h, C.byref(ovs[i]))
-            d3.FT_Close(h)
+            d3.FT_AbortPipe(h, C.c_ubyte(PIPE_IN))
+            reader_thread.join(timeout=2)
+            if not reader_thread.is_alive():
+                for i in range(NBUF):
+                    d3.FT_ReleaseOverlapped(h, C.byref(ovs[i]))
+                d3.FT_Close(h)
+        hilbert_thread.join(timeout=2)
+        if self.debug_session:
+            self.debug_session.close()
+            self.debug_session = None
         ev.accept()
 
 #===============================================================================
@@ -4620,5 +5879,7 @@ if __name__ == "__main__":
     app.setStyleSheet(APP_QSS)
     win = Main()
     win.show()
+    if REPLAY_PATH:
+        QTimer.singleShot(0, lambda: win.debug_open_rf(REPLAY_PATH))
     print("streaming - close the window to stop.")
     sys.exit(app.exec())

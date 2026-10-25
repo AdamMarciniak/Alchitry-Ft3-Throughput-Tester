@@ -79,7 +79,7 @@ module tx_sequencer #(
     parameter integer T_LE_LOW    = 5,        //  50 ns  (t_WL min   5 ns)
     parameter integer T_CS        = 2,        //  20 ns  (t_CS min   3 ns)
 
-    // Floors for the two host-writable waits.  These are the datasheet limits,
+    // Floors for host-writable waits.  These are the datasheet limits,
     // not preferences - a host cannot be allowed to set a value that silently
     // breaks the part:
     //   below T_SETTLE_MIN  the switches have not finished moving when HV
@@ -92,6 +92,7 @@ module tx_sequencer #(
     parameter integer T_INHIBIT_MIN = 450,    // 4.50 us (SPI lockout after HV)
 
     // ---- MD1213 / TC6320 ----------------------------------------------------
+    parameter integer T_DEAD_MIN  = 4,        // 40 ns: TC6320 t_d(OFF)+t_f=35 ns
     parameter integer T_OE_WAIT   = 100_000,  //   1 ms  gate coupling caps
                                               //         (10 nF x 10-50k, tau 100-500 us)
 
@@ -128,6 +129,14 @@ module tx_sequencer #(
     input  wire        clk,
     input  wire        rst,                   // synchronous, active high
 
+    // ADC sample-grid phase from afe_stream: toggles once every 8 samples
+    // (200 ns), always at the same point of the FIFO pair/word grid.  The
+    // burst launch holds for an edge of this so the capture start (slaved to
+    // tx_sync, quantised to a 50 ns word boundary by the async ADC) sits at a
+    // CONSTANT offset instead of a uniform 0-50 ns per-element error.
+    input  wire        adc_sync_tog,
+    input  wire        capture_ready,         // ctrl_decode, same clk domain
+
     // ---- control ------------------------------------------------------------
     input  wire        arm,                   // level. Enables pulse_oe and firing.
     input  wire        start_frame,           // pulse. Run one frame.
@@ -162,6 +171,14 @@ module tx_sequencer #(
     input  wire [5:0]  el_wr_data,
     input  wire [6:0]  cfg_list_len,          // 1 .. LIST_DEPTH
 
+    // ---- per-element transmit trim ------------------------------------------
+    // One 12-bit clk-cycle delay per ELEMENT (not per list slot - the trim is a
+    // property of the wiring and the crystal, so it must follow the element
+    // wherever the list puts it).  See the trim table below for what it fixes.
+    input  wire        tr_wr,
+    input  wire [5:0]  tr_wr_addr,            // element index 0 .. LIST_DEPTH-1
+    input  wire [11:0] tr_wr_data,            // clk cycles, 10 ns each
+
     // ---- pins ---------------------------------------------------------------
     output wire        mux_clk,               // idle 0, shifts on rising edge
     output wire        mux_din,               // idle 0, MSB first
@@ -171,7 +188,9 @@ module tx_sequencer #(
     output wire        pulse_ina,             // idle 0, ACTIVE HIGH -> +HV
     output wire        pulse_inb,             // idle 1, ACTIVE LOW  -> -HV
     output wire        pulse_oe,              // idle 0, driver output enable
-    output reg         tx_sync,               // 1-cycle pulse at start of burst
+    output reg         tx_sync,               // 1-cycle pulse, ADC grid tick that
+                                              // OPENS this element's capture -
+                                              // trim cycles before the HV edge
 
     // ---- status -------------------------------------------------------------
     output wire        busy,
@@ -206,6 +225,7 @@ module tx_sequencer #(
     localparam integer T_LE_LOW_C  = (T_LE_LOW   < 1) ? 1 : T_LE_LOW;
     localparam integer T_CS_C      = (T_CS       < 1) ? 1 : T_CS;
     localparam integer T_OE_WAIT_C = (T_OE_WAIT  < 1) ? 1 : T_OE_WAIT;
+    localparam [15:0]  T_DEAD_FL   = (T_DEAD_MIN < 1) ? 1 : T_DEAD_MIN;
     localparam [23:0]  T_SETTLE_FL = (T_SETTLE_MIN  < 1) ? 1 : T_SETTLE_MIN;
     localparam [23:0]  T_INHIB_FL  = (T_INHIBIT_MIN < 1) ? 1 : T_INHIBIT_MIN;
     localparam [7:0]   SPI_HALF_C  = (SPI_HALF   < 1) ? 1 : SPI_HALF;
@@ -255,6 +275,43 @@ module tx_sequencer #(
         elem_list[li] = (li < N_ELEM) ? li[5:0] : 6'd0;
 
     always @(posedge clk) if (el_wr) elem_list[el_wr_addr] <= el_wr_data;
+
+    //==========================================================================
+    // PER-ELEMENT TRANSMIT TRIM
+    //
+    // What it fixes: with the burst pinned to the ADC grid (adc_tick, below)
+    // the sweep-to-sweep jitter is down to a few ns, but the elements do not
+    // all sit at the same PHASE - measured on the artifact, their zero
+    // crossings differ element to element, and that difference is static.
+    // Cable, mux branch, and the element's own acoustic response all land in
+    // it.  A static per-element phase error is a defocus the beamformer cannot
+    // see, and coherence factor punishes it on the target as hard as on the
+    // clutter, so it is worth a calibration table.
+    //
+    // Why it trims the TRANSMIT and not the range gate: adding the trim to
+    // seq_dly (ctrl_decode's S_DLY) looks like the obvious place and does not
+    // work.  Outside S_RX the ADC FIFO is drained and discarded, so the gate
+    // effectively opens on the next 40 MSPS WORD boundary - a 10 ns trim there
+    // quantises to 50 ns, two whole samples, which is coarser than the error
+    // being corrected.  Delaying the HV edge instead leaves the gate pinned to
+    // the grid where sync_tog put it, and moves the pulse inside the window in
+    // clean 10 ns steps.  Bigger trim = this element fires later = its artifact
+    // and all of its echoes sit LATER (deeper) in the window.
+    //
+    // 12 bits = 0..40.95 us.  Calibration needs a few hundred ns; the rest of
+    // the range is headroom for using the same table as a transmit focal law
+    // later.  The trim only ever LENGTHENS the settle wait, so T_SETTLE_MIN is
+    // untouched by any value a host can write.
+    //==========================================================================
+    (* ram_style = "distributed" *) reg [11:0] trim_tab [0:LIST_DEPTH-1];
+    integer ti;
+    initial for (ti = 0; ti < LIST_DEPTH; ti = ti + 1) trim_tab[ti] = 12'd0;
+
+    always @(posedge clk) if (tr_wr) trim_tab[tr_wr_addr] <= tr_wr_data;
+
+    // element_current is loaded on entry to S_SETTLE, so this asynchronous read
+    // has the whole settle wait - microseconds - to resolve before it is used.
+    wire [11:0] trim_sel = trim_tab[element_current];
 
     //==========================================================================
     // Chirp table.  256 driven-phase widths, one per half cycle, distributed
@@ -551,7 +608,7 @@ module tx_sequencer #(
     // pre-incremented on each load so the NEXT width is settling on the read
     // port for the whole of the current driven phase and dead gap.
     //==========================================================================
-    wire [15:0] t_dead_eff  = (cfg_t_dead  == 16'd0) ? 16'd1 : cfg_t_dead;
+    wire [15:0] t_dead_eff  = (cfg_t_dead < T_DEAD_FL) ? T_DEAD_FL : cfg_t_dead;
     wire [15:0] t_drive_eff = (cfg_t_drive == 16'd0) ? 16'd1 : cfg_t_drive;
     wire [7:0]  n_cyc_eff   = (cfg_n_cycles == 8'd0) ? 8'd1 : cfg_n_cycles;
 
@@ -576,9 +633,29 @@ module tx_sequencer #(
     wire [23:0] rx_win = rx_sum[24] ? 24'hFF_FFFF : rx_sum[23:0];
 
     //==========================================================================
+    // ADC sample-grid tick.  The AFE free-runs against this clock, so a burst
+    // launched on settle expiry alone lands anywhere on the 40 MSPS grid and
+    // the receive window opens with a uniform 0-50 ns error - RANDOM PHASE per
+    // element across the aperture at the beamformer, which is exactly the
+    // per-element jitter the host has been fighting.  Holding the first HV
+    // edge for the next grid tick pins burst-to-grid at a constant offset;
+    // what remains is the ~10 ns quantisation of this synchroniser, and a
+    // constant is calibration (t0), not jitter.
+    //==========================================================================
+    (* ASYNC_REG = "TRUE" *) reg [1:0] adc_ts = 2'b00;
+    reg adc_ts_d = 1'b0;
+    always @(posedge clk) begin
+        adc_ts   <= {adc_ts[0], adc_sync_tog};
+        adc_ts_d <= adc_ts[1];
+    end
+    wire adc_tick = adc_ts[1] ^ adc_ts_d;
+
+    //==========================================================================
     // Sequencer
     //==========================================================================
     reg [23:0] tmr           = T_CLR_C - 1; // general state timer (CLR out of POR)
+    reg [5:0]  grid_wait     = 6'd0;    // cycles spent holding for adc_tick
+    reg        gridded       = 1'b0;    // grid tick seen; tmr now counts the trim
     reg [15:0] btmr          = 16'd0;   // burst phase timer
     reg [8:0]  half_rem      = 9'd0;    // driven half cycles still to fire
     reg [23:0] rx_tmr        = 24'd0;   // receive window, from the end of the burst
@@ -608,7 +685,7 @@ module tx_sequencer #(
     always @(posedge clk) begin
         if (rst)                                       start_pend <= 1'b0;
         else if (start_frame)                          start_pend <= 1'b1;
-        else if ((state == S_READY) && arm && !fault_r) start_pend <= 1'b0;
+        else if ((state == S_READY) && arm && !fault_r && capture_ready && (list_ptr == 6'd0)) start_pend <= 1'b0;
     end
 
     // Shoot-through detection, for the fault latch.  The FSM never produces
@@ -659,6 +736,8 @@ module tx_sequencer #(
         if (rst) begin
             state           <= S_RST;
             tmr             <= T_CLR_C - 1;
+            grid_wait       <= 6'd0;
+            gridded         <= 1'b0;
             clr_r           <= 1'b1;
             le_r            <= 1'b1;
             ina_r           <= 1'b0;
@@ -752,7 +831,7 @@ module tx_sequencer #(
             S_READY: begin
                 list_ptr <= 6'd0;
                 rx_tmr   <= 24'd0;
-                if ((continuous || start_pend) && (list_ptr == 6'd0)) begin
+                if ((continuous || start_pend) && (list_ptr == 6'd0) && capture_ready) begin
                     shift_data    <= chain_word;
                     shift_start   <= 1'b1;
                     elem_pend     <= elem_sel;
@@ -785,7 +864,10 @@ module tx_sequencer #(
             // had the whole receive window to settle through the distributed
             // RAM and mux_code().
             //------------------------------------------------------------------
-            S_WAITRX: if (rx_tmr == 24'd0) begin
+            // Host/FIFO stalls may extend the actual capture beyond rx_tmr.
+            // Hold the current switch selection and keep SPI quiet until the
+            // receiver has drained and completed its configured DAC gap.
+            S_WAITRX: if ((rx_tmr == 24'd0) && capture_ready) begin
                 if (!run) begin
                     state <= S_READY;                // frame finished, draining done
                 end else begin
@@ -811,20 +893,57 @@ module tx_sequencer #(
                          element_current <= elem_pend;
                          half_idx        <= 8'd0;    // table read settles in S_SETTLE
                          tmr             <= t_settle_eff - 24'd1;
-                         state           <= S_SETTLE;
+                         gridded         <= 1'b0;    // S_SETTLE's only entry, so
+                         state           <= S_SETTLE; // clearing here covers every
+                                                     // disarm/trip exit path too
                      end
 
             //------------------------------------------------------------------
             // t_ON / t_OFF.  The analog node must be quiet at ground for this
             // entire interval - nothing else may happen here.
+            //
+            // After the timer, hold for the next ADC grid tick so the CAPTURE
+            // WINDOW lands at a fixed phase of the sample grid (see adc_tick
+            // above).  Ticks arrive every 200 ns; the 63-cycle (630 ns) bound
+            // covers three tick periods, so a dead AFE stream degrades to the
+            // old unaligned launch instead of hanging the sequencer - the
+            // pulser must keep firing with no ADC just as it does with no
+            // host.  The hold only ever LENGTHENS the settle, so the datasheet
+            // floor T_SETTLE_MIN is untouched.
+            //
+            // tx_sync is issued AT the tick and the HV edge is then held off a
+            // further trim_sel cycles (see the trim table above).  That split
+            // is the whole point: the gate is slaved to tx_sync and re-quantises
+            // to a 50 ns ADC word boundary, so it must stay on the grid, while
+            // the pulse is free to move against it in 10 ns steps.  gridded
+            // marks the changeover - before it, tmr is the settle wait; after
+            // it, tmr is the trim.  Both live in S_SETTLE because that is what
+            // the trim physically IS: more settle before the shot.  Worst case
+            // adds 41 us to a state the watchdog gives 200 ms.
             //------------------------------------------------------------------
-            S_SETTLE: if (tmr != 24'd0) tmr <= tmr - 24'd1;
-                      else begin
+            S_SETTLE: if (!gridded) begin
+                          if (tmr != 24'd0) begin
+                              tmr       <= tmr - 24'd1;
+                              grid_wait <= 6'd0;
+                          end else if (!capture_ready) begin
+                              // Recheck immediately before reserving a shot.
+                              // Waiting must not consume the sample-grid timeout.
+                              grid_wait <= 6'd0;
+                          end else if (!adc_tick && (grid_wait != 6'd63)) begin
+                              grid_wait <= grid_wait + 6'd1;
+                          end else begin
+                              tx_sync <= 1'b1;       // the gate opens from here
+                              gridded <= 1'b1;
+                              tmr     <= {12'd0, trim_sel};
+                          end
+                      end else if (tmr != 24'd0) begin
+                          tmr <= tmr - 24'd1;
+                      end else begin
                           half_rem <= total_half - 9'd1;
                           half_idx <= 8'd1;          // prefetch the next width
                           btmr     <= half_drive - 16'd1;
                           ina_r    <= 1'b1;          // ina 0->1 only: idle -> +HV
-                          tx_sync  <= 1'b1;
+                          gridded  <= 1'b0;
                           state    <= S_FIRE_P;
                       end
 

@@ -27,3 +27,18 @@ dfx_runtime.txt
 # tfm_gl_host "save settings" dumps (JSON + PNG per press).  Drop this line if
 # you want the settings history versioned - the PNGs are what make it heavy.
 host/settings/
+
+# Raw ultrasound debug recordings and generated analysis reports
+*.rf.npz
+*.report.json
+
+# Frozen FPGA builds, bench control queues, RF and experiment artifacts
+bench_runs/
+
+# Local scratch files, acquisition output, and regenerable synthesis output
+tmp/
+host/noise_captures/
+/rf-report.json
+/__synthesis_is_complete__
+/*.dcp
+/*_utilization_synth.rpt

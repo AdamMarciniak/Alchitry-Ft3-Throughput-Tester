@@ -1,0 +1,48 @@
+{
+  "snapshot_date": "2026-10-25",
+  "selection": "Owner could not identify the last loaded BIN and requested preservation of all candidates.",
+  "candidates": [
+    {
+      "directory": "last-recorded-programmed-8841d2b2",
+      "original_path": "bench_runs/builds/20260908T012733Z-41017f",
+      "status": "Last recorded programming: AuV2 RAM on 2026-09-09. Not a flash readback.",
+      "bin_sha256": "6f7e80094628b0f031361ec0a21939ec0ad7ec2ef4b7297ae14e82370f9ef67f",
+      "bin_bytes": 913472,
+      "original_bin_modified_utc": "2026-09-08T01:30:53.370308+00:00",
+      "runtime_build_id": "8841d2b2"
+    },
+    {
+      "directory": "vivado-output-2026-09-07",
+      "original_path": "usb3-tester.runs/impl_1/alchitry_top.bin",
+      "status": "Existing Vivado implementation output. No programming receipt identifies whether it is the persistent flash image.",
+      "bin_sha256": "ee5ac97ee4706bd7cc8c6afb1ac54a04d05bc9b8b97197d99b07dfd41ea47d1d",
+      "bin_bytes": 896684,
+      "original_bin_modified_utc": "2026-09-08T03:13:30.708521+00:00"
+    },
+    {
+      "directory": "latest-built-ae607960",
+      "original_path": "bench_runs/builds/20260910T045007Z-eee5ed",
+      "status": "Latest checked build; documentation explicitly says it was not programmed or physically tested in that change.",
+      "bin_sha256": "ebd10de596b3fc596f427690d759e4b823c57c4af05be7b61df080f5c18369a3",
+      "bin_bytes": 931980,
+      "original_bin_modified_utc": "2026-09-10T04:53:55.949211+00:00",
+      "runtime_build_id": "ae607960"
+    },
+    {
+      "directory": "earlier-checked-build",
+      "original_path": "bench_runs/builds/20260908T005728Z-811741",
+      "status": "Earlier checked build, retained as an additional recovery candidate.",
+      "bin_sha256": "5a8781ebf7531e2726ca8332768e08e58f0fafe2667b173ca844d45c3eae23f7",
+      "bin_bytes": 906628,
+      "original_bin_modified_utc": "2026-09-08T01:01:11.651114+00:00"
+    },
+    {
+      "directory": "legacy-tracked-2026-08-02",
+      "original_path": "bitstreams/alchitry_top.bin",
+      "status": "Previously tracked BIN, retained unchanged; older than the other candidates.",
+      "bin_sha256": "46917e0106571d8b8e04a4a99a4ed0ee2cd9a111b2299249e84d3d3fac3a3209",
+      "bin_bytes": 915260,
+      "original_bin_modified_utc": "2026-08-03T03:12:18.121282+00:00"
+    }
+  ]
+}

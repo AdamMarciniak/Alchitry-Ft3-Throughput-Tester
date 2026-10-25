@@ -1,0 +1,16 @@
+{
+  "state": "programmed",
+  "build_dir": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\builds\\20260908T012733Z-41017f",
+  "bitstream_sha256": "6f7e80094628b0f031361ec0a21939ec0ad7ec2ef4b7297ae14e82370f9ef67f",
+  "programmed_utc": "2026-09-09T16:34:39.895464+00:00",
+  "capabilities": [
+    "boot_disarmed",
+    "tx_lease_v1",
+    "runtime_info_v1"
+  ],
+  "board": "AuV2",
+  "device_index": 0,
+  "manifest_sha256": "2bd6388e370da7b42f757482add3222d93c1460b35d0912c8a612416e7547687",
+  "runtime_build_id": "8841d2b2",
+  "provenance_note": "Uploader operation and file hashes; host verifies runtime build tag before each capture"
+}

@@ -1,0 +1,2 @@
+# Recovery artifacts and frozen inputs must retain their original bytes.
+recovery/2026-10-25/** -text

@@ -27,7 +27,17 @@ module afe_stream (
     input  wire        rd_clk,
     input  wire        rd_en,
     output wire [31:0] dout,
-    output wire        empty
+    output wire        empty,
+
+    // Sample-grid phase reference for tx_sequencer.  The AFE runs on its own
+    // oscillator, so this grid free-runs against clk_in; a burst launched from
+    // the clk_in domain lands anywhere on it, and the capture window (which
+    // can only start on a FIFO-word boundary) picks up a uniform 0-50 ns error
+    // per element.  This toggles once every 8 samples - always at the same
+    // point of the pair/word grid, since pairing is slaved to the same seq
+    // counter - so the sequencer can pin its first HV edge to the grid and the
+    // error collapses to one constant absorbed by t0.
+    output wire        sync_tog
 );
 
     //--------------------------------------------------------------------------
@@ -48,6 +58,8 @@ module afe_stream (
     wire        wfull;
     wire        wr_rst_busy;
 
+    reg sync_r = 1'b0;
+
     always @(posedge samp_clk) begin
         wpush <= 1'b0;
         if (rst_s) begin
@@ -55,6 +67,10 @@ module afe_stream (
             have0 <= 1'b0;
         end else if (samp_val) begin
             seq <= seq + 1'b1;
+            // seq[2:0] == 7 is the closing sample of a pair (pairs are formed
+            // at even seq), so the toggle sits at a fixed offset from the word
+            // boundary by construction - the only property that matters.
+            if (seq[2:0] == 3'd7) sync_r <= ~sync_r;
             if (!have0) begin
                 low   <= {seq, samp};
                 have0 <= 1'b1;
@@ -66,15 +82,24 @@ module afe_stream (
         end
     end
 
+    assign sync_tog = sync_r;
+
     //--------------------------------------------------------------------------
     // CDC FIFO: samp_clk (80 MHz write) -> rd_clk (100 MHz read).
-    // 20 Mwords/s sustained; 1024 deep = 51 us of slack.
+    // 20 Mwords/s sustained; 4096 deep = 205 us of slack - longer than any
+    // receive window in use, so a bus stall now has to outlast the WHOLE
+    // window before samples are dropped.  At 1024 (51 us) the `holes` counter
+    // was catching ~1% of windows losing samples mid-trace at 10 cm: the frame
+    // still arrived well-formed, but everything after the hole sat at the
+    // wrong depth, and the shift changed frame to frame - flickering,
+    // depth-smeared clutter that no host arithmetic can undo.  BRAM is 12%
+    // used; these three extra RAMB36 are the cheapest image quality on the die.
     //--------------------------------------------------------------------------
     xpm_fifo_async #(
         .FIFO_MEMORY_TYPE ("block"),
         .WRITE_DATA_WIDTH (32),
         .READ_DATA_WIDTH  (32),
-        .FIFO_WRITE_DEPTH (1024),
+        .FIFO_WRITE_DEPTH (4096),
         .READ_MODE        ("fwft"),
         .FIFO_READ_LATENCY(0),
         .USE_ADV_FEATURES ("1000"),
