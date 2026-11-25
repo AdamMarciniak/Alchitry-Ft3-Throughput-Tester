@@ -1,0 +1,486 @@
+{
+  "session": "flat-trim-tgc1600-dly15",
+  "valid_frames": 24,
+  "elements": [
+    {
+      "element": 0,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.79771089553833,
+      "wire_peak": 9.0,
+      "quiet_rms": 4.132132530212402,
+      "quiet_peak": 7.0,
+      "bottom_rms": 126.9420166015625,
+      "bottom_peak": 1150.0
+    },
+    {
+      "element": 1,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.66351318359375,
+      "wire_peak": 9.0,
+      "quiet_rms": 4.04228401184082,
+      "quiet_peak": 7.0,
+      "bottom_rms": 154.81396484375,
+      "bottom_peak": 1467.0
+    },
+    {
+      "element": 2,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.693449020385742,
+      "wire_peak": 9.0,
+      "quiet_rms": 5.24805212020874,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.54232120513916,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 3,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.383486270904541,
+      "wire_peak": 9.0,
+      "quiet_rms": 5.0261454582214355,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.4810662269592285,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 4,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.40019416809082,
+      "wire_peak": 12.0,
+      "quiet_rms": 3.873023271560669,
+      "quiet_peak": 7.0,
+      "bottom_rms": 148.55224609375,
+      "bottom_peak": 1377.0
+    },
+    {
+      "element": 5,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.816835403442383,
+      "wire_peak": 14.0,
+      "quiet_rms": 4.071200847625732,
+      "quiet_peak": 7.0,
+      "bottom_rms": 137.572998046875,
+      "bottom_peak": 1291.0
+    },
+    {
+      "element": 6,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.672035217285156,
+      "wire_peak": 9.0,
+      "quiet_rms": 5.209465503692627,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.527248382568359,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 7,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.367286205291748,
+      "wire_peak": 8.0,
+      "quiet_rms": 5.043717384338379,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.504029273986816,
+      "bottom_peak": 7.0
+    },
+    {
+      "element": 8,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.782463073730469,
+      "wire_peak": 13.0,
+      "quiet_rms": 4.098018169403076,
+      "quiet_peak": 7.0,
+      "bottom_rms": 98.39746856689453,
+      "bottom_peak": 987.0
+    },
+    {
+      "element": 9,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.785989284515381,
+      "wire_peak": 12.0,
+      "quiet_rms": 4.073592662811279,
+      "quiet_peak": 7.0,
+      "bottom_rms": 129.0628204345703,
+      "bottom_peak": 1242.0
+    },
+    {
+      "element": 10,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.7630181312561035,
+      "wire_peak": 13.0,
+      "quiet_rms": 4.023921489715576,
+      "quiet_peak": 7.0,
+      "bottom_rms": 155.86997985839844,
+      "bottom_peak": 1494.0
+    },
+    {
+      "element": 11,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.882632732391357,
+      "wire_peak": 16.0,
+      "quiet_rms": 4.083268642425537,
+      "quiet_peak": 7.0,
+      "bottom_rms": 147.8111572265625,
+      "bottom_peak": 1477.0
+    },
+    {
+      "element": 12,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.809770584106445,
+      "wire_peak": 14.0,
+      "quiet_rms": 4.073829650878906,
+      "quiet_peak": 7.0,
+      "bottom_rms": 134.95541381835938,
+      "bottom_peak": 1271.0
+    },
+    {
+      "element": 13,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.816148281097412,
+      "wire_peak": 12.0,
+      "quiet_rms": 4.066184997558594,
+      "quiet_peak": 7.0,
+      "bottom_rms": 128.39146423339844,
+      "bottom_peak": 1183.0
+    },
+    {
+      "element": 14,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.804919242858887,
+      "wire_peak": 16.0,
+      "quiet_rms": 4.012233734130859,
+      "quiet_peak": 7.0,
+      "bottom_rms": 133.50100708007812,
+      "bottom_peak": 1224.0
+    },
+    {
+      "element": 15,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.830298900604248,
+      "wire_peak": 15.0,
+      "quiet_rms": 3.9857118129730225,
+      "quiet_peak": 7.0,
+      "bottom_rms": 140.1066131591797,
+      "bottom_peak": 1266.0
+    },
+    {
+      "element": 16,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.920584678649902,
+      "wire_peak": 15.0,
+      "quiet_rms": 4.094432353973389,
+      "quiet_peak": 7.0,
+      "bottom_rms": 114.6673583984375,
+      "bottom_peak": 1005.0
+    },
+    {
+      "element": 17,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.95360803604126,
+      "wire_peak": 19.0,
+      "quiet_rms": 3.9927849769592285,
+      "quiet_peak": 7.0,
+      "bottom_rms": 110.22290802001953,
+      "bottom_peak": 1049.0
+    },
+    {
+      "element": 18,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.668817520141602,
+      "wire_peak": 9.0,
+      "quiet_rms": 5.20353364944458,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.5389509201049805,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 19,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.352022171020508,
+      "wire_peak": 8.0,
+      "quiet_rms": 5.030534267425537,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.4872331619262695,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 20,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.496663570404053,
+      "wire_peak": 14.0,
+      "quiet_rms": 3.78412127494812,
+      "quiet_peak": 7.0,
+      "bottom_rms": 124.3219223022461,
+      "bottom_peak": 1172.0
+    },
+    {
+      "element": 21,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.937084674835205,
+      "wire_peak": 20.0,
+      "quiet_rms": 3.9846935272216797,
+      "quiet_peak": 7.0,
+      "bottom_rms": 134.25094604492188,
+      "bottom_peak": 1258.0
+    },
+    {
+      "element": 22,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.633457183837891,
+      "wire_peak": 9.0,
+      "quiet_rms": 5.177358627319336,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.5310282707214355,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 23,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.345488548278809,
+      "wire_peak": 8.0,
+      "quiet_rms": 4.992077827453613,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.4648308753967285,
+      "bottom_peak": 7.0
+    },
+    {
+      "element": 24,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.812262535095215,
+      "wire_peak": 17.0,
+      "quiet_rms": 3.9305288791656494,
+      "quiet_peak": 7.0,
+      "bottom_rms": 132.3567657470703,
+      "bottom_peak": 1204.0
+    },
+    {
+      "element": 25,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.075741291046143,
+      "wire_peak": 8.0,
+      "quiet_rms": 4.73602819442749,
+      "quiet_peak": 7.0,
+      "bottom_rms": 4.391417503356934,
+      "bottom_peak": 7.0
+    },
+    {
+      "element": 26,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.323746204376221,
+      "wire_peak": 17.0,
+      "quiet_rms": 4.245282173156738,
+      "quiet_peak": 7.0,
+      "bottom_rms": 148.200439453125,
+      "bottom_peak": 1429.0
+    },
+    {
+      "element": 27,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.0313496589660645,
+      "wire_peak": 19.0,
+      "quiet_rms": 4.045084476470947,
+      "quiet_peak": 7.0,
+      "bottom_rms": 133.14720153808594,
+      "bottom_peak": 1318.0
+    },
+    {
+      "element": 28,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.050235748291016,
+      "wire_peak": 19.0,
+      "quiet_rms": 4.057887554168701,
+      "quiet_peak": 7.0,
+      "bottom_rms": 125.55732727050781,
+      "bottom_peak": 1187.0
+    },
+    {
+      "element": 29,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.924095153808594,
+      "wire_peak": 17.0,
+      "quiet_rms": 4.015815734863281,
+      "quiet_peak": 7.0,
+      "bottom_rms": 124.92416381835938,
+      "bottom_peak": 1123.0
+    },
+    {
+      "element": 30,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.968320846557617,
+      "wire_peak": 16.0,
+      "quiet_rms": 4.057658672332764,
+      "quiet_peak": 7.0,
+      "bottom_rms": 126.0741195678711,
+      "bottom_peak": 1121.0
+    },
+    {
+      "element": 31,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.83908224105835,
+      "wire_peak": 14.0,
+      "quiet_rms": 4.031924724578857,
+      "quiet_peak": 7.0,
+      "bottom_rms": 113.49021911621094,
+      "bottom_peak": 1048.0
+    },
+    {
+      "element": 32,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.0646772384643555,
+      "wire_peak": 15.0,
+      "quiet_rms": 4.214267253875732,
+      "quiet_peak": 7.0,
+      "bottom_rms": 121.09017944335938,
+      "bottom_peak": 1123.0
+    },
+    {
+      "element": 33,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.018902778625488,
+      "wire_peak": 18.0,
+      "quiet_rms": 4.078665733337402,
+      "quiet_peak": 7.0,
+      "bottom_rms": 135.7532501220703,
+      "bottom_peak": 1194.0
+    },
+    {
+      "element": 34,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.058904647827148,
+      "wire_peak": 18.0,
+      "quiet_rms": 4.060267925262451,
+      "quiet_peak": 7.0,
+      "bottom_rms": 149.08837890625,
+      "bottom_peak": 1318.0
+    },
+    {
+      "element": 35,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.372579097747803,
+      "wire_peak": 23.0,
+      "quiet_rms": 4.148609638214111,
+      "quiet_peak": 7.0,
+      "bottom_rms": 145.67181396484375,
+      "bottom_peak": 1361.0
+    },
+    {
+      "element": 36,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.979060173034668,
+      "wire_peak": 19.0,
+      "quiet_rms": 4.015017032623291,
+      "quiet_peak": 7.0,
+      "bottom_rms": 125.05816650390625,
+      "bottom_peak": 1231.0
+    },
+    {
+      "element": 37,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.06298303604126,
+      "wire_peak": 18.0,
+      "quiet_rms": 4.0592875480651855,
+      "quiet_peak": 7.0,
+      "bottom_rms": 120.77752685546875,
+      "bottom_peak": 1149.0
+    },
+    {
+      "element": 38,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.08980655670166,
+      "wire_peak": 20.0,
+      "quiet_rms": 4.083069801330566,
+      "quiet_peak": 7.0,
+      "bottom_rms": 141.8018341064453,
+      "bottom_peak": 1331.0
+    },
+    {
+      "element": 39,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.299877166748047,
+      "wire_peak": 23.0,
+      "quiet_rms": 4.07428503036499,
+      "quiet_peak": 8.0,
+      "bottom_rms": 163.88995361328125,
+      "bottom_peak": 1512.0
+    },
+    {
+      "element": 40,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.268280982971191,
+      "wire_peak": 20.0,
+      "quiet_rms": 4.067287445068359,
+      "quiet_peak": 7.0,
+      "bottom_rms": 159.30747985839844,
+      "bottom_peak": 1411.0
+    },
+    {
+      "element": 41,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.084613800048828,
+      "wire_peak": 19.0,
+      "quiet_rms": 4.010865688323975,
+      "quiet_peak": 7.0,
+      "bottom_rms": 152.53927612304688,
+      "bottom_peak": 1361.0
+    },
+    {
+      "element": 42,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.229793071746826,
+      "wire_peak": 20.0,
+      "quiet_rms": 4.065290927886963,
+      "quiet_peak": 7.0,
+      "bottom_rms": 155.93817138671875,
+      "bottom_peak": 1439.0
+    },
+    {
+      "element": 43,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.168300628662109,
+      "wire_peak": 20.0,
+      "quiet_rms": 4.032950401306152,
+      "quiet_peak": 7.0,
+      "bottom_rms": 158.65257263183594,
+      "bottom_peak": 1490.0
+    },
+    {
+      "element": 44,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.136050224304199,
+      "wire_peak": 19.0,
+      "quiet_rms": 4.002386093139648,
+      "quiet_peak": 7.0,
+      "bottom_rms": 158.83070373535156,
+      "bottom_peak": 1466.0
+    },
+    {
+      "element": 45,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.029961585998535,
+      "wire_peak": 19.0,
+      "quiet_rms": 3.9995458126068115,
+      "quiet_peak": 7.0,
+      "bottom_rms": 157.42373657226562,
+      "bottom_peak": 1457.0
+    },
+    {
+      "element": 46,
+      "clipped_fraction": 0.0,
+      "wire_rms": 5.826756000518799,
+      "wire_peak": 9.0,
+      "quiet_rms": 5.312621593475342,
+      "quiet_peak": 8.0,
+      "bottom_rms": 4.574987888336182,
+      "bottom_peak": 8.0
+    },
+    {
+      "element": 47,
+      "clipped_fraction": 0.0,
+      "wire_rms": 4.897489547729492,
+      "wire_peak": 19.0,
+      "quiet_rms": 3.8513665199279785,
+      "quiet_peak": 7.0,
+      "bottom_rms": 150.0011444091797,
+      "bottom_peak": 1376.0
+    }
+  ]
+}

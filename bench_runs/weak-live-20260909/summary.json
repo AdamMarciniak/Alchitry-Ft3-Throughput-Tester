@@ -1,0 +1,6892 @@
+{
+  "status": "completed physical water-bath acquisition and processing study",
+  "physical_captures": 9,
+  "physical_sweeps": 768,
+  "physical_rf_reconstructions": 74,
+  "derived_time_gate_reconstructions": 4,
+  "runtime_build_id": "8841d2b2",
+  "selected_water_capture": "validation-1800-b",
+  "selected_water_render": "validation-1800-b-f80-gentle",
+  "captures": [
+    {
+      "capture": "baseline-1600",
+      "frames": 64,
+      "tgc": 1600,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 64,
+      "max_adc_counts": 1210.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.31751212741268253,
+      "quiet_median_temporal_residual_counts": 0.31678591116740046,
+      "healthy_median_repeatable_rms_counts": 0.0723852066389436,
+      "rf_sha256": "ce09b100209dcd3b75264e7bb2a6ab6a60175a0dec17287d9c6b249325e631bc",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "gain-1200",
+      "frames": 64,
+      "tgc": 1200,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 64,
+      "max_adc_counts": 649.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.3017576783757273,
+      "quiet_median_temporal_residual_counts": 0.300696049893303,
+      "healthy_median_repeatable_rms_counts": 0.0521063112546502,
+      "rf_sha256": "5da51c1ea960569abaec11eeb73bf8df8e1ef9a091d20e2b4783c09833c28d8a",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "gain-1400",
+      "frames": 64,
+      "tgc": 1400,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 64,
+      "max_adc_counts": 894.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.3082210082575498,
+      "quiet_median_temporal_residual_counts": 0.3084405373180404,
+      "healthy_median_repeatable_rms_counts": 0.06162639790086359,
+      "rf_sha256": "c656e53230df1e8bc9b2ec8a7fa8d45d914ca300a947d7f9a6c79932cc115ad5",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "gain-1600",
+      "frames": 64,
+      "tgc": 1600,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 64,
+      "max_adc_counts": 1221.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.31607654220526343,
+      "quiet_median_temporal_residual_counts": 0.3174437186544686,
+      "healthy_median_repeatable_rms_counts": 0.07310803268115146,
+      "rf_sha256": "67c75829ddf1062c39dce1038a05f8ab4d03094a810c71462ac964529ef8450e",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "gain-1800",
+      "frames": 64,
+      "tgc": 1800,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 64,
+      "max_adc_counts": 1578.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.3269746061044082,
+      "quiet_median_temporal_residual_counts": 0.3275699694750485,
+      "healthy_median_repeatable_rms_counts": 0.09502111260144286,
+      "rf_sha256": "ed849ffb403b0d51c58253b12668009db4b78ec9124173f8d72250f852e8c541",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "gain-2000",
+      "frames": 64,
+      "tgc": 2000,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 64,
+      "max_adc_counts": 2048.0,
+      "clipped_channels": [
+        32,
+        33,
+        34,
+        40,
+        44,
+        45,
+        47
+      ],
+      "healthy_median_temporal_residual_counts": 0.3494424513144879,
+      "quiet_median_temporal_residual_counts": 0.34644397161700025,
+      "healthy_median_repeatable_rms_counts": 0.12782637130778127,
+      "rf_sha256": "3cda031ceac5f5004af92c7be6e37bafff7858bcd5bc7b602fd9b796a375d329",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "validation-1600",
+      "frames": 128,
+      "tgc": 1600,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 128,
+      "max_adc_counts": 1224.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.31795751771097125,
+      "quiet_median_temporal_residual_counts": 0.31786787767079294,
+      "healthy_median_repeatable_rms_counts": 0.07053280252980298,
+      "rf_sha256": "d0be716117289de75bf929bf1162dbaca767502832f411f0f3c581c3d4fae350",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "validation-1800-a",
+      "frames": 128,
+      "tgc": 1800,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 128,
+      "max_adc_counts": 1592.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.3284816356400117,
+      "quiet_median_temporal_residual_counts": 0.3292372805794645,
+      "healthy_median_repeatable_rms_counts": 0.08778711547239376,
+      "rf_sha256": "802d4f9e345dd880b7b3be1327a3041cb4069f051fab441ff81475601116ea0d",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    },
+    {
+      "capture": "validation-1800-b",
+      "frames": 128,
+      "tgc": 1800,
+      "runtime_build_id": "8841d2b2",
+      "valid_frames": 128,
+      "max_adc_counts": 1581.0,
+      "clipped_channels": [],
+      "healthy_median_temporal_residual_counts": 0.32865925957113135,
+      "quiet_median_temporal_residual_counts": 0.3283402306657629,
+      "healthy_median_repeatable_rms_counts": 0.08712085000398365,
+      "rf_sha256": "04b09c016db3de6c7e506e8ce0c988bf2ce97b2d1f81ae22af5b2aff23d1b2b8",
+      "note": "2â€“5 MHz filtered, 47â€“60 mm axial sample gate. Temporal residual includes motion and timing variation; not an isolated electronics-noise measurement."
+    }
+  ],
+  "display_checks": [
+    {
+      "dyn_db": 70,
+      "gain_db": 40,
+      "relative_black_threshold_db": -110,
+      "bottom_white_fraction": 0.05942622950819672,
+      "all_black_fraction": 0.202685546875,
+      "max_gray": 1.0
+    },
+    {
+      "dyn_db": 80,
+      "gain_db": 30,
+      "relative_black_threshold_db": -110,
+      "bottom_white_fraction": 0.015198087431693989,
+      "all_black_fraction": 0.202685546875,
+      "max_gray": 1.0
+    },
+    {
+      "dyn_db": 90,
+      "gain_db": 20,
+      "relative_black_threshold_db": -110,
+      "bottom_white_fraction": 0.001223816029143898,
+      "all_black_fraction": 0.202685546875,
+      "max_gray": 1.0
+    },
+    {
+      "dyn_db": 95,
+      "gain_db": 15,
+      "relative_black_threshold_db": -110,
+      "bottom_white_fraction": 0.0,
+      "all_black_fraction": 0.202685546875,
+      "max_gray": 0.966063380241394
+    },
+    {
+      "dyn_db": 100,
+      "gain_db": 10,
+      "relative_black_threshold_db": -110,
+      "bottom_white_fraction": 0.0,
+      "all_black_fraction": 0.202685546875,
+      "max_gray": 0.9177602529525757
+    }
+  ],
+  "paired_checks": [
+    {
+      "source": "validation-1800-a",
+      "frame": 8,
+      "wire_amplitude_retained": 0.9738917685231743,
+      "right_feature_amplitude_retained": 0.9448924921052596,
+      "left_feature_amplitude_retained": 0.8740340698985823,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-a",
+      "frame": 40,
+      "wire_amplitude_retained": 0.9747214730602938,
+      "right_feature_amplitude_retained": 0.9528600156921676,
+      "left_feature_amplitude_retained": 0.9724275378454018,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-a",
+      "frame": 80,
+      "wire_amplitude_retained": 0.9842323964668139,
+      "right_feature_amplitude_retained": 0.9888694321176652,
+      "left_feature_amplitude_retained": 0.9341015321191515,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-a",
+      "frame": 112,
+      "wire_amplitude_retained": 1.0057741677614807,
+      "right_feature_amplitude_retained": 0.9822431312600836,
+      "left_feature_amplitude_retained": 0.9201895936301331,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1600",
+      "frame": 8,
+      "wire_amplitude_retained": 0.9749444851887503,
+      "right_feature_amplitude_retained": 0.9427341848280603,
+      "left_feature_amplitude_retained": 0.9567821248392381,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1600",
+      "frame": 40,
+      "wire_amplitude_retained": 0.958251653559175,
+      "right_feature_amplitude_retained": 0.9873046275564207,
+      "left_feature_amplitude_retained": 0.9645811236075752,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1600",
+      "frame": 80,
+      "wire_amplitude_retained": 0.9921281896325737,
+      "right_feature_amplitude_retained": 0.9202711493552739,
+      "left_feature_amplitude_retained": 0.8935192271646571,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1600",
+      "frame": 112,
+      "wire_amplitude_retained": 0.9835918873687495,
+      "right_feature_amplitude_retained": 1.0013512180663677,
+      "left_feature_amplitude_retained": 0.7498260758147374,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-b",
+      "frame": 8,
+      "wire_amplitude_retained": 0.9810312422183284,
+      "right_feature_amplitude_retained": 0.9559234069349493,
+      "left_feature_amplitude_retained": 0.8416801349789063,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-b",
+      "frame": 40,
+      "wire_amplitude_retained": 0.9638887094677405,
+      "right_feature_amplitude_retained": 0.9404129770749402,
+      "left_feature_amplitude_retained": 0.8833766162081819,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-b",
+      "frame": 80,
+      "wire_amplitude_retained": 0.9671266029021243,
+      "right_feature_amplitude_retained": 0.9176735326987249,
+      "left_feature_amplitude_retained": 0.8896709251329848,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    },
+    {
+      "source": "validation-1800-b",
+      "frame": 112,
+      "wire_amplitude_retained": 0.9770644495079049,
+      "right_feature_amplitude_retained": 0.9900735204170221,
+      "left_feature_amplitude_retained": 0.8687328049025702,
+      "note": "Side features are consistent with wire sidelobes, not verified weak independent targets."
+    }
+  ],
+  "trials": [
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "baseline-1600-avg1",
+      "measurements": {
+        "trial": "baseline-1600-avg1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 73.36795806884766,
+          "normalized_peak": 0.0007541936479116741,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.9208295345306396,
+          "local_db": 28.000004416283673
+        },
+        "faint_right": {
+          "peak": 11.886412620544434,
+          "normalized_peak": 0.00012218762973421497,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 1.9597636461257935,
+          "local_db": 15.65694209871449
+        },
+        "faint_left": {
+          "peak": 5.776641368865967,
+          "normalized_peak": 5.938159301877022e-05,
+          "position_mm": [
+            -20.576171875,
+            36.171875
+          ],
+          "local_rms": 1.6427634954452515,
+          "local_db": 10.922007248734252
+        },
+        "quiet_rms": 1.8700308799743652,
+        "arc_p99_relative_db": -16.137407302856445
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 16,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "baseline-1600-avg16",
+      "measurements": {
+        "trial": "baseline-1600-avg16",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 70.09980773925781,
+          "normalized_peak": 0.0007205983525828311,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.505310535430908,
+          "local_db": 28.937105242415694
+        },
+        "faint_right": {
+          "peak": 11.322139739990234,
+          "normalized_peak": 0.00011638712726141277,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.5712177753448486,
+          "local_db": 17.153842540768785
+        },
+        "faint_left": {
+          "peak": 5.334110260009766,
+          "normalized_peak": 5.483254790306091e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.4414609670639038,
+          "local_db": 11.365182037918842
+        },
+        "quiet_rms": 0.6063109636306763,
+        "arc_p99_relative_db": -16.420665740966797
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "baseline-1600-avg2",
+      "measurements": {
+        "trial": "baseline-1600-avg2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 72.01692199707031,
+          "normalized_peak": 0.0007403055303975155,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.698456048965454,
+          "local_db": 28.526384135784152
+        },
+        "faint_right": {
+          "peak": 11.557744026184082,
+          "normalized_peak": 0.0001188090463217936,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.7541571855545044,
+          "local_db": 16.37609129908212
+        },
+        "faint_left": {
+          "peak": 5.850979804992676,
+          "normalized_peak": 6.014576279803326e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.4269102811813354,
+          "local_db": 12.256638639415314
+        },
+        "quiet_rms": 1.3828656673431396,
+        "arc_p99_relative_db": -16.500471115112305
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 8,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "baseline-1600-avg8",
+      "measurements": {
+        "trial": "baseline-1600-avg8",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 70.5115737915039,
+          "normalized_peak": 0.0007248311450606898,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.6059720516204834,
+          "local_db": 28.645813087356842
+        },
+        "faint_right": {
+          "peak": 11.190051078796387,
+          "normalized_peak": 0.00011502930796460102,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.594249963760376,
+          "local_db": 16.925513063061395
+        },
+        "faint_left": {
+          "peak": 5.416011333465576,
+          "normalized_peak": 5.5674458608815545e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.4603976011276245,
+          "local_db": 11.384169071540791
+        },
+        "quiet_rms": 0.7694529891014099,
+        "arc_p99_relative_db": -16.42430877685547
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 2,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "baseline-cfmap"
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\baseline-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "baseline-das"
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 10,
+          "dyn_db": 100,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "display-100-10",
+      "measurements": {
+        "trial": "display-100-10",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 87.27143859863281,
+          "normalized_peak": 0.0008971159395418669,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.7841389179229736,
+          "local_db": 29.923624677957243
+        },
+        "faint_right": {
+          "peak": 13.865388870239258,
+          "normalized_peak": 0.00014253072440624238,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.7253867387771606,
+          "local_db": 18.100911972073554
+        },
+        "faint_left": {
+          "peak": 6.024282932281494,
+          "normalized_peak": 6.192725053743312e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.586229681968689,
+          "local_db": 11.590785763759586
+        },
+        "quiet_rms": 1.2463312149047852,
+        "arc_p99_relative_db": -17.555419921875
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "display-70-40",
+      "measurements": {
+        "trial": "display-70-40",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 87.27143859863281,
+          "normalized_peak": 0.0008971159395418669,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.7841389179229736,
+          "local_db": 29.923624677957243
+        },
+        "faint_right": {
+          "peak": 13.865388870239258,
+          "normalized_peak": 0.00014253072440624238,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.7253867387771606,
+          "local_db": 18.100911972073554
+        },
+        "faint_left": {
+          "peak": 6.024282932281494,
+          "normalized_peak": 6.192725053743312e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.586229681968689,
+          "local_db": 11.590785763759586
+        },
+        "quiet_rms": 1.2463312149047852,
+        "arc_p99_relative_db": -17.555419921875
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 30,
+          "dyn_db": 80,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "display-80-30",
+      "measurements": {
+        "trial": "display-80-30",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 87.27143859863281,
+          "normalized_peak": 0.0008971159395418669,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.7841389179229736,
+          "local_db": 29.923624677957243
+        },
+        "faint_right": {
+          "peak": 13.865388870239258,
+          "normalized_peak": 0.00014253072440624238,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.7253867387771606,
+          "local_db": 18.100911972073554
+        },
+        "faint_left": {
+          "peak": 6.024282932281494,
+          "normalized_peak": 6.192725053743312e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.586229681968689,
+          "local_db": 11.590785763759586
+        },
+        "quiet_rms": 1.2463312149047852,
+        "arc_p99_relative_db": -17.555419921875
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 20,
+          "dyn_db": 90,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "display-90-20",
+      "measurements": {
+        "trial": "display-90-20",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 87.27143859863281,
+          "normalized_peak": 0.0008971159395418669,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.7841389179229736,
+          "local_db": 29.923624677957243
+        },
+        "faint_right": {
+          "peak": 13.865388870239258,
+          "normalized_peak": 0.00014253072440624238,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.7253867387771606,
+          "local_db": 18.100911972073554
+        },
+        "faint_left": {
+          "peak": 6.024282932281494,
+          "normalized_peak": 6.192725053743312e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.586229681968689,
+          "local_db": 11.590785763759586
+        },
+        "quiet_rms": 1.2463312149047852,
+        "arc_p99_relative_db": -17.555419921875
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "display-95-15",
+      "measurements": {
+        "trial": "display-95-15",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 87.27143859863281,
+          "normalized_peak": 0.0008971159395418669,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.7841389179229736,
+          "local_db": 29.923624677957243
+        },
+        "faint_right": {
+          "peak": 13.865388870239258,
+          "normalized_peak": 0.00014253072440624238,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.7253867387771606,
+          "local_db": 18.100911972073554
+        },
+        "faint_left": {
+          "peak": 6.024282932281494,
+          "normalized_peak": 6.192725053743312e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.586229681968689,
+          "local_db": 11.590785763759586
+        },
+        "quiet_rms": 1.2463312149047852,
+        "arc_p99_relative_db": -17.555419921875
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": true,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "final-compounded",
+      "measurements": {
+        "trial": "final-compounded",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 66.22486114501953,
+          "normalized_peak": 0.0006807654311782436,
+          "position_mm": [
+            -3.212890625,
+            40.234375
+          ],
+          "local_rms": 3.915656566619873,
+          "local_db": 24.564329251230927
+        },
+        "faint_right": {
+          "peak": 13.915521621704102,
+          "normalized_peak": 0.00014304606930205696,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 2.2343902587890625,
+          "local_db": 15.886809222760437
+        },
+        "faint_left": {
+          "peak": 5.142004489898682,
+          "normalized_peak": 5.285777641754401e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.5594186782836914,
+          "local_db": 6.0598223295868525
+        },
+        "quiet_rms": 2.4561197757720947,
+        "arc_p99_relative_db": -15.029256820678711
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.1,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "final-old-gentle",
+      "measurements": {
+        "trial": "final-old-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.94300079345703,
+          "normalized_peak": 0.0009245785443406356,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.4224023818969727,
+          "local_db": 31.3944217621796
+        },
+        "faint_right": {
+          "peak": 13.866646766662598,
+          "normalized_peak": 0.00014254365508493624,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 1.5776947736740112,
+          "local_db": 18.878969315510105
+        },
+        "faint_left": {
+          "peak": 5.587750434875488,
+          "normalized_peak": 5.743986877955888e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.4336117506027222,
+          "local_db": 11.816108979936395
+        },
+        "quiet_rms": 1.051774024963379,
+        "arc_p99_relative_db": -18.914669036865234
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 4,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 1,
+          "cf": 2,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 45,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "final-wire",
+      "measurements": {
+        "trial": "final-wire",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 77824.0,
+        "wire": {
+          "peak": 33.86471939086914,
+          "normalized_peak": 0.00043514493460717956,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 0.040446937084198,
+          "local_db": 58.45723683678447
+        },
+        "faint_right": {
+          "peak": 1.6237646341323853,
+          "normalized_peak": 2.086457434894615e-05,
+          "position_mm": [
+            18.388671875,
+            37.578125
+          ],
+          "local_rms": 0.019986575469374657,
+          "local_db": 38.19569380716816
+        },
+        "faint_left": {
+          "peak": 0.19429072737693787,
+          "normalized_peak": 2.4965399796584326e-06,
+          "position_mm": [
+            -21.669921875,
+            35.703125
+          ],
+          "local_rms": 0.0145142562687397,
+          "local_db": 22.53314574607627
+        },
+        "quiet_rms": 0.00977905374020338,
+        "arc_p99_relative_db": -53.499412536621094
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1200-avg1",
+      "measurements": {
+        "trial": "gain-1200-avg1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 38.59354782104492,
+          "normalized_peak": 0.00039672643730514926,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.192416191101074,
+          "local_db": 24.911834069143154
+        },
+        "faint_right": {
+          "peak": 6.574148178100586,
+          "normalized_peak": 6.757964821238267e-05,
+          "position_mm": [
+            18.251953125,
+            37.265625
+          ],
+          "local_rms": 1.3588594198226929,
+          "local_db": 13.693299186439416
+        },
+        "faint_left": {
+          "peak": 3.2416062355041504,
+          "normalized_peak": 3.332243251957391e-05,
+          "position_mm": [
+            -20.029296875,
+            36.484375
+          ],
+          "local_rms": 1.130696177482605,
+          "local_db": 9.148286702407573
+        },
+        "quiet_rms": 1.7643163204193115,
+        "arc_p99_relative_db": -16.228782653808594
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 16,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1200-avg16",
+      "measurements": {
+        "trial": "gain-1200-avg16",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 37.904640197753906,
+          "normalized_peak": 0.00038964473887493733,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.3665844202041626,
+          "local_db": 28.861118266331932
+        },
+        "faint_right": {
+          "peak": 6.076157093048096,
+          "normalized_peak": 6.246049643347138e-05,
+          "position_mm": [
+            18.115234375,
+            37.265625
+          ],
+          "local_rms": 0.8790633082389832,
+          "local_db": 16.792176808831854
+        },
+        "faint_left": {
+          "peak": 2.7476327419281006,
+          "normalized_peak": 2.8244579995149062e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 0.7440019845962524,
+          "local_db": 11.347691779137769
+        },
+        "quiet_rms": 0.4944310784339905,
+        "arc_p99_relative_db": -16.690372467041016
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1200-avg2",
+      "measurements": {
+        "trial": "gain-1200-avg2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 37.07672119140625,
+          "normalized_peak": 0.00038113405829981754,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.7656127214431763,
+          "local_db": 26.444117437317555
+        },
+        "faint_right": {
+          "peak": 6.583282947540283,
+          "normalized_peak": 6.767355003639271e-05,
+          "position_mm": [
+            18.115234375,
+            37.265625
+          ],
+          "local_rms": 1.1282271146774292,
+          "local_db": 15.320919768569382
+        },
+        "faint_left": {
+          "peak": 3.0802998542785645,
+          "normalized_peak": 3.1664266594146424e-05,
+          "position_mm": [
+            -20.576171875,
+            36.171875
+          ],
+          "local_rms": 0.9044312238693237,
+          "local_db": 10.644348962675114
+        },
+        "quiet_rms": 1.2564265727996826,
+        "arc_p99_relative_db": -16.255706787109375
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 8,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1200-avg8",
+      "measurements": {
+        "trial": "gain-1200-avg8",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1200\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 37.993247985839844,
+          "normalized_peak": 0.00039055559195970234,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.4431158304214478,
+          "local_db": 28.408104631391765
+        },
+        "faint_right": {
+          "peak": 6.035283088684082,
+          "normalized_peak": 6.204032780308472e-05,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 0.9131261706352234,
+          "local_db": 16.403337114289354
+        },
+        "faint_left": {
+          "peak": 2.774641513824463,
+          "normalized_peak": 2.8522219508886337e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 0.7903816103935242,
+          "local_db": 10.90740105534864
+        },
+        "quiet_rms": 0.6664382219314575,
+        "arc_p99_relative_db": -16.514184951782227
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1400-avg1",
+      "measurements": {
+        "trial": "gain-1400-avg1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 50.07189178466797,
+          "normalized_peak": 0.0005147192823259454,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.5772950649261475,
+          "local_db": 25.76859715584264
+        },
+        "faint_right": {
+          "peak": 8.242925643920898,
+          "normalized_peak": 8.473402183306844e-05,
+          "position_mm": [
+            17.705078125,
+            37.890625
+          ],
+          "local_rms": 1.6131726503372192,
+          "local_db": 14.168010637606177
+        },
+        "faint_left": {
+          "peak": 3.9966742992401123,
+          "normalized_peak": 4.108423416159655e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.1757398843765259,
+          "local_db": 10.627750136755346
+        },
+        "quiet_rms": 1.7922790050506592,
+        "arc_p99_relative_db": -15.657567024230957
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 16,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1400-avg16",
+      "measurements": {
+        "trial": "gain-1400-avg16",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 50.70227813720703,
+          "normalized_peak": 0.0005211994051933288,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.7627850770950317,
+          "local_db": 29.176562160386602
+        },
+        "faint_right": {
+          "peak": 7.9803009033203125,
+          "normalized_peak": 8.203434316735519e-05,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.1269718408584595,
+          "local_db": 17.002124048077466
+        },
+        "faint_left": {
+          "peak": 3.7160704135894775,
+          "normalized_peak": 3.819973698179973e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.0456790924072266,
+          "local_db": 11.013710197635548
+        },
+        "quiet_rms": 0.5276774168014526,
+        "arc_p99_relative_db": -16.186485290527344
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1400-avg2",
+      "measurements": {
+        "trial": "gain-1400-avg2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 50.86198425292969,
+          "normalized_peak": 0.00052284112102107,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.1159095764160156,
+          "local_db": 27.61792389870608
+        },
+        "faint_right": {
+          "peak": 8.732828140258789,
+          "normalized_peak": 8.977002611285762e-05,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 1.3445321321487427,
+          "local_db": 16.25167455643177
+        },
+        "faint_left": {
+          "peak": 3.5692572593688965,
+          "normalized_peak": 3.669055570897303e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.0973328351974487,
+          "local_db": 10.244789536269302
+        },
+        "quiet_rms": 1.2763711214065552,
+        "arc_p99_relative_db": -15.8066987991333
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 8,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1400-avg8",
+      "measurements": {
+        "trial": "gain-1400-avg8",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1400\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 50.91831588745117,
+          "normalized_peak": 0.0005234201879877793,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.7757683992385864,
+          "local_db": 29.149754156109964
+        },
+        "faint_right": {
+          "peak": 8.213927268981934,
+          "normalized_peak": 8.443592998542283e-05,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.1383635997772217,
+          "local_db": 17.16539705398092
+        },
+        "faint_left": {
+          "peak": 3.6127283573150635,
+          "normalized_peak": 3.7137421436215705e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.0411685705184937,
+          "local_db": 10.806285165890488
+        },
+        "quiet_rms": 0.6870409250259399,
+        "arc_p99_relative_db": -16.370141983032227
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1600-avg1",
+      "measurements": {
+        "trial": "gain-1600-avg1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 68.200439453125,
+          "normalized_peak": 0.0007010735963520251,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.282557964324951,
+          "local_db": 26.35149538684874
+        },
+        "faint_right": {
+          "peak": 11.507963180541992,
+          "normalized_peak": 0.00011829731887892673,
+          "position_mm": [
+            17.568359375,
+            37.890625
+          ],
+          "local_rms": 1.9337338209152222,
+          "local_db": 15.492035412402744
+        },
+        "faint_left": {
+          "peak": 5.1676344871521,
+          "normalized_peak": 5.312124267220497e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.5725131034851074,
+          "local_db": 10.333950297612347
+        },
+        "quiet_rms": 1.8363673686981201,
+        "arc_p99_relative_db": -15.385741233825684
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 16,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1600-avg16",
+      "measurements": {
+        "trial": "gain-1600-avg16",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 72.16552734375,
+          "normalized_peak": 0.0007418331347013774,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.471134901046753,
+          "local_db": 29.308666700831747
+        },
+        "faint_right": {
+          "peak": 11.32198429107666,
+          "normalized_peak": 0.00011638552930794264,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.5511975288391113,
+          "local_db": 17.265108875337248
+        },
+        "faint_left": {
+          "peak": 5.2419281005859375,
+          "normalized_peak": 5.388495169187847e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.3698697090148926,
+          "local_db": 11.656235945021736
+        },
+        "quiet_rms": 0.6156494617462158,
+        "arc_p99_relative_db": -16.60344123840332
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1600-avg2",
+      "measurements": {
+        "trial": "gain-1600-avg2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 68.90275573730469,
+          "normalized_peak": 0.00070829313052328,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.860198974609375,
+          "local_db": 27.636806901379494
+        },
+        "faint_right": {
+          "peak": 11.181731224060059,
+          "normalized_peak": 0.00011494378314206475,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 1.6754897832870483,
+          "local_db": 16.487345298486325
+        },
+        "faint_left": {
+          "peak": 5.119910717010498,
+          "normalized_peak": 5.263066115347962e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.4252876043319702,
+          "local_db": 11.107197590645088
+        },
+        "quiet_rms": 1.3314405679702759,
+        "arc_p99_relative_db": -16.117145538330078
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 8,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1600-avg8",
+      "measurements": {
+        "trial": "gain-1600-avg8",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1600\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 71.76448822021484,
+          "normalized_peak": 0.0007377106108163533,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.5141048431396484,
+          "local_db": 29.110524148300062
+        },
+        "faint_right": {
+          "peak": 11.420615196228027,
+          "normalized_peak": 0.00011739941607964667,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.55477774143219,
+          "local_db": 17.320423684285007
+        },
+        "faint_left": {
+          "peak": 5.032400131225586,
+          "normalized_peak": 5.1731086875263016e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.3771151304244995,
+          "local_db": 11.25609830150199
+        },
+        "quiet_rms": 0.7708226442337036,
+        "arc_p99_relative_db": -16.757156372070312
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1800-avg1",
+      "measurements": {
+        "trial": "gain-1800-avg1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.41985321044922,
+          "normalized_peak": 0.0009192007936929402,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.6927220821380615,
+          "local_db": 27.681746582997224
+        },
+        "faint_right": {
+          "peak": 14.903470993041992,
+          "normalized_peak": 0.0001532017988593955,
+          "position_mm": [
+            17.978515625,
+            37.421875
+          ],
+          "local_rms": 2.201767921447754,
+          "local_db": 16.610317732757693
+        },
+        "faint_left": {
+          "peak": 6.351119041442871,
+          "normalized_peak": 6.528699672535846e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.8848315477371216,
+          "local_db": 10.551554214109004
+        },
+        "quiet_rms": 1.9685561656951904,
+        "arc_p99_relative_db": -16.280242919921875
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 16,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1800-avg16",
+      "measurements": {
+        "trial": "gain-1800-avg16",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 91.85503387451172,
+          "normalized_peak": 0.0009442334896639774,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.1266353130340576,
+          "local_db": 29.360514661045304
+        },
+        "faint_right": {
+          "peak": 14.55760383605957,
+          "normalized_peak": 0.00014964642101212552,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 2.0047214031219482,
+          "local_db": 17.220717388605856
+        },
+        "faint_left": {
+          "peak": 6.63593053817749,
+          "normalized_peak": 6.821474648619954e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.7966108322143555,
+          "local_db": 11.348956351234056
+        },
+        "quiet_rms": 0.7179082632064819,
+        "arc_p99_relative_db": -16.7310733795166
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1800-avg2",
+      "measurements": {
+        "trial": "gain-1800-avg2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.4885482788086,
+          "normalized_peak": 0.0009199069518792002,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.350590705871582,
+          "local_db": 28.532921666987214
+        },
+        "faint_right": {
+          "peak": 14.45450210571289,
+          "normalized_peak": 0.0001485865759222131,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.9943604469299316,
+          "local_db": 17.203989685352408
+        },
+        "faint_left": {
+          "peak": 6.48996114730835,
+          "normalized_peak": 6.671423876756115e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.8208374977111816,
+          "local_db": 11.039418166950064
+        },
+        "quiet_rms": 1.4398820400238037,
+        "arc_p99_relative_db": -16.400768280029297
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 8,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "gain-1800-avg8",
+      "measurements": {
+        "trial": "gain-1800-avg8",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 91.35230255126953,
+          "normalized_peak": 0.0009390656101076226,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.1825413703918457,
+          "local_db": 29.158908809354315
+        },
+        "faint_right": {
+          "peak": 14.649069786071777,
+          "normalized_peak": 0.00015058665487327073,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 1.9566471576690674,
+          "local_db": 17.485950631278158
+        },
+        "faint_left": {
+          "peak": 6.66652774810791,
+          "normalized_peak": 6.852927372643822e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.8402944803237915,
+          "local_db": 11.180247351829593
+        },
+        "quiet_rms": 0.8554478883743286,
+        "arc_p99_relative_db": -16.658632278442383
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 16,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 2,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "quiet-search-cfmap"
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ],
+          "accept_deg": 20
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-accept-20",
+      "measurements": {
+        "trial": "sweep-accept-20",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 88.00656127929688,
+          "normalized_peak": 0.0009046727105190879,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.6355831623077393,
+          "local_db": 27.67881937108674
+        },
+        "faint_right": {
+          "peak": 4.043835639953613,
+          "normalized_peak": 4.156903412781264e-05,
+          "position_mm": [
+            16.611328125,
+            38.515625
+          ],
+          "local_rms": 0.8705399632453918,
+          "local_db": 13.340095656077839
+        },
+        "faint_left": {
+          "peak": 0.8263711333274841,
+          "normalized_peak": 8.49476905147496e-06,
+          "position_mm": [
+            -19.072265625,
+            37.265625
+          ],
+          "local_rms": 0.684646487236023,
+          "local_db": 1.6341750766735217
+        },
+        "quiet_rms": 1.852126955986023,
+        "arc_p99_relative_db": -17.16314697265625
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ],
+          "accept_deg": 25
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-accept-25",
+      "measurements": {
+        "trial": "sweep-accept-25",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.10602569580078,
+          "normalized_peak": 0.0009159747707216363,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.6754822731018066,
+          "local_db": 27.691854824560664
+        },
+        "faint_right": {
+          "peak": 9.843262672424316,
+          "normalized_peak": 0.00010118485477409864,
+          "position_mm": [
+            17.705078125,
+            38.046875
+          ],
+          "local_rms": 1.418381929397583,
+          "local_db": 16.826917700771887
+        },
+        "faint_left": {
+          "peak": 3.4624876976013184,
+          "normalized_peak": 3.559300675988197e-05,
+          "position_mm": [
+            -18.935546875,
+            37.109375
+          ],
+          "local_rms": 1.6161707639694214,
+          "local_db": 6.618019855134075
+        },
+        "quiet_rms": 1.9366586208343506,
+        "arc_p99_relative_db": -16.56715202331543
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.5,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-apod-0p5",
+      "measurements": {
+        "trial": "sweep-apod-0p5",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 116736.0,
+        "wire": {
+          "peak": 98.9209976196289,
+          "normalized_peak": 0.000847390673139639,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 4.279745101928711,
+          "local_db": 27.277411680263604
+        },
+        "faint_right": {
+          "peak": 21.085365295410156,
+          "normalized_peak": 0.00018062436005525422,
+          "position_mm": [
+            18.251953125,
+            37.265625
+          ],
+          "local_rms": 3.4163966178894043,
+          "local_db": 15.80825692266427
+        },
+        "faint_left": {
+          "peak": 12.761229515075684,
+          "normalized_peak": 0.00010931700173961489,
+          "position_mm": [
+            -21.669921875,
+            35.703125
+          ],
+          "local_rms": 2.652862787246704,
+          "local_db": 13.643554638335688
+        },
+        "quiet_rms": 2.287088394165039,
+        "arc_p99_relative_db": -16.350322723388672
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 1,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-apod-1",
+      "measurements": {
+        "trial": "sweep-apod-1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 77824.0,
+        "wire": {
+          "peak": 73.03015899658203,
+          "normalized_peak": 0.0009384015084881531,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.951092004776001,
+          "local_db": 27.870389933187898
+        },
+        "faint_right": {
+          "peak": 8.183672904968262,
+          "normalized_peak": 0.000105156158832343,
+          "position_mm": [
+            17.705078125,
+            37.578125
+          ],
+          "local_rms": 1.2834197282791138,
+          "local_db": 16.091591036189772
+        },
+        "faint_left": {
+          "peak": 3.0681023597717285,
+          "normalized_peak": 3.942360145677077e-05,
+          "position_mm": [
+            -18.935546875,
+            37.109375
+          ],
+          "local_rms": 1.4593957662582397,
+          "local_db": 6.453935253553803
+        },
+        "quiet_rms": 1.5404140949249268,
+        "arc_p99_relative_db": -16.390535354614258
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 4,
+          "band_bw_mhz": 5,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-band-1p5-6p5",
+      "measurements": {
+        "trial": "sweep-band-1p5-6p5",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 97.2640609741211,
+          "normalized_peak": 0.0009998361531056855,
+          "position_mm": [
+            -3.212890625,
+            40.234375
+          ],
+          "local_rms": 4.032201290130615,
+          "local_db": 27.648203881053984
+        },
+        "faint_right": {
+          "peak": 15.039201736450195,
+          "normalized_peak": 0.0001545970573237068,
+          "position_mm": [
+            18.251953125,
+            37.265625
+          ],
+          "local_rms": 3.238708734512329,
+          "local_db": 13.337057849591286
+        },
+        "faint_left": {
+          "peak": 8.188080787658691,
+          "normalized_peak": 8.417023835997832e-05,
+          "position_mm": [
+            -20.302734375,
+            36.328125
+          ],
+          "local_rms": 2.2140512466430664,
+          "local_db": 11.359889001901756
+        },
+        "quiet_rms": 2.457186698913574,
+        "arc_p99_relative_db": -16.53412437438965
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3,
+          "band_bw_mhz": 2,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-band-2-4",
+      "measurements": {
+        "trial": "sweep-band-2-4",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 47.13483810424805,
+          "normalized_peak": 0.0004845275298545235,
+          "position_mm": [
+            -3.349609375,
+            40.390625
+          ],
+          "local_rms": 2.7467169761657715,
+          "local_db": 24.690562160901344
+        },
+        "faint_right": {
+          "peak": 2.3816049098968506,
+          "normalized_peak": 2.4481958366538348e-05,
+          "position_mm": [
+            19.072265625,
+            36.640625
+          ],
+          "local_rms": 1.2011970281600952,
+          "local_db": 5.945109358442413
+        },
+        "faint_left": {
+          "peak": 3.96744966506958,
+          "normalized_peak": 4.0783816458363285e-05,
+          "position_mm": [
+            -20.029296875,
+            36.484375
+          ],
+          "local_rms": 1.0192440748214722,
+          "local_db": 11.804664602692245
+        },
+        "quiet_rms": 1.6400344371795654,
+        "arc_p99_relative_db": -15.417223930358887
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 4,
+          "band_bw_mhz": 4,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-band-2-6",
+      "measurements": {
+        "trial": "sweep-band-2-6",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 99.56106567382812,
+          "normalized_peak": 0.0010234484547062923,
+          "position_mm": [
+            -3.212890625,
+            40.234375
+          ],
+          "local_rms": 3.8465943336486816,
+          "local_db": 28.260262980240668
+        },
+        "faint_right": {
+          "peak": 14.807223320007324,
+          "normalized_peak": 0.0001522124107731016,
+          "position_mm": [
+            17.841796875,
+            37.890625
+          ],
+          "local_rms": 3.172715902328491,
+          "local_db": 13.380848820277102
+        },
+        "faint_left": {
+          "peak": 7.906928062438965,
+          "normalized_peak": 8.128009932605844e-05,
+          "position_mm": [
+            -20.302734375,
+            36.328125
+          ],
+          "local_rms": 2.1705291271209717,
+          "local_db": 11.228843388330258
+        },
+        "quiet_rms": 2.220599889755249,
+        "arc_p99_relative_db": -16.89100456237793
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 2,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-band-2p5-4p5",
+      "measurements": {
+        "trial": "sweep-band-2p5-4p5",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 73.86979675292969,
+          "normalized_peak": 0.00075935235148982,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.2699880599975586,
+          "local_db": 27.078414744203517
+        },
+        "faint_right": {
+          "peak": 12.596480369567871,
+          "normalized_peak": 0.00012948684590427498,
+          "position_mm": [
+            18.388671875,
+            37.109375
+          ],
+          "local_rms": 1.6264946460723877,
+          "local_db": 17.779931522843402
+        },
+        "faint_left": {
+          "peak": 5.92819356918335,
+          "normalized_peak": 6.093948981479595e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.150606870651245,
+          "local_db": 8.807226939733704
+        },
+        "quiet_rms": 1.639892816543579,
+        "arc_p99_relative_db": -15.5507173538208
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 4,
+          "band_bw_mhz": 2,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-band-3-5",
+      "measurements": {
+        "trial": "sweep-band-3-5",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 84.99142456054688,
+          "normalized_peak": 0.0008736782952358848,
+          "position_mm": [
+            -3.212890625,
+            40.234375
+          ],
+          "local_rms": 3.3377060890197754,
+          "local_db": 28.11854035178749
+        },
+        "faint_right": {
+          "peak": 14.713298797607422,
+          "normalized_peak": 0.00015124690375829998,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 2.257338762283325,
+          "local_db": 16.28226631009931
+        },
+        "faint_left": {
+          "peak": 6.067307949066162,
+          "normalized_peak": 6.236953072642025e-05,
+          "position_mm": [
+            -21.259765625,
+            35.859375
+          ],
+          "local_rms": 1.7579926252365112,
+          "local_db": 10.759579788878211
+        },
+        "quiet_rms": 1.5910199880599976,
+        "arc_p99_relative_db": -16.24190902709961
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 4.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-band-3-6",
+      "measurements": {
+        "trial": "sweep-band-3-6",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.37395477294922,
+          "normalized_peak": 0.0009187289758732445,
+          "position_mm": [
+            -3.212890625,
+            40.234375
+          ],
+          "local_rms": 3.4625494480133057,
+          "local_db": 28.236299831546894
+        },
+        "faint_right": {
+          "peak": 14.777996063232422,
+          "normalized_peak": 0.00015191196611053065,
+          "position_mm": [
+            17.431640625,
+            37.890625
+          ],
+          "local_rms": 3.1375458240509033,
+          "local_db": 13.460509381923574
+        },
+        "faint_left": {
+          "peak": 6.931029796600342,
+          "normalized_peak": 7.124825037623707e-05,
+          "position_mm": [
+            -19.345703125,
+            37.265625
+          ],
+          "local_rms": 2.4943134784698486,
+          "local_db": 8.87693464757639
+        },
+        "quiet_rms": 1.8834552764892578,
+        "arc_p99_relative_db": -16.436105728149414
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf0.05",
+      "measurements": {
+        "trial": "sweep-cf0.05",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 87.11807250976562,
+          "normalized_peak": 0.0008955393966875578,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.0870161056518555,
+          "local_db": 29.011387255500374
+        },
+        "faint_right": {
+          "peak": 14.293457984924316,
+          "normalized_peak": 0.00014693110593055425,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 1.9367547035217285,
+          "local_db": 17.36125380127817
+        },
+        "faint_left": {
+          "peak": 5.9185991287231445,
+          "normalized_peak": 6.084086275414417e-05,
+          "position_mm": [
+            -21.396484375,
+            35.859375
+          ],
+          "local_rms": 1.5304045677185059,
+          "local_db": 11.748253452620931
+        },
+        "quiet_rms": 1.7053771018981934,
+        "arc_p99_relative_db": -17.418977737426758
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.1,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf0.1",
+      "measurements": {
+        "trial": "sweep-cf0.1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 84.87554931640625,
+          "normalized_peak": 0.0008724871434663471,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.5916149616241455,
+          "local_db": 30.304242391194727
+        },
+        "faint_right": {
+          "peak": 13.7400484085083,
+          "normalized_peak": 0.00014124227393614617,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 1.6918259859085083,
+          "local_db": 18.192651430382114
+        },
+        "faint_left": {
+          "peak": 5.5348687171936035,
+          "normalized_peak": 5.689626559615135e-05,
+          "position_mm": [
+            -21.396484375,
+            35.859375
+          ],
+          "local_rms": 1.340067982673645,
+          "local_db": 12.319609863853994
+        },
+        "quiet_rms": 1.4814468622207642,
+        "arc_p99_relative_db": -18.532573699951172
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.2,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf0.2",
+      "measurements": {
+        "trial": "sweep-cf0.2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 80.56218719482422,
+          "normalized_peak": 0.0008281474834994266,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.8496311902999878,
+          "local_db": 32.78092216256826
+        },
+        "faint_right": {
+          "peak": 12.696681022644043,
+          "normalized_peak": 0.00013051686906500866,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 1.3045803308486938,
+          "local_db": 19.764387652256545
+        },
+        "faint_left": {
+          "peak": 4.840430736541748,
+          "normalized_peak": 4.97577172753058e-05,
+          "position_mm": [
+            -21.396484375,
+            35.859375
+          ],
+          "local_rms": 1.0350946187973022,
+          "local_db": 13.398079184552962
+        },
+        "quiet_rms": 1.1263986825942993,
+        "arc_p99_relative_db": -20.479034423828125
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.35,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf0.35",
+      "measurements": {
+        "trial": "sweep-cf0.35",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 74.49964141845703,
+          "normalized_peak": 0.0007658269060285468,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 1.149868130683899,
+          "local_db": 36.230122900218014
+        },
+        "faint_right": {
+          "peak": 11.27828598022461,
+          "normalized_peak": 0.0001159363279217168,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 0.9040648937225342,
+          "local_db": 21.920869948912575
+        },
+        "faint_left": {
+          "peak": 4.040670871734619,
+          "normalized_peak": 4.153650155977199e-05,
+          "position_mm": [
+            -21.669921875,
+            35.703125
+          ],
+          "local_rms": 0.664436936378479,
+          "local_db": 15.679994196454539
+        },
+        "quiet_rms": 0.7593384981155396,
+        "arc_p99_relative_db": -23.489395141601562
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.5,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf0.5",
+      "measurements": {
+        "trial": "sweep-cf0.5",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 68.89332580566406,
+          "normalized_peak": 0.0007081961945483559,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 0.7401537895202637,
+          "local_db": 39.37710367342555
+        },
+        "faint_right": {
+          "peak": 10.018346786499023,
+          "normalized_peak": 0.00010298465035463634,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 0.641655683517456,
+          "local_db": 23.869880307219677
+        },
+        "faint_left": {
+          "peak": 3.383449077606201,
+          "normalized_peak": 3.478052094578743e-05,
+          "position_mm": [
+            -21.669921875,
+            35.703125
+          ],
+          "local_rms": 0.4685048460960388,
+          "local_db": 17.172911141328026
+        },
+        "quiet_rms": 0.5207515358924866,
+        "arc_p99_relative_db": -26.332616806030273
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 1,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf1",
+      "measurements": {
+        "trial": "sweep-cf1",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 53.078712463378906,
+          "normalized_peak": 0.0005456282120001944,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 0.20940576493740082,
+          "local_db": 48.07863491919604
+        },
+        "faint_right": {
+          "peak": 6.872933387756348,
+          "normalized_peak": 7.065104222611377e-05,
+          "position_mm": [
+            18.115234375,
+            37.890625
+          ],
+          "local_rms": 0.2459324300289154,
+          "local_db": 28.926526674834303
+        },
+        "faint_left": {
+          "peak": 1.8723210096359253,
+          "normalized_peak": 1.9246720904974563e-05,
+          "position_mm": [
+            -21.669921875,
+            35.703125
+          ],
+          "local_rms": 0.17341986298561096,
+          "local_db": 20.665629437157314
+        },
+        "quiet_rms": 0.16300490498542786,
+        "arc_p99_relative_db": -35.14967346191406
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 2,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-cf2",
+      "measurements": {
+        "trial": "sweep-cf2",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 31.50697898864746,
+          "normalized_peak": 0.00032387930703790563,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 0.028280800208449364,
+          "local_db": 60.938301392409784
+        },
+        "faint_right": {
+          "peak": 3.4951181411743164,
+          "normalized_peak": 3.592843483937414e-05,
+          "position_mm": [
+            18.115234375,
+            37.890625
+          ],
+          "local_rms": 0.04704437032341957,
+          "local_db": 37.41908400523763
+        },
+        "faint_left": {
+          "peak": 0.5733523368835449,
+          "normalized_peak": 5.8938356998719664e-06,
+          "position_mm": [
+            -21.669921875,
+            35.703125
+          ],
+          "local_rms": 0.04312111809849739,
+          "local_db": 22.47463147396718
+        },
+        "quiet_rms": 0.021399108693003654,
+        "arc_p99_relative_db": -48.404571533203125
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": true,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-comp",
+      "measurements": {
+        "trial": "sweep-comp",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 65.21376037597656,
+          "normalized_peak": 0.0006703717143912065,
+          "position_mm": [
+            -3.212890625,
+            40.234375
+          ],
+          "local_rms": 3.8680105209350586,
+          "local_db": 24.537031933287707
+        },
+        "faint_right": {
+          "peak": 13.747594833374023,
+          "normalized_peak": 0.0001413198482049139,
+          "position_mm": [
+            17.568359375,
+            37.734375
+          ],
+          "local_rms": 2.4026877880096436,
+          "local_db": 15.150587663568398
+        },
+        "faint_left": {
+          "peak": 4.847963333129883,
+          "normalized_peak": 4.983514939483843e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.4929962158203125,
+          "local_db": 5.776754143379906
+        },
+        "quiet_rms": 2.463757276535034,
+        "arc_p99_relative_db": -14.705493927001953
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": true,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 32,
+      "name": "sweep-matched",
+      "measurements": {
+        "trial": "sweep-matched",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+        "frame": 32,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 48.931724548339844,
+          "normalized_peak": 0.0005029988132025066,
+          "position_mm": [
+            -3.212890625,
+            39.921875
+          ],
+          "local_rms": 1.876300573348999,
+          "local_db": 28.3257622203093
+        },
+        "faint_right": {
+          "peak": 7.159542560577393,
+          "normalized_peak": 7.359727138751432e-05,
+          "position_mm": [
+            18.251953125,
+            36.796875
+          ],
+          "local_rms": 1.0826830863952637,
+          "local_db": 16.407678456443392
+        },
+        "faint_left": {
+          "peak": 3.3085663318634033,
+          "normalized_peak": 3.401075587853005e-05,
+          "position_mm": [
+            -18.935546875,
+            37.265625
+          ],
+          "local_rms": 1.2863274812698364,
+          "local_db": 8.205765959350837
+        },
+        "quiet_rms": 0.9005234241485596,
+        "arc_p99_relative_db": -16.644506454467773
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 112,
+      "name": "validation-1600-f112-gentle",
+      "measurements": {
+        "trial": "validation-1600-f112-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 112,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 73.18292999267578,
+          "normalized_peak": 0.0007522916323260257,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.30955171585083,
+          "local_db": 30.01764203344738
+        },
+        "faint_right": {
+          "peak": 11.415301322937012,
+          "normalized_peak": 0.00011734479155979658,
+          "position_mm": [
+            17.841796875,
+            37.890625
+          ],
+          "local_rms": 1.5327272415161133,
+          "local_db": 17.44045007008926
+        },
+        "faint_left": {
+          "peak": 4.676835060119629,
+          "normalized_peak": 4.80760182989271e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.2691984176635742,
+          "local_db": 11.328450635009446
+        },
+        "quiet_rms": 1.1755863428115845,
+        "arc_p99_relative_db": -18.164472579956055
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 112,
+      "name": "validation-1600-f112-reference",
+      "measurements": {
+        "trial": "validation-1600-f112-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 112,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 74.40375518798828,
+          "normalized_peak": 0.0007648412334291558,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.086202621459961,
+          "local_db": 27.643408385969938
+        },
+        "faint_right": {
+          "peak": 11.399897575378418,
+          "normalized_peak": 0.00011718644711532091,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 1.9306600093841553,
+          "local_db": 15.423902968153953
+        },
+        "faint_left": {
+          "peak": 6.237226486206055,
+          "normalized_peak": 6.411622621511158e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.027928590774536,
+          "local_db": 9.758777125488036
+        },
+        "quiet_rms": 1.8602187633514404,
+        "arc_p99_relative_db": -16.363800048828125
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 40,
+      "name": "validation-1600-f40-gentle",
+      "measurements": {
+        "trial": "validation-1600-f40-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 40,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 71.10554504394531,
+          "normalized_peak": 0.000730936935073451,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.261510133743286,
+          "local_db": 29.950098632333976
+        },
+        "faint_right": {
+          "peak": 11.21310806274414,
+          "normalized_peak": 0.00011526632465814289,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 1.5286457538604736,
+          "local_db": 17.30838306490615
+        },
+        "faint_left": {
+          "peak": 4.829881191253662,
+          "normalized_peak": 4.964927211403847e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.290185809135437,
+          "local_db": 11.465683741318758
+        },
+        "quiet_rms": 1.1505883932113647,
+        "arc_p99_relative_db": -17.668607711791992
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 40,
+      "name": "validation-1600-f40-reference",
+      "measurements": {
+        "trial": "validation-1600-f40-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 40,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 74.20341491699219,
+          "normalized_peak": 0.0007627818145250019,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.0771021842956543,
+          "local_db": 27.64563947785649
+        },
+        "faint_right": {
+          "peak": 11.357293128967285,
+          "normalized_peak": 0.0001167484902237591,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 1.877915382385254,
+          "local_db": 15.631976312246316
+        },
+        "faint_left": {
+          "peak": 5.007231712341309,
+          "normalized_peak": 5.147236546403483e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.1343610286712646,
+          "local_db": 7.406596131101356
+        },
+        "quiet_rms": 1.8511937856674194,
+        "arc_p99_relative_db": -16.678455352783203
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 8,
+      "name": "validation-1600-f8-gentle",
+      "measurements": {
+        "trial": "validation-1600-f8-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 8,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 74.38261413574219,
+          "normalized_peak": 0.0007646239117572182,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.173917770385742,
+          "local_db": 30.684566493849424
+        },
+        "faint_right": {
+          "peak": 10.996526718139648,
+          "normalized_peak": 0.00011303995392824475,
+          "position_mm": [
+            18.115234375,
+            37.265625
+          ],
+          "local_rms": 1.5754728317260742,
+          "local_db": 16.876892307783415
+        },
+        "faint_left": {
+          "peak": 4.807079315185547,
+          "normalized_peak": 4.94148778287988e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.3189013004302979,
+          "local_db": 11.233379828610595
+        },
+        "quiet_rms": 1.1430078744888306,
+        "arc_p99_relative_db": -18.005844116210938
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 8,
+      "name": "validation-1600-f8-reference",
+      "measurements": {
+        "trial": "validation-1600-f8-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 8,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 76.29420471191406,
+          "normalized_peak": 0.0007842743083050377,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.0342001914978027,
+          "local_db": 28.008946377703694
+        },
+        "faint_right": {
+          "peak": 11.664504051208496,
+          "normalized_peak": 0.00011990649723692945,
+          "position_mm": [
+            17.841796875,
+            37.890625
+          ],
+          "local_rms": 2.024832248687744,
+          "local_db": 15.209544584948812
+        },
+        "faint_left": {
+          "peak": 5.024215221405029,
+          "normalized_peak": 5.164694923319315e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.2655227184295654,
+          "local_db": 6.917996266494977
+        },
+        "quiet_rms": 1.8272126913070679,
+        "arc_p99_relative_db": -16.498735427856445
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "validation-1600-f80-gentle",
+      "measurements": {
+        "trial": "validation-1600-f80-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 72.15756225585938,
+          "normalized_peak": 0.0007417512567419755,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.323295831680298,
+          "local_db": 29.843546790019264
+        },
+        "faint_right": {
+          "peak": 11.446005821228027,
+          "normalized_peak": 0.00011766042168203153,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 1.4898265600204468,
+          "local_db": 17.710365000288906
+        },
+        "faint_left": {
+          "peak": 4.264317989349365,
+          "normalized_peak": 4.3835505647094626e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.1746498346328735,
+          "local_db": 11.198823211930156
+        },
+        "quiet_rms": 1.187148094177246,
+        "arc_p99_relative_db": -17.90690803527832
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "validation-1600-f80-reference",
+      "measurements": {
+        "trial": "validation-1600-f80-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1600\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 72.7300796508789,
+          "normalized_peak": 0.0007476365095690677,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.285133123397827,
+          "local_db": 26.903221800632675
+        },
+        "faint_right": {
+          "peak": 12.437644958496094,
+          "normalized_peak": 0.0001278540805766457,
+          "position_mm": [
+            18.115234375,
+            37.734375
+          ],
+          "local_rms": 1.9616717100143433,
+          "local_db": 16.042236527975437
+        },
+        "faint_left": {
+          "peak": 4.772497177124023,
+          "normalized_peak": 4.9059387100370305e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.1221253871917725,
+          "local_db": 7.039492785671435
+        },
+        "quiet_rms": 1.9080029726028442,
+        "arc_p99_relative_db": -16.3241024017334
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 112,
+      "name": "validation-1800-a-f112-gentle",
+      "measurements": {
+        "trial": "validation-1800-a-f112-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 112,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 93.504638671875,
+          "normalized_peak": 0.0009611907758210835,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.847808361053467,
+          "local_db": 30.326447911275395
+        },
+        "faint_right": {
+          "peak": 15.09883975982666,
+          "normalized_peak": 0.0001552101126626918,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.9090873003005981,
+          "local_db": 17.96235574927351
+        },
+        "faint_left": {
+          "peak": 6.037416458129883,
+          "normalized_peak": 6.206225799886804e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.5895317792892456,
+          "local_db": 11.59163838374802
+        },
+        "quiet_rms": 1.2365514039993286,
+        "arc_p99_relative_db": -18.195083618164062
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 112,
+      "name": "validation-1800-a-f112-reference",
+      "measurements": {
+        "trial": "validation-1800-a-f112-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 112,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 92.96782684326172,
+          "normalized_peak": 0.000955672562122345,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.768155813217163,
+          "local_db": 27.8440765344051
+        },
+        "faint_right": {
+          "peak": 15.371794700622559,
+          "normalized_peak": 0.0001580159817087023,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 2.262786865234375,
+          "local_db": 16.64161852878784
+        },
+        "faint_left": {
+          "peak": 6.561057090759277,
+          "normalized_peak": 6.74450770020485e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.8110603094100952,
+          "local_db": 11.180818078867684
+        },
+        "quiet_rms": 1.9277701377868652,
+        "arc_p99_relative_db": -16.911081314086914
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 40,
+      "name": "validation-1800-a-f40-gentle",
+      "measurements": {
+        "trial": "validation-1800-a-f40-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 40,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 92.82353973388672,
+          "normalized_peak": 0.0009541893475934079,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.828249454498291,
+          "local_db": 30.322808275140947
+        },
+        "faint_right": {
+          "peak": 13.613253593444824,
+          "normalized_peak": 0.00013993887328787855,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 1.8218015432357788,
+          "local_db": 17.46921738374827
+        },
+        "faint_left": {
+          "peak": 6.15363883972168,
+          "normalized_peak": 6.325697820437582e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.5608750581741333,
+          "local_db": 11.915277255552141
+        },
+        "quiet_rms": 1.2824453115463257,
+        "arc_p99_relative_db": -17.87580108642578
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 40,
+      "name": "validation-1800-a-f40-reference",
+      "measurements": {
+        "trial": "validation-1800-a-f40-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 40,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 95.2308349609375,
+          "normalized_peak": 0.000978935392279374,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.6378283500671387,
+          "local_db": 28.358707779818676
+        },
+        "faint_right": {
+          "peak": 14.28672981262207,
+          "normalized_peak": 0.00014686194297514464,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 2.193258762359619,
+          "local_db": 16.27685916863236
+        },
+        "faint_left": {
+          "peak": 6.328120708465576,
+          "normalized_peak": 6.50505829406412e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.8308056592941284,
+          "local_db": 10.772650169586964
+        },
+        "quiet_rms": 1.993595004081726,
+        "arc_p99_relative_db": -16.47048568725586
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 8,
+      "name": "validation-1800-a-f8-gentle",
+      "measurements": {
+        "trial": "validation-1800-a-f8-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 8,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 93.6132583618164,
+          "normalized_peak": 0.0009623073433574878,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.719712495803833,
+          "local_db": 30.736287303645522
+        },
+        "faint_right": {
+          "peak": 14.225204467773438,
+          "normalized_peak": 0.00014622948671642102,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 1.9017773866653442,
+          "local_db": 17.477976768827443
+        },
+        "faint_left": {
+          "peak": 5.872012138366699,
+          "normalized_peak": 6.036196688288136e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.584172010421753,
+          "local_db": 11.379692177478454
+        },
+        "quiet_rms": 1.2327810525894165,
+        "arc_p99_relative_db": -18.263111114501953
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 8,
+      "name": "validation-1800-a-f8-reference",
+      "measurements": {
+        "trial": "validation-1800-a-f8-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 8,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 96.12285614013672,
+          "normalized_peak": 0.0009881050178879185,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.519540548324585,
+          "local_db": 28.726813873328865
+        },
+        "faint_right": {
+          "peak": 15.054839134216309,
+          "normalized_peak": 0.0001547578036000854,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 2.370469331741333,
+          "local_db": 16.056835566968232
+        },
+        "faint_left": {
+          "peak": 6.718287467956543,
+          "normalized_peak": 6.90613432150138e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.8570159673690796,
+          "local_db": 11.168858897618508
+        },
+        "quiet_rms": 1.9671978950500488,
+        "arc_p99_relative_db": -16.918853759765625
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "validation-1800-a-f80-gentle",
+      "measurements": {
+        "trial": "validation-1800-a-f80-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 92.51451873779297,
+          "normalized_peak": 0.0009510127337355363,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.81809401512146,
+          "local_db": 30.325088326812132
+        },
+        "faint_right": {
+          "peak": 15.8785982131958,
+          "normalized_peak": 0.0001632257217639371,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 1.800112009048462,
+          "local_db": 18.91025260784845
+        },
+        "faint_left": {
+          "peak": 6.242961406707764,
+          "normalized_peak": 6.417517893408474e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.5912150144577026,
+          "local_db": 11.873235642169575
+        },
+        "quiet_rms": 1.255537509918213,
+        "arc_p99_relative_db": -17.891862869262695
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "validation-1800-a-f80-reference",
+      "measurements": {
+        "trial": "validation-1800-a-f80-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 93.99662017822266,
+          "normalized_peak": 0.0009662481515031112,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.6427993774414062,
+          "local_db": 28.233539686785218
+        },
+        "faint_right": {
+          "peak": 16.05732536315918,
+          "normalized_peak": 0.00016506296631536987,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 2.1442060470581055,
+          "local_db": 17.488133818547066
+        },
+        "faint_left": {
+          "peak": 6.683386325836182,
+          "normalized_peak": 6.870257325078311e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.8950963020324707,
+          "local_db": 10.947305632117583
+        },
+        "quiet_rms": 1.9275614023208618,
+        "arc_p99_relative_db": -16.48683738708496
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 112,
+      "name": "validation-1800-b-f112-gentle",
+      "measurements": {
+        "trial": "validation-1800-b-f112-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 112,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 93.93923950195312,
+          "normalized_peak": 0.0009656583008013273,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.82606840133667,
+          "local_db": 30.433287415875206
+        },
+        "faint_right": {
+          "peak": 14.318047523498535,
+          "normalized_peak": 0.0001471838766807004,
+          "position_mm": [
+            17.978515625,
+            37.734375
+          ],
+          "local_rms": 1.924309253692627,
+          "local_db": 17.4321786250074
+        },
+        "faint_left": {
+          "peak": 6.520332336425781,
+          "normalized_peak": 6.702644260306107e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.5188841819763184,
+          "local_db": 12.654901453504849
+        },
+        "quiet_rms": 1.2711155414581299,
+        "arc_p99_relative_db": -18.23480224609375
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 112,
+      "name": "validation-1800-b-f112-reference",
+      "measurements": {
+        "trial": "validation-1800-b-f112-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 112,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 96.14436340332031,
+          "normalized_peak": 0.0009883261040637367,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.6397600173950195,
+          "local_db": 28.437021564495467
+        },
+        "faint_right": {
+          "peak": 14.461600303649902,
+          "normalized_peak": 0.00014865954259508533,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 2.3533170223236084,
+          "local_db": 15.770718358343181
+        },
+        "faint_left": {
+          "peak": 7.5055670738220215,
+          "normalized_peak": 7.715426679504545e-05,
+          "position_mm": [
+            -18.935546875,
+            37.109375
+          ],
+          "local_rms": 2.572679281234741,
+          "local_db": 9.29995722823755
+        },
+        "quiet_rms": 2.0044939517974854,
+        "arc_p99_relative_db": -16.84677505493164
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 40,
+      "name": "validation-1800-b-f40-gentle",
+      "measurements": {
+        "trial": "validation-1800-b-f40-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 40,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.943115234375,
+          "normalized_peak": 0.0009245797207480983,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.8107752799987793,
+          "local_db": 30.102836003295337
+        },
+        "faint_right": {
+          "peak": 13.94795036315918,
+          "normalized_peak": 0.00014337942396339617,
+          "position_mm": [
+            18.115234375,
+            37.578125
+          ],
+          "local_rms": 1.9100635051727295,
+          "local_db": 17.269251728089657
+        },
+        "faint_left": {
+          "peak": 6.364533424377441,
+          "normalized_peak": 6.542489128677468e-05,
+          "position_mm": [
+            -21.123046875,
+            36.015625
+          ],
+          "local_rms": 1.6715751886367798,
+          "local_db": 11.61281310708973
+        },
+        "quiet_rms": 1.226101279258728,
+        "arc_p99_relative_db": -17.81224822998047
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 40,
+      "name": "validation-1800-b-f40-reference",
+      "measurements": {
+        "trial": "validation-1800-b-f40-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 40,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 93.31275939941406,
+          "normalized_peak": 0.0009592183326420031,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.748856544494629,
+          "local_db": 27.920844210794954
+        },
+        "faint_right": {
+          "peak": 14.8317289352417,
+          "normalized_peak": 0.0001524643188244418,
+          "position_mm": [
+            17.841796875,
+            37.421875
+          ],
+          "local_rms": 2.356105327606201,
+          "local_db": 15.979941568093093
+        },
+        "faint_left": {
+          "peak": 7.204779148101807,
+          "normalized_peak": 7.406228565071758e-05,
+          "position_mm": [
+            -18.935546875,
+            37.109375
+          ],
+          "local_rms": 2.6097614765167236,
+          "local_db": 8.820397132184631
+        },
+        "quiet_rms": 1.9140958786010742,
+        "arc_p99_relative_db": -16.44028091430664
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 8,
+      "name": "validation-1800-b-f8-gentle",
+      "measurements": {
+        "trial": "validation-1800-b-f8-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 8,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 91.73489379882812,
+          "normalized_peak": 0.0009429984971096641,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.7914347648620605,
+          "local_db": 30.33414159130389
+        },
+        "faint_right": {
+          "peak": 15.093786239624023,
+          "normalized_peak": 0.00015515816446981932,
+          "position_mm": [
+            17.841796875,
+            37.890625
+          ],
+          "local_rms": 1.9797816276550293,
+          "local_db": 17.64361810938776
+        },
+        "faint_left": {
+          "peak": 6.327602863311768,
+          "normalized_peak": 6.50452596968726e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.6023709774017334,
+          "local_db": 11.929522872210928
+        },
+        "quiet_rms": 1.2371959686279297,
+        "arc_p99_relative_db": -17.956424713134766
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 8,
+      "name": "validation-1800-b-f8-reference",
+      "measurements": {
+        "trial": "validation-1800-b-f8-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 8,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 93.50863647460938,
+          "normalized_peak": 0.0009612318716551128,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.5327632427215576,
+          "local_db": 28.454743824029123
+        },
+        "faint_right": {
+          "peak": 15.78974437713623,
+          "normalized_peak": 0.00016231233940312736,
+          "position_mm": [
+            17.841796875,
+            37.734375
+          ],
+          "local_rms": 2.4489474296569824,
+          "local_db": 16.187912735156434
+        },
+        "faint_left": {
+          "peak": 7.517823696136475,
+          "normalized_peak": 7.728026003429765e-05,
+          "position_mm": [
+            -20.712890625,
+            36.171875
+          ],
+          "local_rms": 1.939345359802246,
+          "local_db": 11.768739625409987
+        },
+        "quiet_rms": 1.9317346811294556,
+        "arc_p99_relative_db": -16.63131332397461
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 2,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0.05,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "validation-1800-b-f80-gentle",
+      "measurements": {
+        "trial": "validation-1800-b-f80-gentle",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 92.14249420166016,
+          "normalized_peak": 0.0009471884683558815,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 2.8910715579986572,
+          "local_db": 30.068022455738117
+        },
+        "faint_right": {
+          "peak": 14.444986343383789,
+          "normalized_peak": 0.0001484887576416919,
+          "position_mm": [
+            18.115234375,
+            37.421875
+          ],
+          "local_rms": 1.809565782546997,
+          "local_db": 18.042855201872136
+        },
+        "faint_left": {
+          "peak": 6.027039527893066,
+          "normalized_peak": 6.195558725219023e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.640579342842102,
+          "local_db": 11.302136017659276
+        },
+        "quiet_rms": 1.2142733335494995,
+        "arc_p99_relative_db": -17.813812255859375
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 15,
+          "dyn_db": 95,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 80,
+      "name": "validation-1800-b-f80-reference",
+      "measurements": {
+        "trial": "validation-1800-b-f80-reference",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+        "frame": 80,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 95.27449035644531,
+          "normalized_peak": 0.0009793841525128012,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.7667510509490967,
+          "local_db": 28.060194324061598
+        },
+        "faint_right": {
+          "peak": 15.740877151489258,
+          "normalized_peak": 0.00016181000361317082,
+          "position_mm": [
+            17.978515625,
+            37.578125
+          ],
+          "local_rms": 2.1467370986938477,
+          "local_db": 17.305001358504263
+        },
+        "faint_left": {
+          "peak": 6.774459362030029,
+          "normalized_peak": 6.963876811297317e-05,
+          "position_mm": [
+            -18.935546875,
+            37.109375
+          ],
+          "local_rms": 2.554046154022217,
+          "local_db": 8.47291801610993
+        },
+        "quiet_rms": 1.954694151878357,
+        "arc_p99_relative_db": -16.763225555419922
+      }
+    }
+  ],
+  "derived_trials": [
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-excluded-1us.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 0,
+      "name": "DERIVED-wire-excluded-1us",
+      "measurements": {
+        "trial": "DERIVED-wire-excluded-1us",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-excluded-1us.rf.npz",
+        "frame": 0,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 10.210124969482422,
+          "normalized_peak": 0.00010495605437379135,
+          "position_mm": [
+            -3.486328125,
+            39.296875
+          ],
+          "local_rms": 1.9868699312210083,
+          "local_db": 14.217232409292318
+        },
+        "faint_right": {
+          "peak": 3.2338123321533203,
+          "normalized_peak": 3.3242314269668175e-05,
+          "position_mm": [
+            16.611328125,
+            36.796875
+          ],
+          "local_rms": 1.2447190284729004,
+          "local_db": 8.29286968141361
+        },
+        "faint_left": {
+          "peak": 1.8361306190490723,
+          "normalized_peak": 1.8874697975422206e-05,
+          "position_mm": [
+            -18.935546875,
+            35.234375
+          ],
+          "local_rms": 0.7487578988075256,
+          "local_db": 7.79124312019956
+        },
+        "quiet_rms": 1.968559980392456,
+        "arc_p99_relative_db": -9.000972747802734
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-excluded-2us.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 0,
+      "name": "DERIVED-wire-excluded-2us",
+      "measurements": {
+        "trial": "DERIVED-wire-excluded-2us",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-excluded-2us.rf.npz",
+        "frame": 0,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 0.9487622380256653,
+          "normalized_peak": 9.752901295494092e-06,
+          "position_mm": [
+            -3.349609375,
+            41.484375
+          ],
+          "local_rms": 1.6554092168807983,
+          "local_db": -4.834959560579276
+        },
+        "faint_right": {
+          "peak": 1.6089595556259155,
+          "normalized_peak": 1.653946911622035e-05,
+          "position_mm": [
+            16.201171875,
+            36.953125
+          ],
+          "local_rms": 1.0027806758880615,
+          "local_db": 4.1067834220782
+        },
+        "faint_left": {
+          "peak": 1.566003680229187,
+          "normalized_peak": 1.6097899673408582e-05,
+          "position_mm": [
+            -19.072265625,
+            35.234375
+          ],
+          "local_rms": 0.6447396874427795,
+          "local_db": 7.708167479737316
+        },
+        "quiet_rms": 1.9685579538345337,
+        "arc_p99_relative_db": 10.645370483398438
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-window-1us.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 0,
+      "name": "DERIVED-wire-window-1us",
+      "measurements": {
+        "trial": "DERIVED-wire-window-1us",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-window-1us.rf.npz",
+        "frame": 0,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.98161315917969,
+          "normalized_peak": 0.0009249754642185412,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.0065903663635254,
+          "local_db": 29.52159026413472
+        },
+        "faint_right": {
+          "peak": 14.13800048828125,
+          "normalized_peak": 0.00014533306422986482,
+          "position_mm": [
+            17.568359375,
+            37.578125
+          ],
+          "local_rms": 2.0076801776885986,
+          "local_db": 16.953869224115984
+        },
+        "faint_left": {
+          "peak": 6.703157424926758,
+          "normalized_peak": 6.890581234505302e-05,
+          "position_mm": [
+            -18.935546875,
+            36.953125
+          ],
+          "local_rms": 2.261199951171875,
+          "local_db": 9.438809031840345
+        },
+        "quiet_rms": 0.00048755030729807913,
+        "arc_p99_relative_db": -16.351150512695312
+      }
+    },
+    {
+      "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-window-2us.rf.npz",
+      "settings_patch": {
+        "receive": {
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3,
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "matched_filter": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "apod": 0.75,
+          "cf": 0,
+          "c_m_s": 1485,
+          "t0_ns": 0,
+          "dead": [
+            2,
+            3,
+            6,
+            7,
+            18,
+            19,
+            22,
+            23,
+            25,
+            46
+          ]
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "gain_db": 40,
+          "dyn_db": 70,
+          "curve": 1
+        }
+      },
+      "box_mm": [
+        -35,
+        35,
+        15,
+        115
+      ],
+      "frame": 0,
+      "name": "DERIVED-wire-window-2us",
+      "measurements": {
+        "trial": "DERIVED-wire-window-2us",
+        "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-window-2us.rf.npz",
+        "frame": 0,
+        "aperture_scale": 97280.0,
+        "wire": {
+          "peak": 89.42484283447266,
+          "normalized_peak": 0.0009192520850583127,
+          "position_mm": [
+            -3.212890625,
+            40.390625
+          ],
+          "local_rms": 3.3171727657318115,
+          "local_db": 28.613801888237948
+        },
+        "faint_right": {
+          "peak": 14.600531578063965,
+          "normalized_peak": 0.00015008770125476937,
+          "position_mm": [
+            17.705078125,
+            37.578125
+          ],
+          "local_rms": 1.9885263442993164,
+          "local_db": 17.31674637926341
+        },
+        "faint_left": {
+          "peak": 6.4238104820251465,
+          "normalized_peak": 6.603423604055455e-05,
+          "position_mm": [
+            -20.986328125,
+            36.015625
+          ],
+          "local_rms": 1.791029691696167,
+          "local_db": 11.093798681519814
+        },
+        "quiet_rms": 0.0004831028636544943,
+        "arc_p99_relative_db": -16.281641006469727
+      }
+    }
+  ],
+  "limits": [
+    "No independent bubble target confirmed",
+    "No tissue or tissue phantom acquired",
+    "Water cannot validate tissue attenuation, depth gain or motion performance",
+    "Time-gated RF is a diagnostic derivative and is never the final displayed input"
+  ]
+}

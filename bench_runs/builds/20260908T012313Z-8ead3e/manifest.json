@@ -1,0 +1,28 @@
+{
+  "schema": "usb3-bench-build",
+  "version": 1,
+  "state": "failed",
+  "created_utc": "2026-09-08T01:23:13.627271+00:00",
+  "part": "xc7a35tftg256-2",
+  "board": "AuV2",
+  "vivado": "E:\\Vivado\\2025.2\\Vivado\\bin\\vivado.bat",
+  "source_sha256": {
+    "source/rtl/afe5804_ctrl.v": "64ecba8d751975b50ea1f72dc3d9cb91bde805e95b67fa31ed5cf803ed689ab3",
+    "source/rtl/afe_rx.v": "693e61efbced28a6ffaa532c7a6f4a1b8baea387cde45fc2d9593a9f0e7dde6a",
+    "source/rtl/afe_stream.v": "37a67cb57745a2da22bb701fa69859655aa28878a21a43a092e09b2aa8d13287",
+    "source/rtl/alchitry_top.v": "8a8ddc813fcf3a4a6a16ac78c43317972a3b2eeb4a68e5d89c56bb1936dac221",
+    "source/rtl/ctrl_decode.v": "473c37a7e4e9543710c87e72c2293e5412a32bfeeec4b2875ae3e1c834d32d85",
+    "source/rtl/dac7554_ramp.v": "f07a136a074eaf5e033e07a8963ecdc4197b0f4f5ed142a6af443d972328012b",
+    "source/rtl/ft601_if.v": "05b300ef7afadf8fba06b16f4e73f4e4e1e4f04e22819fdb4c3477d2f1605cbd",
+    "source/rtl/tx_sequencer.v": "ad8bbf47c7469937a66b53e2c84c1c464319d93519c8b117babd768a381239b8",
+    "source/constraints/au_ft.xdc": "9e122ac3939505d9a34a4c4e456440917a2423b0ff8244e1465d1c75d42e951a",
+    "source/constraints/pulser.xdc": "ec1261bbac770ce326ec0f072969a2a16432f61dd794f9138ebf79044996e6f3",
+    "source/tests/tb_ctrl_lease.v": "fcd5a36bb386cf37c8f81c1fc7d9c3f0e30147a0e6249e1268970e94b1e5f8ee",
+    "source/bench_build.tcl": "27ea64faafc4da27c329ea20c6cfa7fb12a1b394f5da9f044380c15adc66a59c",
+    "source/bench_vivado.ps1": "d730c21867e3ae66b8df9b1a60dbe0597c81bd917184a60572e4f67a5c30b7a3",
+    "source/bench_lease_sim.ps1": "c4dfb88758ba4e8d954b8b4fd24ddcfb2800444e93cd7397dd358a37856c8ade",
+    "source/bench_build.py": "13b5cebc4e255d7a58cb6145636bf934579d9756d1836bd61b00bdb29b7b4f16"
+  },
+  "runtime_build_id": "22b77b64",
+  "error": "Command failed (1); log: C:\\Users\\Adam\\usb3-tester\\bench_runs\\builds\\20260908T012313Z-8ead3e\\build.log\n\n****** Vivado v2025.2 (64-bit)\n  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025\n  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025\n  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025\n  **** Start of session at: Mon Sep  7 18:23:23 2026\n    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.\n    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.\n\nsource {C:\\Users\\Adam\\usb3-tester\\bench_runs\\builds\\20260908T012313Z-8ead3e\\source\\bench_build.tcl}\n# set src [file normalize [lindex $argv 0]]\n# set out [file normalize [lindex $argv 1]]\n# set part [lindex $argv 2]\n# set build_id [lindex $argv 3]\n# create_project -in_memory -part $part\ncreate_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:07 . Memory (MB): peak = 523.598 ; gain = 215.996\n# set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY XPM_FIFO} [current_project]\n# read_verilog -define [list \"USB3_BENCH_BUILD_ID=32'h$build_id\"] [glob [file join $src rtl *.v]]\nERROR: [Common 17-69] Command failed: '-define' is only supported when is_compile_unit_mode is enabled on the source fileset\nINFO: [Common 17-206] Exiting Vivado at Mon Sep  7 18:23:33 2026...\n"
+}

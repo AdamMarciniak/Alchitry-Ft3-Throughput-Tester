@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "result": {
+    "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\validation-air-control\\capture.rf.npz",
+    "report": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\validation-air-control\\capture.report.json",
+    "frames": 32,
+    "accepted": true,
+    "termination": "frame count reached",
+    "source": "hardware"
+  },
+  "error": null,
+  "finished_unix": 1788916540.995387
+}

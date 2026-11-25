@@ -1,0 +1,797 @@
+{
+  "schema": "usb3_tester.single_element_noise.v1",
+  "generated_at_utc": "2026-08-19T01:55:44.866774+00:00",
+  "overall_status": "investigate",
+  "threshold_note": "Severity thresholds are generic engineering triage, not a calibrated AFE5804 production limit.",
+  "capture_settings": {
+    "element": 0,
+    "frames": 64,
+    "depth_cm": 6.0,
+    "sound_speed_m_s": 1496.0,
+    "delay_us": 5.0,
+    "damp_us": 50.0,
+    "tgc_start": 834,
+    "tgc_end": 834,
+    "signed_adc": false,
+    "pulse_pairs": 2,
+    "pulse_width_ns": 100.0,
+    "pulse_dead_ns": 40.0,
+    "switch_settle_us": 5.0,
+    "mux_inhibit_us": 4.5,
+    "ringdown_us": 3.0,
+    "captured_at_utc": "2026-08-19T01:55:44.810518+00:00",
+    "source": "simulation",
+    "sample_rate_hz": 40000000,
+    "adc_bits": 12,
+    "sample_coding": "offset_binary",
+    "window_words": 1604,
+    "samples_per_frame": 3208,
+    "window_us": 80.2,
+    "estimated_frame_rate_hz": 6242.197253433209,
+    "simulation_note": "Fault-rich deterministic demo: ringdown, tones, localized noise, impulses, and 60 Hz frame modulation."
+  },
+  "transport_integrity": {
+    "requested_frames": 64,
+    "headers_seen": 64,
+    "accepted_frames": 64,
+    "wrong_element_frames": 0,
+    "tag_damaged_frames": 0,
+    "sample_tag_discontinuities": 0,
+    "frame_counter_discontinuities": 0,
+    "estimated_missing_frames": 0,
+    "resync_events": 0,
+    "discarded_words_during_resync": 0,
+    "capture_seconds": 0.0102528,
+    "clean_frame_rate_hz": 6242.197253433209,
+    "partial_words_at_stop": 0
+  },
+  "summary": {
+    "frames_analyzed": 64,
+    "samples_per_frame": 3208,
+    "duration_per_frame_us": 80.2,
+    "dc_mean_counts": 4.6989,
+    "dc_drift_std_counts": 4.7744,
+    "total_ac_rms_counts": 30.3501,
+    "total_ac_rms_dbfs": -36.58,
+    "random_rms_counts": 6.6074,
+    "random_rms_dbfs": -49.83,
+    "coherent_rms_counts": 29.6222,
+    "coherent_rms_dbfs": -36.79,
+    "random_fraction_of_ac_power_percent": 4.74,
+    "peak_counts": 327.0,
+    "peak_dbfs": -15.94,
+    "peak_to_peak_counts": 591.0,
+    "crest_factor_db": 20.65,
+    "clipped_samples_percent": 0.0,
+    "near_rail_samples_percent": 0.0,
+    "residual_kurtosis": 121.036,
+    "median_frame_correlation_to_mean": 0.97758,
+    "frame_rms_variation_percent": 0.775,
+    "effective_bits_from_random_noise": 7.483
+  },
+  "adc_code_health": {
+    "sample_coding": "offset_binary",
+    "unique_codes_observed": 370,
+    "observed_code_min": 1721,
+    "observed_code_max": 2312,
+    "lsb_toggle_percent": 50.057,
+    "bit_one_fraction_lsb_to_msb": [
+      0.499128,
+      0.498977,
+      0.500813,
+      0.498641,
+      0.456583,
+      0.380957,
+      0.364026,
+      0.361046,
+      0.358576,
+      0.358581,
+      0.358581,
+      0.641419
+    ],
+    "fully_static_bits": [],
+    "note": "Static upper bits can be normal for a very small input range; this is a diagnostic clue, not a DNL test."
+  },
+  "spectrum": {
+    "method": "one-sided Hann Welch PSD, 50% overlap, DC removed per frame",
+    "frequency_resolution_hz": 19531.25,
+    "spectral_flatness_0_to_1": 0.977605,
+    "random_noise_tones": [],
+    "repeatable_waveform_tones": [
+      {
+        "frequency_hz": 1250000.0,
+        "frequency_mhz": 1.25,
+        "prominence_db": 48.75,
+        "estimated_rms_counts": 5.6796,
+        "estimated_rms_dbfs": -51.14
+      },
+      {
+        "frequency_hz": 3554687.5,
+        "frequency_mhz": 3.554688,
+        "prominence_db": 44.59,
+        "estimated_rms_counts": 8.8369,
+        "estimated_rms_dbfs": -47.3
+      },
+      {
+        "frequency_hz": 7246093.75,
+        "frequency_mhz": 7.246094,
+        "prominence_db": 27.96,
+        "estimated_rms_counts": 0.9026,
+        "estimated_rms_dbfs": -67.12
+      },
+      {
+        "frequency_hz": 1718750.0,
+        "frequency_mhz": 1.71875,
+        "prominence_db": 8.43,
+        "estimated_rms_counts": 0.0632,
+        "estimated_rms_dbfs": -90.21
+      },
+      {
+        "frequency_hz": 17324218.75,
+        "frequency_mhz": 17.324219,
+        "prominence_db": 8.2,
+        "estimated_rms_counts": 0.0548,
+        "estimated_rms_dbfs": -91.45
+      },
+      {
+        "frequency_hz": 11660156.25,
+        "frequency_mhz": 11.660156,
+        "prominence_db": 8.09,
+        "estimated_rms_counts": 0.066,
+        "estimated_rms_dbfs": -89.83
+      },
+      {
+        "frequency_hz": 14843750.0,
+        "frequency_mhz": 14.84375,
+        "prominence_db": 8.0,
+        "estimated_rms_counts": 0.0635,
+        "estimated_rms_dbfs": -90.17
+      },
+      {
+        "frequency_hz": 11933593.75,
+        "frequency_mhz": 11.933594,
+        "prominence_db": 7.94,
+        "estimated_rms_counts": 0.0664,
+        "estimated_rms_dbfs": -89.79
+      },
+      {
+        "frequency_hz": 14355468.75,
+        "frequency_mhz": 14.355469,
+        "prominence_db": 7.66,
+        "estimated_rms_counts": 0.0747,
+        "estimated_rms_dbfs": -88.76
+      },
+      {
+        "frequency_hz": 12968750.0,
+        "frequency_mhz": 12.96875,
+        "prominence_db": 7.23,
+        "estimated_rms_counts": 0.0822,
+        "estimated_rms_dbfs": -87.93
+      },
+      {
+        "frequency_hz": 12324218.75,
+        "frequency_mhz": 12.324219,
+        "prominence_db": 6.88,
+        "estimated_rms_counts": 0.0602,
+        "estimated_rms_dbfs": -90.63
+      },
+      {
+        "frequency_hz": 18398437.5,
+        "frequency_mhz": 18.398438,
+        "prominence_db": 6.63,
+        "estimated_rms_counts": 0.0467,
+        "estimated_rms_dbfs": -92.85
+      }
+    ],
+    "random_noise_bands": [
+      {
+        "name": "sub_100_khz",
+        "low_hz": 0.0,
+        "high_hz": 100000.0,
+        "rms_counts": 0.3493,
+        "rms_dbfs": -75.36,
+        "percent_of_random_noise_power": 0.39
+      },
+      {
+        "name": "100_khz_to_1_mhz",
+        "low_hz": 100000.0,
+        "high_hz": 1000000.0,
+        "rms_counts": 1.0655,
+        "rms_dbfs": -65.68,
+        "percent_of_random_noise_power": 3.65
+      },
+      {
+        "name": "1_to_2_mhz",
+        "low_hz": 1000000.0,
+        "high_hz": 2000000.0,
+        "rms_counts": 1.1225,
+        "rms_dbfs": -65.22,
+        "percent_of_random_noise_power": 4.05
+      },
+      {
+        "name": "probe_band_2_to_6_mhz",
+        "low_hz": 2000000.0,
+        "high_hz": 6000000.0,
+        "rms_counts": 2.2566,
+        "rms_dbfs": -59.16,
+        "percent_of_random_noise_power": 16.36
+      },
+      {
+        "name": "6_to_10_mhz",
+        "low_hz": 6000000.0,
+        "high_hz": 10000000.0,
+        "rms_counts": 2.2878,
+        "rms_dbfs": -59.04,
+        "percent_of_random_noise_power": 16.82
+      },
+      {
+        "name": "10_to_20_mhz",
+        "low_hz": 10000000.0,
+        "high_hz": 20000000.0,
+        "rms_counts": 4.2758,
+        "rms_dbfs": -53.61,
+        "percent_of_random_noise_power": 58.74
+      }
+    ]
+  },
+  "time_depth_localization": {
+    "block_samples": 256,
+    "block_us": 6.4,
+    "depth_mapping": "one-way equivalent depth = sound_speed * (pulse_to_capture_delay + sample_time) / 2",
+    "localized_regions": [
+      {
+        "start_us": 0.0,
+        "end_us": 12.8,
+        "start_depth_cm": 0.374,
+        "end_depth_cm": 1.331,
+        "classification": "repeatable_coherent_artifact",
+        "max_random_excess_db": 0.0,
+        "max_total_excess_db": 17.57,
+        "max_peak_dbfs": -20.7,
+        "max_kurtosis": 3.001
+      },
+      {
+        "start_us": 64.0,
+        "end_us": 80.2,
+        "start_depth_cm": 5.161,
+        "end_depth_cm": 6.373,
+        "classification": "repeatable_coherent_artifact",
+        "max_random_excess_db": 8.07,
+        "max_total_excess_db": 5.45,
+        "max_peak_dbfs": -28.87,
+        "max_kurtosis": 3.331
+      },
+      {
+        "start_us": 44.8,
+        "end_us": 51.2,
+        "start_depth_cm": 3.725,
+        "end_depth_cm": 4.204,
+        "classification": "impulsive_or_bursty",
+        "max_random_excess_db": 3.93,
+        "max_total_excess_db": -1.58,
+        "max_peak_dbfs": -15.84,
+        "max_kurtosis": 745.737
+      }
+    ],
+    "highest_noise_blocks": [
+      {
+        "index": 0,
+        "start_sample": 0,
+        "end_sample": 256,
+        "start_us": 0.0,
+        "end_us": 6.4,
+        "start_depth_cm": 0.374,
+        "end_depth_cm": 0.853,
+        "total_rms_dbfs": -27.33,
+        "random_rms_dbfs": -52.31,
+        "coherent_rms_dbfs": -27.35,
+        "peak_dbfs": -20.7,
+        "random_kurtosis": 2.976,
+        "random_excess_over_median_db": -0.01,
+        "total_excess_over_median_db": 17.57
+      },
+      {
+        "index": 1,
+        "start_sample": 256,
+        "end_sample": 512,
+        "start_us": 6.4,
+        "end_us": 12.8,
+        "start_depth_cm": 0.853,
+        "end_depth_cm": 1.331,
+        "total_rms_dbfs": -33.35,
+        "random_rms_dbfs": -52.3,
+        "coherent_rms_dbfs": -33.4,
+        "peak_dbfs": -25.79,
+        "random_kurtosis": 3.001,
+        "random_excess_over_median_db": 0.0,
+        "total_excess_over_median_db": 11.55
+      },
+      {
+        "index": 2,
+        "start_sample": 512,
+        "end_sample": 768,
+        "start_us": 12.8,
+        "end_us": 19.2,
+        "start_depth_cm": 1.331,
+        "end_depth_cm": 1.81,
+        "total_rms_dbfs": -39.21,
+        "random_rms_dbfs": -52.31,
+        "coherent_rms_dbfs": -39.43,
+        "peak_dbfs": -30.68,
+        "random_kurtosis": 3.02,
+        "random_excess_over_median_db": -0.01,
+        "total_excess_over_median_db": 5.69
+      },
+      {
+        "index": 12,
+        "start_sample": 3072,
+        "end_sample": 3208,
+        "start_us": 76.8,
+        "end_us": 80.2,
+        "start_depth_cm": 6.119,
+        "end_depth_cm": 6.373,
+        "total_rms_dbfs": -39.45,
+        "random_rms_dbfs": -44.23,
+        "coherent_rms_dbfs": -41.2,
+        "peak_dbfs": -28.87,
+        "random_kurtosis": 3.1,
+        "random_excess_over_median_db": 8.07,
+        "total_excess_over_median_db": 5.45
+      },
+      {
+        "index": 11,
+        "start_sample": 2816,
+        "end_sample": 3072,
+        "start_us": 70.4,
+        "end_us": 76.8,
+        "start_depth_cm": 5.64,
+        "end_depth_cm": 6.119,
+        "total_rms_dbfs": -40.56,
+        "random_rms_dbfs": -45.16,
+        "coherent_rms_dbfs": -42.41,
+        "peak_dbfs": -29.15,
+        "random_kurtosis": 3.071,
+        "random_excess_over_median_db": 7.14,
+        "total_excess_over_median_db": 4.34
+      },
+      {
+        "index": 3,
+        "start_sample": 768,
+        "end_sample": 1024,
+        "start_us": 19.2,
+        "end_us": 25.6,
+        "start_depth_cm": 1.81,
+        "end_depth_cm": 2.289,
+        "total_rms_dbfs": -44.02,
+        "random_rms_dbfs": -52.33,
+        "coherent_rms_dbfs": -44.71,
+        "peak_dbfs": -34.33,
+        "random_kurtosis": 3.004,
+        "random_excess_over_median_db": -0.03,
+        "total_excess_over_median_db": 0.88
+      },
+      {
+        "index": 10,
+        "start_sample": 2560,
+        "end_sample": 2816,
+        "start_us": 64.0,
+        "end_us": 70.4,
+        "start_depth_cm": 5.161,
+        "end_depth_cm": 5.64,
+        "total_rms_dbfs": -44.9,
+        "random_rms_dbfs": -49.21,
+        "coherent_rms_dbfs": -46.92,
+        "peak_dbfs": -32.7,
+        "random_kurtosis": 3.331,
+        "random_excess_over_median_db": 3.09,
+        "total_excess_over_median_db": 0.0
+      },
+      {
+        "index": 7,
+        "start_sample": 1792,
+        "end_sample": 2048,
+        "start_us": 44.8,
+        "end_us": 51.2,
+        "start_depth_cm": 3.725,
+        "end_depth_cm": 4.204,
+        "total_rms_dbfs": -46.48,
+        "random_rms_dbfs": -48.37,
+        "coherent_rms_dbfs": -51.0,
+        "peak_dbfs": -15.84,
+        "random_kurtosis": 745.737,
+        "random_excess_over_median_db": 3.93,
+        "total_excess_over_median_db": -1.58
+      }
+    ],
+    "all_blocks": [
+      {
+        "index": 0,
+        "start_sample": 0,
+        "end_sample": 256,
+        "start_us": 0.0,
+        "end_us": 6.4,
+        "start_depth_cm": 0.374,
+        "end_depth_cm": 0.853,
+        "total_rms_dbfs": -27.33,
+        "random_rms_dbfs": -52.31,
+        "coherent_rms_dbfs": -27.35,
+        "peak_dbfs": -20.7,
+        "random_kurtosis": 2.976,
+        "random_excess_over_median_db": -0.01,
+        "total_excess_over_median_db": 17.57
+      },
+      {
+        "index": 1,
+        "start_sample": 256,
+        "end_sample": 512,
+        "start_us": 6.4,
+        "end_us": 12.8,
+        "start_depth_cm": 0.853,
+        "end_depth_cm": 1.331,
+        "total_rms_dbfs": -33.35,
+        "random_rms_dbfs": -52.3,
+        "coherent_rms_dbfs": -33.4,
+        "peak_dbfs": -25.79,
+        "random_kurtosis": 3.001,
+        "random_excess_over_median_db": 0.0,
+        "total_excess_over_median_db": 11.55
+      },
+      {
+        "index": 2,
+        "start_sample": 512,
+        "end_sample": 768,
+        "start_us": 12.8,
+        "end_us": 19.2,
+        "start_depth_cm": 1.331,
+        "end_depth_cm": 1.81,
+        "total_rms_dbfs": -39.21,
+        "random_rms_dbfs": -52.31,
+        "coherent_rms_dbfs": -39.43,
+        "peak_dbfs": -30.68,
+        "random_kurtosis": 3.02,
+        "random_excess_over_median_db": -0.01,
+        "total_excess_over_median_db": 5.69
+      },
+      {
+        "index": 3,
+        "start_sample": 768,
+        "end_sample": 1024,
+        "start_us": 19.2,
+        "end_us": 25.6,
+        "start_depth_cm": 1.81,
+        "end_depth_cm": 2.289,
+        "total_rms_dbfs": -44.02,
+        "random_rms_dbfs": -52.33,
+        "coherent_rms_dbfs": -44.71,
+        "peak_dbfs": -34.33,
+        "random_kurtosis": 3.004,
+        "random_excess_over_median_db": -0.03,
+        "total_excess_over_median_db": 0.88
+      },
+      {
+        "index": 4,
+        "start_sample": 1024,
+        "end_sample": 1280,
+        "start_us": 25.6,
+        "end_us": 32.0,
+        "start_depth_cm": 2.289,
+        "end_depth_cm": 2.768,
+        "total_rms_dbfs": -47.05,
+        "random_rms_dbfs": -52.31,
+        "coherent_rms_dbfs": -48.58,
+        "peak_dbfs": -35.68,
+        "random_kurtosis": 3.059,
+        "random_excess_over_median_db": -0.01,
+        "total_excess_over_median_db": -2.15
+      },
+      {
+        "index": 5,
+        "start_sample": 1280,
+        "end_sample": 1536,
+        "start_us": 32.0,
+        "end_us": 38.4,
+        "start_depth_cm": 2.768,
+        "end_depth_cm": 3.246,
+        "total_rms_dbfs": -48.16,
+        "random_rms_dbfs": -52.34,
+        "coherent_rms_dbfs": -50.25,
+        "peak_dbfs": -37.52,
+        "random_kurtosis": 3.032,
+        "random_excess_over_median_db": -0.04,
+        "total_excess_over_median_db": -3.26
+      },
+      {
+        "index": 6,
+        "start_sample": 1536,
+        "end_sample": 1792,
+        "start_us": 38.4,
+        "end_us": 44.8,
+        "start_depth_cm": 3.246,
+        "end_depth_cm": 3.725,
+        "total_rms_dbfs": -48.6,
+        "random_rms_dbfs": -52.39,
+        "coherent_rms_dbfs": -50.95,
+        "peak_dbfs": -37.72,
+        "random_kurtosis": 2.999,
+        "random_excess_over_median_db": -0.09,
+        "total_excess_over_median_db": -3.7
+      },
+      {
+        "index": 7,
+        "start_sample": 1792,
+        "end_sample": 2048,
+        "start_us": 44.8,
+        "end_us": 51.2,
+        "start_depth_cm": 3.725,
+        "end_depth_cm": 4.204,
+        "total_rms_dbfs": -46.48,
+        "random_rms_dbfs": -48.37,
+        "coherent_rms_dbfs": -51.0,
+        "peak_dbfs": -15.84,
+        "random_kurtosis": 745.737,
+        "random_excess_over_median_db": 3.93,
+        "total_excess_over_median_db": -1.58
+      },
+      {
+        "index": 8,
+        "start_sample": 2048,
+        "end_sample": 2304,
+        "start_us": 51.2,
+        "end_us": 57.6,
+        "start_depth_cm": 4.204,
+        "end_depth_cm": 4.682,
+        "total_rms_dbfs": -48.56,
+        "random_rms_dbfs": -52.24,
+        "coherent_rms_dbfs": -50.99,
+        "peak_dbfs": -38.34,
+        "random_kurtosis": 2.976,
+        "random_excess_over_median_db": 0.06,
+        "total_excess_over_median_db": -3.66
+      },
+      {
+        "index": 9,
+        "start_sample": 2304,
+        "end_sample": 2560,
+        "start_us": 57.6,
+        "end_us": 64.0,
+        "start_depth_cm": 4.682,
+        "end_depth_cm": 5.161,
+        "total_rms_dbfs": -48.16,
+        "random_rms_dbfs": -51.91,
+        "coherent_rms_dbfs": -50.54,
+        "peak_dbfs": -36.42,
+        "random_kurtosis": 3.061,
+        "random_excess_over_median_db": 0.39,
+        "total_excess_over_median_db": -3.26
+      },
+      {
+        "index": 10,
+        "start_sample": 2560,
+        "end_sample": 2816,
+        "start_us": 64.0,
+        "end_us": 70.4,
+        "start_depth_cm": 5.161,
+        "end_depth_cm": 5.64,
+        "total_rms_dbfs": -44.9,
+        "random_rms_dbfs": -49.21,
+        "coherent_rms_dbfs": -46.92,
+        "peak_dbfs": -32.7,
+        "random_kurtosis": 3.331,
+        "random_excess_over_median_db": 3.09,
+        "total_excess_over_median_db": 0.0
+      },
+      {
+        "index": 11,
+        "start_sample": 2816,
+        "end_sample": 3072,
+        "start_us": 70.4,
+        "end_us": 76.8,
+        "start_depth_cm": 5.64,
+        "end_depth_cm": 6.119,
+        "total_rms_dbfs": -40.56,
+        "random_rms_dbfs": -45.16,
+        "coherent_rms_dbfs": -42.41,
+        "peak_dbfs": -29.15,
+        "random_kurtosis": 3.071,
+        "random_excess_over_median_db": 7.14,
+        "total_excess_over_median_db": 4.34
+      },
+      {
+        "index": 12,
+        "start_sample": 3072,
+        "end_sample": 3208,
+        "start_us": 76.8,
+        "end_us": 80.2,
+        "start_depth_cm": 6.119,
+        "end_depth_cm": 6.373,
+        "total_rms_dbfs": -39.45,
+        "random_rms_dbfs": -44.23,
+        "coherent_rms_dbfs": -41.2,
+        "peak_dbfs": -28.87,
+        "random_kurtosis": 3.1,
+        "random_excess_over_median_db": 8.07,
+        "total_excess_over_median_db": 5.45
+      }
+    ]
+  },
+  "shot_to_shot_modulation": {
+    "available": true,
+    "frame_rate_hz": 6242.197,
+    "frequency_resolution_hz": 97.534,
+    "peaks": [
+      {
+        "frequency_hz": 97.53,
+        "frequency_mhz": 9.8e-05,
+        "prominence_db": 39.19,
+        "estimated_rms_counts": 3.3901,
+        "estimated_rms_dbfs": -55.62
+      },
+      {
+        "frequency_hz": 1170.41,
+        "frequency_mhz": 0.00117,
+        "prominence_db": 6.53,
+        "estimated_rms_counts": 0.0504,
+        "estimated_rms_dbfs": -92.18
+      }
+    ],
+    "note": "This spectrum uses one scalar per repeated shot and can expose mains/supply modulation below the shot-rate Nyquist limit."
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "code": "broadband_noise_level",
+      "summary": "Measured random noise is high relative to ADC full scale.",
+      "evidence": {
+        "random_rms_counts": 6.6074,
+        "random_rms_dbfs": -49.83
+      },
+      "next_test": "Repeat at several fixed TGC values and with the probe/cable substituted to separate input-referred noise from gain-stage or supply noise."
+    },
+    {
+      "severity": "medium",
+      "code": "repeatable_artifact",
+      "summary": "Repeatable energy is stronger than frame-to-frame random noise, consistent with transmit feedthrough, ringdown, or synchronous pickup.",
+      "evidence": {
+        "coherent_rms_dbfs": -36.79,
+        "random_rms_dbfs": -49.83,
+        "median_frame_correlation": 0.9776
+      },
+      "next_test": "Compare probe-in-air, probe-loaded, and transmit-voltage conditions; repeatable early energy that tracks voltage/loading is likely acoustic or HV feedthrough."
+    },
+    {
+      "severity": "medium",
+      "code": "narrowband_interference",
+      "summary": "One or more narrow spectral lines rise clearly above the local noise floor; the component label shows whether each line repeats with the shot.",
+      "evidence": {
+        "strongest_tones": [
+          {
+            "frequency_hz": 1250000.0,
+            "frequency_mhz": 1.25,
+            "prominence_db": 48.75,
+            "estimated_rms_counts": 5.6796,
+            "estimated_rms_dbfs": -51.14,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 3554687.5,
+            "frequency_mhz": 3.554688,
+            "prominence_db": 44.59,
+            "estimated_rms_counts": 8.8369,
+            "estimated_rms_dbfs": -47.3,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 7246093.75,
+            "frequency_mhz": 7.246094,
+            "prominence_db": 27.96,
+            "estimated_rms_counts": 0.9026,
+            "estimated_rms_dbfs": -67.12,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 1718750.0,
+            "frequency_mhz": 1.71875,
+            "prominence_db": 8.43,
+            "estimated_rms_counts": 0.0632,
+            "estimated_rms_dbfs": -90.21,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 17324218.75,
+            "frequency_mhz": 17.324219,
+            "prominence_db": 8.2,
+            "estimated_rms_counts": 0.0548,
+            "estimated_rms_dbfs": -91.45,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 11660156.25,
+            "frequency_mhz": 11.660156,
+            "prominence_db": 8.09,
+            "estimated_rms_counts": 0.066,
+            "estimated_rms_dbfs": -89.83,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 14843750.0,
+            "frequency_mhz": 14.84375,
+            "prominence_db": 8.0,
+            "estimated_rms_counts": 0.0635,
+            "estimated_rms_dbfs": -90.17,
+            "component": "repeatable_waveform"
+          },
+          {
+            "frequency_hz": 11933593.75,
+            "frequency_mhz": 11.933594,
+            "prominence_db": 7.94,
+            "estimated_rms_counts": 0.0664,
+            "estimated_rms_dbfs": -89.79,
+            "component": "repeatable_waveform"
+          }
+        ]
+      },
+      "next_test": "Correlate the listed frequencies and harmonics with switching regulators, clocks, USB activity, and the transmit centre frequency; vary transmit amplitude to distinguish acoustic/ringdown lines from electrical pickup."
+    },
+    {
+      "severity": "medium",
+      "code": "time_localized_noise",
+      "summary": "Noise is not stationary across the receive window; one or more time/depth regions are materially worse.",
+      "evidence": {
+        "random_noise_spread_db": 8.16,
+        "regions": [
+          {
+            "start_us": 0.0,
+            "end_us": 12.8,
+            "start_depth_cm": 0.374,
+            "end_depth_cm": 1.331,
+            "classification": "repeatable_coherent_artifact",
+            "max_random_excess_db": 0.0,
+            "max_total_excess_db": 17.57,
+            "max_peak_dbfs": -20.7,
+            "max_kurtosis": 3.001
+          },
+          {
+            "start_us": 64.0,
+            "end_us": 80.2,
+            "start_depth_cm": 5.161,
+            "end_depth_cm": 6.373,
+            "classification": "repeatable_coherent_artifact",
+            "max_random_excess_db": 8.07,
+            "max_total_excess_db": 5.45,
+            "max_peak_dbfs": -28.87,
+            "max_kurtosis": 3.331
+          },
+          {
+            "start_us": 44.8,
+            "end_us": 51.2,
+            "start_depth_cm": 3.725,
+            "end_depth_cm": 4.204,
+            "classification": "impulsive_or_bursty",
+            "max_random_excess_db": 3.93,
+            "max_total_excess_db": -1.58,
+            "max_peak_dbfs": -15.84,
+            "max_kurtosis": 745.737
+          }
+        ]
+      },
+      "next_test": "Use the reported time/depth gates to relate each rise to ringdown, TGC changes, supply settling, or a fixed-delay digital event."
+    },
+    {
+      "severity": "medium",
+      "code": "impulsive_noise",
+      "summary": "The random residual has heavy tails, indicating intermittent spikes or burst noise.",
+      "evidence": {
+        "residual_kurtosis": 121.036,
+        "gaussian_reference": 3.0
+      },
+      "next_test": "Capture more frames and trigger a bench scope on the affected time gate while monitoring rails and digital control lines."
+    }
+  ],
+  "recommended_comparisons": [
+    "Same settings with probe face in air versus acoustically loaded/coupled.",
+    "Same fixed TGC at two or three gain codes; input noise should scale predictably while post-gain pickup may not.",
+    "Same element with transmit voltage reduced or disabled upstream, if the bench setup provides a safe HV control.",
+    "Neighbouring elements with identical settings to separate a shared receive-path issue from one mux/probe path.",
+    "Battery/linear bench supplies versus normal switchers, and USB connected through the normal versus isolated ground arrangement."
+  ]
+}

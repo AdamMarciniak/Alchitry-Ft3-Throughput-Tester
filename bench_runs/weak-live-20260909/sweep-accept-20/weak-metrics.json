@@ -1,0 +1,38 @@
+{
+  "trial": "sweep-accept-20",
+  "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\gain-1800\\capture.rf.npz",
+  "frame": 32,
+  "aperture_scale": 97280.0,
+  "wire": {
+    "peak": 88.00656127929688,
+    "normalized_peak": 0.0009046727105190879,
+    "position_mm": [
+      -3.212890625,
+      40.390625
+    ],
+    "local_rms": 3.6355831623077393,
+    "local_db": 27.67881937108674
+  },
+  "faint_right": {
+    "peak": 4.043835639953613,
+    "normalized_peak": 4.156903412781264e-05,
+    "position_mm": [
+      16.611328125,
+      38.515625
+    ],
+    "local_rms": 0.8705399632453918,
+    "local_db": 13.340095656077839
+  },
+  "faint_left": {
+    "peak": 0.8263711333274841,
+    "normalized_peak": 8.49476905147496e-06,
+    "position_mm": [
+      -19.072265625,
+      37.265625
+    ],
+    "local_rms": 0.684646487236023,
+    "local_db": 1.6341750766735217
+  },
+  "quiet_rms": 1.852126955986023,
+  "arc_p99_relative_db": -17.16314697265625
+}

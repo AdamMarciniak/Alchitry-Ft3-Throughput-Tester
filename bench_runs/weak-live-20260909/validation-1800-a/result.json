@@ -1,0 +1,8 @@
+{
+  "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.rf.npz",
+  "report": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-a\\capture.report.json",
+  "frames": 128,
+  "accepted": true,
+  "termination": "frame count reached",
+  "source": "hardware"
+}

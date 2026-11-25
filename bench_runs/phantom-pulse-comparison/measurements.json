@@ -1,0 +1,884 @@
+{
+  "current": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "peak": 676.6488037109375,
+      "lateral_width_6db_mm": 0.7366391595166433,
+      "axial_width_6db_mm": 0.8981106424560892,
+      "clutter_p95_relative_db": -28.63408600230063,
+      "clutter_to_target_energy": 0.10700493305921555,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -9,
+        9,
+        16.8,
+        21.0
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 18.967384338378906,
+      "grain_mm": [
+        0.8019320524349637,
+        0.6891689583886856
+      ],
+      "background_rms_over_difference_db": 29.299182891845703,
+      "background_repeat": 0.9956432395121412,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.730769230769232,
+        18.03846153846154
+      ],
+      "peak": 812.4666748046875,
+      "lateral_width_6db_mm": 0.6029483790581021,
+      "axial_width_6db_mm": 0.9059494779660149,
+      "clutter_p95_relative_db": -26.037559925388216,
+      "clutter_to_target_energy": 0.21506643295288086,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 20.039852142333984,
+      "grain_mm": [
+        0.5533986458615441,
+        0.6837345122319951
+      ],
+      "background_rms_over_difference_db": 29.29228973388672,
+      "background_repeat": 0.9952414528212534,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        17.961538461538463
+      ],
+      "peak": 138.1160888671875,
+      "lateral_width_6db_mm": 1.1304807296166046,
+      "axial_width_6db_mm": 0.27240828711252973,
+      "clutter_p95_relative_db": -22.055908175607463,
+      "clutter_to_target_energy": 0.48460853099823,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 21.197263717651367,
+      "grain_mm": [
+        0.39595271223683337,
+        0.24469564620278486
+      ],
+      "background_rms_over_difference_db": 24.160444259643555,
+      "background_repeat": 0.9838862061853069,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.730769230769232,
+        18.03846153846154
+      ],
+      "peak": 711.6444702148438,
+      "lateral_width_6db_mm": 0.5934344965677971,
+      "axial_width_6db_mm": 1.0157929888138426,
+      "clutter_p95_relative_db": -25.38997727649951,
+      "clutter_to_target_energy": 0.22875165939331055,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 19.468048095703125,
+      "grain_mm": [
+        0.526728133873573,
+        0.7679947936754143
+      ],
+      "background_rms_over_difference_db": 29.941543579101562,
+      "background_repeat": 0.995649024900254,
+      "clip_wire_gel_fraction": 0.0
+    }
+  },
+  "one-cycle": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1183.1417236328125,
+      "lateral_width_6db_mm": 0.6424911939180791,
+      "axial_width_6db_mm": 0.3645568673427313,
+      "clutter_p95_relative_db": -26.249605165749927,
+      "clutter_to_target_energy": 0.2883797585964203,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 23.094554901123047,
+      "grain_mm": [
+        0.6704631528382758,
+        0.29572373648692213
+      ],
+      "background_rms_over_difference_db": 29.7002010345459,
+      "background_repeat": 0.9951403176303729,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1523.9683837890625,
+      "lateral_width_6db_mm": 1.1662854735667878,
+      "axial_width_6db_mm": 0.2864734645073206,
+      "clutter_p95_relative_db": -24.615047028523787,
+      "clutter_to_target_energy": 0.48497506976127625,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 23.742965698242188,
+      "grain_mm": [
+        0.4329231535334709,
+        0.2600367397444401
+      ],
+      "background_rms_over_difference_db": 28.892547607421875,
+      "background_repeat": 0.994590484544012,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        18.03846153846154
+      ],
+      "peak": 1082.7982177734375,
+      "lateral_width_6db_mm": 1.1787478281901425,
+      "axial_width_6db_mm": 0.3792872520593491,
+      "clutter_p95_relative_db": -22.35226851527298,
+      "clutter_to_target_energy": 0.6089126467704773,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.503938674926758,
+      "grain_mm": [
+        0.3893610113418161,
+        0.33982940832353986
+      ],
+      "background_rms_over_difference_db": 29.231117248535156,
+      "background_repeat": 0.9948130861439429,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1461.3604736328125,
+      "lateral_width_6db_mm": 1.1720855602851272,
+      "axial_width_6db_mm": 0.29798633891802595,
+      "clutter_p95_relative_db": -24.267355207316513,
+      "clutter_to_target_energy": 0.4956701099872589,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 23.499929428100586,
+      "grain_mm": [
+        0.42667903362864773,
+        0.2700039871484223
+      ],
+      "background_rms_over_difference_db": 29.498567581176758,
+      "background_repeat": 0.9951803584218207,
+      "clip_wire_gel_fraction": 0.0
+    }
+  },
+  "two-cycle": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.192307692307693
+      ],
+      "peak": 2226.151611328125,
+      "lateral_width_6db_mm": 0.6417853052799491,
+      "axial_width_6db_mm": 0.40755469294694535,
+      "clutter_p95_relative_db": -25.86980101275652,
+      "clutter_to_target_energy": 0.2998999059200287,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.8360538482666,
+      "grain_mm": [
+        0.6620108982504979,
+        0.3512869352613877
+      ],
+      "background_rms_over_difference_db": 31.867008209228516,
+      "background_repeat": 0.9972078212114225,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.192307692307693
+      ],
+      "peak": 2597.18115234375,
+      "lateral_width_6db_mm": 1.206916869259797,
+      "axial_width_6db_mm": 0.35658979645141997,
+      "clutter_p95_relative_db": -23.56503685641998,
+      "clutter_to_target_energy": 0.4692072868347168,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.986507415771484,
+      "grain_mm": [
+        0.43930173273082906,
+        0.33824164371426363
+      ],
+      "background_rms_over_difference_db": 31.712154388427734,
+      "background_repeat": 0.9970838870001213,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        18.192307692307693
+      ],
+      "peak": 1861.87646484375,
+      "lateral_width_6db_mm": 1.1863278848333993,
+      "axial_width_6db_mm": 0.49808511596459937,
+      "clutter_p95_relative_db": -21.367419530259262,
+      "clutter_to_target_energy": 0.5586873888969421,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 21.86039924621582,
+      "grain_mm": [
+        0.4067183903798482,
+        0.44442085004231147
+      ],
+      "background_rms_over_difference_db": 32.014625549316406,
+      "background_repeat": 0.9972993086388602,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.192307692307693
+      ],
+      "peak": 2520.41015625,
+      "lateral_width_6db_mm": 1.2111349140222247,
+      "axial_width_6db_mm": 0.36898187834482954,
+      "clutter_p95_relative_db": -23.314143250169316,
+      "clutter_to_target_energy": 0.47332763671875,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.8365478515625,
+      "grain_mm": [
+        0.4367429410239356,
+        0.3466822821801011
+      ],
+      "background_rms_over_difference_db": 32.15713882446289,
+      "background_repeat": 0.9973615344569957,
+      "clip_wire_gel_fraction": 0.0
+    }
+  },
+  "broad-chirp": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.8076923076923086,
+        18.03846153846154
+      ],
+      "peak": 1229.2750244140625,
+      "lateral_width_6db_mm": 0.6602322052304535,
+      "axial_width_6db_mm": 0.3727740536515505,
+      "clutter_p95_relative_db": -26.000153198514514,
+      "clutter_to_target_energy": 0.27589181065559387,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.718658447265625,
+      "grain_mm": [
+        0.6777185445145693,
+        0.2843104685604327
+      ],
+      "background_rms_over_difference_db": 38.011112213134766,
+      "background_repeat": 0.9993420234510774,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        17.961538461538463
+      ],
+      "peak": 1545.14599609375,
+      "lateral_width_6db_mm": 1.1823736796012283,
+      "axial_width_6db_mm": 0.3014597525963403,
+      "clutter_p95_relative_db": -24.12239105411195,
+      "clutter_to_target_energy": 0.482209712266922,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.973859786987305,
+      "grain_mm": [
+        0.4359356287844033,
+        0.2500382101238471
+      ],
+      "background_rms_over_difference_db": 37.993446350097656,
+      "background_repeat": 0.999339610903356,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        17.961538461538463
+      ],
+      "peak": 1056.1917724609375,
+      "lateral_width_6db_mm": 1.2125138741058217,
+      "axial_width_6db_mm": 0.42015037399071886,
+      "clutter_p95_relative_db": -21.79267811094187,
+      "clutter_to_target_energy": 0.6378196477890015,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 21.98561668395996,
+      "grain_mm": [
+        0.3912196059560592,
+        0.33650601267677727
+      ],
+      "background_rms_over_difference_db": 38.008338928222656,
+      "background_repeat": 0.9993354323852298,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        17.961538461538463
+      ],
+      "peak": 1507.488525390625,
+      "lateral_width_6db_mm": 1.1894066746418281,
+      "axial_width_6db_mm": 0.3080008350885848,
+      "clutter_p95_relative_db": -23.927055966907304,
+      "clutter_to_target_energy": 0.49028390645980835,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.889068603515625,
+      "grain_mm": [
+        0.4317503875681379,
+        0.25421634741152566
+      ],
+      "background_rms_over_difference_db": 38.16926193237305,
+      "background_repeat": 0.9993635311458887,
+      "clip_wire_gel_fraction": 0.0
+    }
+  },
+  "golay": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.8076923076923086,
+        18.115384615384617
+      ],
+      "peak": 1293.638671875,
+      "lateral_width_6db_mm": 0.6577566541158208,
+      "axial_width_6db_mm": 0.3835024879528923,
+      "clutter_p95_relative_db": -26.31987886812603,
+      "clutter_to_target_energy": 0.27936428785324097,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.968994140625,
+      "grain_mm": [
+        0.6748687532537604,
+        0.3124205685705098
+      ],
+      "background_rms_over_difference_db": 37.50766372680664,
+      "background_repeat": 0.9991888637891532,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1601.48193359375,
+      "lateral_width_6db_mm": 1.1591394464843539,
+      "axial_width_6db_mm": 0.30639393283770744,
+      "clutter_p95_relative_db": -24.26496055509043,
+      "clutter_to_target_energy": 0.4652494192123413,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 23.309478759765625,
+      "grain_mm": [
+        0.4417580768389891,
+        0.276806349809935
+      ],
+      "background_rms_over_difference_db": 36.967994689941406,
+      "background_repeat": 0.999164736297451,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        18.03846153846154
+      ],
+      "peak": 1122.7412109375,
+      "lateral_width_6db_mm": 1.1946604332098587,
+      "axial_width_6db_mm": 0.3944318564944531,
+      "clutter_p95_relative_db": -21.942774218841834,
+      "clutter_to_target_energy": 0.5874739289283752,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 22.1614933013916,
+      "grain_mm": [
+        0.4006364843293572,
+        0.3600726704031963
+      ],
+      "background_rms_over_difference_db": 37.210472106933594,
+      "background_repeat": 0.9992257740589674,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1544.4114990234375,
+      "lateral_width_6db_mm": 1.1670621220882114,
+      "axial_width_6db_mm": 0.31675049204092787,
+      "clutter_p95_relative_db": -23.950993273586406,
+      "clutter_to_target_energy": 0.47424808144569397,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 23.060035705566406,
+      "grain_mm": [
+        0.4364349834161973,
+        0.28629843737815003
+      ],
+      "background_rms_over_difference_db": 37.48461151123047,
+      "background_repeat": 0.9992595289148114,
+      "clip_wire_gel_fraction": 0.0
+    }
+  },
+  "neighbor": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 939.5964965820312,
+      "lateral_width_6db_mm": 0.6085774531731216,
+      "axial_width_6db_mm": 0.36900761952766814,
+      "clutter_p95_relative_db": -22.52565783147016,
+      "clutter_to_target_energy": 0.4041019082069397,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 10.990771293640137,
+      "grain_mm": [
+        0.6510463007143404,
+        0.3214002641867679
+      ],
+      "background_rms_over_difference_db": 27.76927947998047,
+      "background_repeat": 0.9925569286463655,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1212.281982421875,
+      "lateral_width_6db_mm": 0.5787183138040375,
+      "axial_width_6db_mm": 0.2969609682376557,
+      "clutter_p95_relative_db": -21.776839948234535,
+      "clutter_to_target_energy": 0.5335457921028137,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 11.938642501831055,
+      "grain_mm": [
+        0.4289696900819806,
+        0.26030201505715045
+      ],
+      "background_rms_over_difference_db": 27.38286018371582,
+      "background_repeat": 0.9917403483718398,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        18.03846153846154
+      ],
+      "peak": 877.14306640625,
+      "lateral_width_6db_mm": 0.5960627393080615,
+      "axial_width_6db_mm": 0.3996671025569647,
+      "clutter_p95_relative_db": -20.729606221786966,
+      "clutter_to_target_energy": 0.42216435074806213,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 10.46881103515625,
+      "grain_mm": [
+        0.387523946080911,
+        0.3256576442368917
+      ],
+      "background_rms_over_difference_db": 27.3721866607666,
+      "background_repeat": 0.9918350636575709,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.8846153846153852,
+        18.03846153846154
+      ],
+      "peak": 1163.4952392578125,
+      "lateral_width_6db_mm": 0.5833237331647114,
+      "axial_width_6db_mm": 0.31048821142086425,
+      "clutter_p95_relative_db": -21.530368769570003,
+      "clutter_to_target_energy": 0.5293878316879272,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 11.628629684448242,
+      "grain_mm": [
+        0.42330960716319727,
+        0.2688463590585759
+      ],
+      "background_rms_over_difference_db": 27.74151039123535,
+      "background_repeat": 0.99241917983583,
+      "clip_wire_gel_fraction": 0.0
+    }
+  },
+  "current-repeat": {
+    "as-acquired": {
+      "peak_position_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "peak": 677.4528198242188,
+      "lateral_width_6db_mm": 0.7421456712942831,
+      "axial_width_6db_mm": 0.8996286283318788,
+      "clutter_p95_relative_db": -28.600545367580132,
+      "clutter_to_target_energy": 0.10727044194936752,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 19.209095001220703,
+      "grain_mm": [
+        0.8049034827337075,
+        0.690628727448662
+      ],
+      "background_rms_over_difference_db": 31.015869140625,
+      "background_repeat": 0.9968166915908772,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "wide": {
+      "peak_position_mm": [
+        1.730769230769232,
+        18.03846153846154
+      ],
+      "peak": 816.3778686523438,
+      "lateral_width_6db_mm": 0.6045633439834279,
+      "axial_width_6db_mm": 0.9061373919248581,
+      "clutter_p95_relative_db": -26.05446396467228,
+      "clutter_to_target_energy": 0.21523167192935944,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 20.235267639160156,
+      "grain_mm": [
+        0.5533381769761005,
+        0.6843856313255731
+      ],
+      "background_rms_over_difference_db": 31.176950454711914,
+      "background_repeat": 0.9968027991874671,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "fine": {
+      "peak_position_mm": [
+        1.961538461538462,
+        17.961538461538463
+      ],
+      "peak": 135.94369506835938,
+      "lateral_width_6db_mm": 1.1614038348197928,
+      "axial_width_6db_mm": 0.27402559008735494,
+      "clutter_p95_relative_db": -21.959946159465396,
+      "clutter_to_target_energy": 0.48203277587890625,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 21.048202514648438,
+      "grain_mm": [
+        0.3975834766933843,
+        0.24344661376911436
+      ],
+      "background_rms_over_difference_db": 25.222131729125977,
+      "background_repeat": 0.9877450117727546,
+      "clip_wire_gel_fraction": 0.0
+    },
+    "mid": {
+      "peak_position_mm": [
+        1.730769230769232,
+        18.03846153846154
+      ],
+      "peak": 715.18505859375,
+      "lateral_width_6db_mm": 0.5945602701260471,
+      "axial_width_6db_mm": 1.0145999284891012,
+      "clutter_p95_relative_db": -25.432195895728004,
+      "clutter_to_target_energy": 0.22880011796951294,
+      "anchor_mm": [
+        1.730769230769232,
+        17.961538461538463
+      ],
+      "search_mm": [
+        -0.0692307692307681,
+        3.530769230769232,
+        16.561538461538465,
+        19.361538461538462
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "contrast_db": 19.685420989990234,
+      "grain_mm": [
+        0.5248369822705985,
+        0.771032350557366
+      ],
+      "background_rms_over_difference_db": 32.383304595947266,
+      "background_repeat": 0.9975162572858919,
+      "clip_wire_gel_fraction": 0.0
+    }
+  }
+}

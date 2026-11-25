@@ -1,0 +1,68 @@
+{
+  "wire": {
+    "peak": 225.3751220703125,
+    "position_mm": [
+      -4.51171875,
+      51.20703125
+    ],
+    "local_background_rms": 4.808864593505859,
+    "peak_to_local_background_db": 33.41726852878813
+  },
+  "weak1": {
+    "peak": 13.884862899780273,
+    "position_mm": [
+      13.65234375,
+      53.13671875
+    ],
+    "local_background_rms": 3.5040414333343506,
+    "peak_to_local_background_db": 11.959447260671414
+  },
+  "weak2": {
+    "peak": 3.1637961864471436,
+    "position_mm": [
+      2.05078125,
+      60.65234375
+    ],
+    "local_background_rms": 1.264931559562683,
+    "peak_to_local_background_db": 7.96282940071657
+  },
+  "source_session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\validation-flat-a\\capture.rf.npz",
+  "settings": {
+    "receive": {
+      "bandpass_on": true,
+      "band_f0_mhz": 3.5,
+      "band_bw_mhz": 3,
+      "avg_sweeps": 2,
+      "frequency_compounding": false,
+      "matched_filter": false,
+      "bg_subtract": false,
+      "dejitter_on": false
+    },
+    "beamformer": {
+      "apod": 0.75,
+      "cf": 0.1,
+      "c_m_s": 1485,
+      "t0_ns": 0,
+      "dead": [
+        2,
+        3,
+        6,
+        7,
+        18,
+        19,
+        22,
+        23,
+        25,
+        46
+      ]
+    },
+    "display": {
+      "debug_view": 0,
+      "auto_gain": false,
+      "gain_db": 40,
+      "dyn_db": 70,
+      "curve": 1
+    }
+  },
+  "frame": 4
+}

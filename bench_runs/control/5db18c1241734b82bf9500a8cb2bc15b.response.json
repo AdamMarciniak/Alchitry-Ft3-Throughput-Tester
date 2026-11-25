@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "result": {
+    "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\baseline\\capture.rf.npz",
+    "report": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\baseline\\capture.report.json",
+    "frames": 32,
+    "accepted": false,
+    "termination": "frame count reached",
+    "source": "hardware"
+  },
+  "error": null,
+  "finished_unix": 1788915727.5745695
+}

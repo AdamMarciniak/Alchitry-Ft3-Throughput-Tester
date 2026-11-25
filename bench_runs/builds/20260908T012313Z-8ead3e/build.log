@@ -1,0 +1,20 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Mon Sep  7 18:23:23 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {C:\Users\Adam\usb3-tester\bench_runs\builds\20260908T012313Z-8ead3e\source\bench_build.tcl}
+# set src [file normalize [lindex $argv 0]]
+# set out [file normalize [lindex $argv 1]]
+# set part [lindex $argv 2]
+# set build_id [lindex $argv 3]
+# create_project -in_memory -part $part
+create_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:07 . Memory (MB): peak = 523.598 ; gain = 215.996
+# set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY XPM_FIFO} [current_project]
+# read_verilog -define [list "USB3_BENCH_BUILD_ID=32'h$build_id"] [glob [file join $src rtl *.v]]
+ERROR: [Common 17-69] Command failed: '-define' is only supported when is_compile_unit_mode is enabled on the source fileset
+INFO: [Common 17-206] Exiting Vivado at Mon Sep  7 18:23:33 2026...

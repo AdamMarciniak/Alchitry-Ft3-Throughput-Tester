@@ -1,0 +1,5 @@
+{
+  "op": "capture", "frames": 32, "timeout_s": 20,
+  "output": "C:/Users/Adam/usb3-tester/bench_runs/wire-21c-1mm/baseline",
+  "note": "Owner confirms unattended fixed water bath, approximately 21 C; 1 mm wire around 5 cm; container bottom around 10 cm; possible small bubbles. Existing +/-40 V supply setting. First physical baseline with original air-derived trims. Assumed water sound speed 1485 m/s, approximate."
+}

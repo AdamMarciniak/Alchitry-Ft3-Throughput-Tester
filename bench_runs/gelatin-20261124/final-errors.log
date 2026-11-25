@@ -1,0 +1,214 @@
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3676, in _ch
+    on_change(v)
+    ~~~~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4884, in on
+    setter(v)
+    ~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 457, in set_chirp_f1_mhz
+    if self.chirp_on: self._upload_chirp()
+                      ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 436, in _upload_chirp
+    tab = self.chirp_table_now()
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 430, in chirp_table_now
+    return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                       self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 240, in chirp_table
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5751, in _tick
+    self.debug_tick()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\rf_debug_ui.py", line 126, in debug_tick
+    snapshot = self.g["settings_snapshot"](self)
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3418, in settings_snapshot
+    "summary": main.info_line(),
+               ~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5634, in info_line
+    + (f"burst {pulser.burst_ns()/1000:.2f} us  "
+                ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 286, in burst_ns
+    return cyc_to_ns(self._chirp_edges()[-1])
+                     ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 272, in _chirp_edges
+    return chirp_edges_cyc(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                           self.chirp_us * 1e-6)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3676, in _ch
+    on_change(v)
+    ~~~~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4884, in on
+    setter(v)
+    ~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 457, in set_chirp_f1_mhz
+    if self.chirp_on: self._upload_chirp()
+                      ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 436, in _upload_chirp
+    tab = self.chirp_table_now()
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 430, in chirp_table_now
+    return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                       self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 240, in chirp_table
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3676, in _ch
+    on_change(v)
+    ~~~~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4884, in on
+    setter(v)
+    ~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 457, in set_chirp_f1_mhz
+    if self.chirp_on: self._upload_chirp()
+                      ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 436, in _upload_chirp
+    tab = self.chirp_table_now()
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 430, in chirp_table_now
+    return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                       self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 240, in chirp_table
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5751, in _tick
+    self.debug_tick()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\rf_debug_ui.py", line 126, in debug_tick
+    snapshot = self.g["settings_snapshot"](self)
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3418, in settings_snapshot
+    "summary": main.info_line(),
+               ~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5634, in info_line
+    + (f"burst {pulser.burst_ns()/1000:.2f} us  "
+                ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 286, in burst_ns
+    return cyc_to_ns(self._chirp_edges()[-1])
+                     ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 272, in _chirp_edges
+    return chirp_edges_cyc(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                           self.chirp_us * 1e-6)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3676, in _ch
+    on_change(v)
+    ~~~~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4884, in on
+    setter(v)
+    ~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 457, in set_chirp_f1_mhz
+    if self.chirp_on: self._upload_chirp()
+                      ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 436, in _upload_chirp
+    tab = self.chirp_table_now()
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 430, in chirp_table_now
+    return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                       self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 240, in chirp_table
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3676, in _ch
+    on_change(v)
+    ~~~~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4884, in on
+    setter(v)
+    ~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 457, in set_chirp_f1_mhz
+    if self.chirp_on: self._upload_chirp()
+                      ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 436, in _upload_chirp
+    tab = self.chirp_table_now()
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 430, in chirp_table_now
+    return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                       self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 240, in chirp_table
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5751, in _tick
+    self.debug_tick()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\rf_debug_ui.py", line 126, in debug_tick
+    snapshot = self.g["settings_snapshot"](self)
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3418, in settings_snapshot
+    "summary": main.info_line(),
+               ~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5634, in info_line
+    + (f"burst {pulser.burst_ns()/1000:.2f} us  "
+                ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 286, in burst_ns
+    return cyc_to_ns(self._chirp_edges()[-1])
+                     ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 272, in _chirp_edges
+    return chirp_edges_cyc(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                           self.chirp_us * 1e-6)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5751, in _tick
+    self.debug_tick()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\rf_debug_ui.py", line 126, in debug_tick
+    snapshot = self.g["settings_snapshot"](self)
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3418, in settings_snapshot
+    "summary": main.info_line(),
+               ~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 5634, in info_line
+    + (f"burst {pulser.burst_ns()/1000:.2f} us  "
+                ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 286, in burst_ns
+    return cyc_to_ns(self._chirp_edges()[-1])
+                     ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 272, in _chirp_edges
+    return chirp_edges_cyc(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                           self.chirp_us * 1e-6)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 3676, in _ch
+    on_change(v)
+    ~~~~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4884, in on
+    setter(v)
+    ~~~~~~^^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 457, in set_chirp_f1_mhz
+    if self.chirp_on: self._upload_chirp()
+                      ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 436, in _upload_chirp
+    tab = self.chirp_table_now()
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 430, in chirp_table_now
+    return chirp_table(self.chirp_f0_mhz * 1e6, self.chirp_f1_mhz * 1e6,
+                       self.chirp_us * 1e-6, ns_to_cyc(self.t_dead_ns))
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 240, in chirp_table
+    edges = chirp_edges_cyc(f0_hz, f1_hz, dur_s)
+  File "C:\Users\Adam\usb3-tester\host\pulser_ctrl.py", line 228, in chirp_edges_cyc
+    edges.append(int(round(t * CLK_HZ)))
+                     ~~~~~^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method

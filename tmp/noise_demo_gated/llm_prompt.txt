@@ -1,0 +1,7 @@
+Diagnose this single-element ultrasound receive-chain noise capture.
+
+Use analysis.json as the primary structured evidence and report.md/overview.svg for context. Grade only the configured analysis_gate. The receiver is directly connected to the transmit line through a limiter, so the excluded_near_field saturation/ringdown interval is expected context and is not an imaging-region defect. Separate these failure classes explicitly: (1) FT601/frame/tag corruption, (2) ADC clipping or coding error, (3) repeatable transmit feedthrough/ringdown, (4) narrowband electrical pickup, (5) broadband random noise, and (6) time-varying or impulsive noise. Do not call a repeatable echo 'random noise'.
+
+For each likely cause, cite the exact metric, tone frequency, or time/depth region that supports it; state what evidence argues against it; rank the causes; and propose the smallest discriminating bench test. Remember that equivalent depth is derived from time-of-flight, so electrical pickup has a valid time coordinate but not a literal physical depth. Generic severity thresholds are triage only.
+
+Current tool assessment: investigate.

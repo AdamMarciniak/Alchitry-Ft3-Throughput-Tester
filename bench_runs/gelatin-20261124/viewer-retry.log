@@ -1,0 +1,3 @@
+locking RX window (0xA5A55A5A)...
+pulser: STOPPED  chirp 5.20->2.60 MHz  8 halves  burst 1.0 us  settle 5.0 us  inhibit 4.5 us  rx 252 us  elements 0-47  frame 12.85 ms  trim 306.0 ns rms, 2230 ns p-p
+LIVE VERIFIED 48 el  depth 5.0 cm  c 1531 m/s  dly 11 us  aper 25 deg  apod 20%  coh 0.28  drive 2.2-3.5 MHz  burst 1.02 us  pulse-comp on  band 1.0-6.0 MHz  avg 8 sw  t0 +20 ns  R 71.6 mm  pitch 0.3120 mm  dyn 57 dB  gain +40 dB  curve 0.85  zoom 1.2x  TGC 1700-2100

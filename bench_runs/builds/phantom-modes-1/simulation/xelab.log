@@ -1,0 +1,17 @@
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: E:/Vivado/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe tb_capture_ready -s capture_ready_test 
+Multi-threading is on. Using 14 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3645] port 'ctrl_rd_en' remains unconnected for this instance [C:/Users/Adam/usb3-tester/bench_runs/builds/phantom-modes-1/source/tests/tb_capture_ready.v:28]
+WARNING: [VRFC 10-3645] port 'mux_din' remains unconnected for this instance [C:/Users/Adam/usb3-tester/bench_runs/builds/phantom-modes-1/source/tests/tb_capture_ready.v:32]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module work.ctrl_decode
+Compiling module work.tx_sequencer(T_OE_WAIT=100)
+Compiling module work.tb_capture_ready
+Built simulation snapshot capture_ready_test

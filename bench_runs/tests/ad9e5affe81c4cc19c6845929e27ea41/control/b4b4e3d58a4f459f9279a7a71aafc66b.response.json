@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "result": {
+    "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\tests\\ad9e5affe81c4cc19c6845929e27ea41\\capture\\capture.rf.npz",
+    "report": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\tests\\ad9e5affe81c4cc19c6845929e27ea41\\capture\\capture.report.json",
+    "frames": 4,
+    "accepted": true,
+    "termination": "frame count reached",
+    "source": "simulation"
+  },
+  "error": null,
+  "finished_unix": 1795542722.379319
+}

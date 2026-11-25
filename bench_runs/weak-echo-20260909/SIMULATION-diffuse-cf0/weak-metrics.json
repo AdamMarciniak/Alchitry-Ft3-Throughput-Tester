@@ -1,0 +1,68 @@
+{
+  "wire": {
+    "peak": 449.78179931640625,
+    "position_mm": [
+      -5.21484375,
+      51.00390625
+    ],
+    "local_background_rms": 165.04652404785156,
+    "peak_to_local_background_db": 8.707909902889355
+  },
+  "weak1": {
+    "peak": 423.221923828125,
+    "position_mm": [
+      13.88671875,
+      54.35546875
+    ],
+    "local_background_rms": 139.4609832763672,
+    "peak_to_local_background_db": 9.642308682541378
+  },
+  "weak2": {
+    "peak": 355.978271484375,
+    "position_mm": [
+      1.34765625,
+      59.43359375
+    ],
+    "local_background_rms": 169.69664001464844,
+    "peak_to_local_background_db": 6.435004930789968
+  },
+  "source_session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-echo-20260909\\SIMULATION-diffuse.rf.npz",
+  "settings": {
+    "receive": {
+      "bandpass_on": true,
+      "band_f0_mhz": 3.5,
+      "band_bw_mhz": 3,
+      "avg_sweeps": 1,
+      "frequency_compounding": false,
+      "matched_filter": false,
+      "bg_subtract": false,
+      "dejitter_on": false
+    },
+    "beamformer": {
+      "apod": 0.75,
+      "cf": 0,
+      "c_m_s": 1485,
+      "t0_ns": 0,
+      "dead": [
+        2,
+        3,
+        6,
+        7,
+        18,
+        19,
+        22,
+        23,
+        25,
+        46
+      ]
+    },
+    "display": {
+      "debug_view": 0,
+      "auto_gain": false,
+      "gain_db": 40,
+      "dyn_db": 80,
+      "curve": 1
+    }
+  },
+  "frame": 0
+}

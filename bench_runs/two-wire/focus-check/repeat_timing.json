@@ -1,0 +1,86 @@
+[
+  {
+    "source": "bench_runs\\phantom-pulse-comparison\\one-cycle.rf.npz",
+    "source_rf_sha256": "41474d273d2c991236b4179562b2b3e60f02cd566a6280e7d5888c967526273c",
+    "reference_frames": 8,
+    "evaluation_frames": 40,
+    "stats": {
+      "early_echo": {
+        "accepted": 1840,
+        "total": 1840,
+        "median_peak_correlation": 0.9972076032133121,
+        "lag_to_reference": {
+          "rms_ns": 2.838750660695353,
+          "p95_abs_ns": 4.762879850337646
+        },
+        "frame_median_lag_to_reference": {
+          "rms_ns": 0.30958986715530296,
+          "p95_abs_ns": 0.624595736087633
+        },
+        "after_frame_median_removal": {
+          "rms_ns": 2.839668143369491,
+          "p95_abs_ns": 4.798135367454888
+        }
+      },
+      "deep_gel": {
+        "accepted": 1840,
+        "total": 1840,
+        "median_peak_correlation": 0.9876708635592585,
+        "lag_to_reference": {
+          "rms_ns": 2.880571769137431,
+          "p95_abs_ns": 4.965908601849444
+        },
+        "frame_median_lag_to_reference": {
+          "rms_ns": 0.33685679558915477,
+          "p95_abs_ns": 0.7195048448677378
+        },
+        "after_frame_median_removal": {
+          "rms_ns": 2.881870421583908,
+          "p95_abs_ns": 4.979765820291472
+        }
+      }
+    }
+  },
+  {
+    "source": "bench_runs\\gelatin-20261124\\verified-live.rf.npz",
+    "source_rf_sha256": "e85bf63a10856aaef35675090e8dc69707289ac80a0acfb0f583ef19cbf2fcd0",
+    "reference_frames": 8,
+    "evaluation_frames": 40,
+    "stats": {
+      "early_echo": {
+        "accepted": 1840,
+        "total": 1840,
+        "median_peak_correlation": 0.9987325694490454,
+        "lag_to_reference": {
+          "rms_ns": 3.583164092852096,
+          "p95_abs_ns": 7.043928033311238
+        },
+        "frame_median_lag_to_reference": {
+          "rms_ns": 1.91376511893641,
+          "p95_abs_ns": 3.076755591674459
+        },
+        "after_frame_median_removal": {
+          "rms_ns": 4.060009404496041,
+          "p95_abs_ns": 9.406646539024935
+        }
+      },
+      "deep_gel": {
+        "accepted": 1840,
+        "total": 1840,
+        "median_peak_correlation": 0.9955545043824003,
+        "lag_to_reference": {
+          "rms_ns": 3.6211493656732965,
+          "p95_abs_ns": 7.210345423507201
+        },
+        "frame_median_lag_to_reference": {
+          "rms_ns": 1.838180370388596,
+          "p95_abs_ns": 3.0493359566119516
+        },
+        "after_frame_median_removal": {
+          "rms_ns": 4.05254511709724,
+          "p95_abs_ns": 9.331118910001155
+        }
+      }
+    }
+  }
+]

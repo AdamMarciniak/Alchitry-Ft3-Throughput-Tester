@@ -1,0 +1,133 @@
+{
+  "source_rf_sha256": "51b0755cbf92f6fc32e5ba2d37a8ce00e291efa482845c7fd5db82f913f1c591",
+  "source_rf_shape": [
+    208,
+    48,
+    9090
+  ],
+  "sample_rate_hz": 40000000,
+  "raw_sample_interval_ns": 25.0,
+  "host_mean_sweep_interval_ms": 19.345293236713054,
+  "timestamp_basis": "host receipt monotonic seconds; not hardware shot timestamps",
+  "triplet_start_frames": [
+    0,
+    8,
+    17,
+    26,
+    35,
+    44,
+    53,
+    62,
+    71,
+    80,
+    89,
+    98,
+    106,
+    115,
+    124,
+    133,
+    142,
+    151,
+    160,
+    169,
+    178,
+    187,
+    196,
+    205
+  ],
+  "excluded_elements": [
+    25,
+    46
+  ],
+  "processing": "4th-order Butterworth 2-5 MHz forward/backward on signed RF per physical row. Pearson correlation in 4-mm windows. Train on one frame pair, then use its lag directly on the next pair. Pairs share the middle frame. Positive lag searches later samples in frame two. Train selection uses peak >= 0.65 and magnitude 2 through 63 samples. All gates are equivalent pulse-echo ranges using the recorded sound speed and receive offset, without a lens correction.",
+  "sound_speed_m_s": 1531.0,
+  "receive_start_us": 5.0,
+  "max_lag_samples": 64,
+  "gates_mm": {
+    "12": {
+      "element_triplets": 1104,
+      "held_zero_lag_ncc_quartiles_all": [
+        0.9929481604808765,
+        0.9971185994902106,
+        0.9988781587193599
+      ],
+      "qualifying_training_peaks": 1104,
+      "qualifying_nonzero_training_tracks": 0,
+      "qualifying_nonzero_fraction": 0.0
+    },
+    "55": {
+      "element_triplets": 1104,
+      "held_zero_lag_ncc_quartiles_all": [
+        -0.005441897499555462,
+        0.27989277023756953,
+        0.5013448185925761
+      ],
+      "qualifying_training_peaks": 375,
+      "qualifying_nonzero_training_tracks": 220,
+      "qualifying_nonzero_fraction": 0.19927536231884058,
+      "held_zero_lag_ncc_median_selected": 0.24805173134230557,
+      "held_predicted_lag_ncc_median_selected": 0.3481932119820288,
+      "train_abs_lag_equivalent_range_mm_quartiles": [
+        0.0574125,
+        0.114825,
+        0.4018875
+      ]
+    },
+    "85": {
+      "element_triplets": 1104,
+      "held_zero_lag_ncc_quartiles_all": [
+        -0.08628405785907421,
+        0.10675522418047706,
+        0.2858892385928107
+      ],
+      "qualifying_training_peaks": 145,
+      "qualifying_nonzero_training_tracks": 131,
+      "qualifying_nonzero_fraction": 0.11865942028985507,
+      "held_zero_lag_ncc_median_selected": 0.10783375413028516,
+      "held_predicted_lag_ncc_median_selected": 0.03897292942735622,
+      "train_abs_lag_equivalent_range_mm_quartiles": [
+        0.2105125,
+        0.4593,
+        0.71765625
+      ]
+    },
+    "120": {
+      "element_triplets": 1104,
+      "held_zero_lag_ncc_quartiles_all": [
+        -0.15378812333037728,
+        0.019065802943352028,
+        0.19166410603246867
+      ],
+      "qualifying_training_peaks": 79,
+      "qualifying_nonzero_training_tracks": 79,
+      "qualifying_nonzero_fraction": 0.07155797101449275,
+      "held_zero_lag_ncc_median_selected": -0.027510970013635797,
+      "held_predicted_lag_ncc_median_selected": -0.076409060770228,
+      "train_abs_lag_equivalent_range_mm_quartiles": [
+        0.29663125,
+        0.5167125,
+        0.8229125
+      ]
+    },
+    "145": {
+      "element_triplets": 1104,
+      "held_zero_lag_ncc_quartiles_all": [
+        -0.10595405254827289,
+        0.03764077910765469,
+        0.1603767333127874
+      ],
+      "qualifying_training_peaks": 22,
+      "qualifying_nonzero_training_tracks": 19,
+      "qualifying_nonzero_fraction": 0.017210144927536232,
+      "held_zero_lag_ncc_median_selected": 0.07736143050412639,
+      "held_predicted_lag_ncc_median_selected": 0.03205975151356289,
+      "train_abs_lag_equivalent_range_mm_quartiles": [
+        0.23921875,
+        0.53585,
+        0.7655
+      ]
+    }
+  },
+  "interpretation": "Measures predictability of per-row inter-sweep axial lag. Coherent reverberation, speckle, probe and target motion and noise all contribute. This is a replay diagnostic. The recording contains no independent ground truth for per-shot motion or acoustic velocity.",
+  "input": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\apical-4ch-20261124\\heart-apical-reviewed.rf.npz"
+}

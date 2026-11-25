@@ -1,0 +1,46 @@
+{
+  "schema": "usb3-bench-build",
+  "version": 1,
+  "state": "passed",
+  "created_utc": "2026-11-24T17:58:57.890708+00:00",
+  "part": "xc7a35tftg256-2",
+  "board": "AuV2",
+  "vivado": "E:\\Vivado\\2025.2\\Vivado\\bin\\vivado.bat",
+  "source_sha256": {
+    "source/rtl/afe5804_ctrl.v": "883b2e7977d3d6d769a62d19625feb7f08ae1207015ea6714a1a3cfcc4b9e8a8",
+    "source/rtl/afe_rx.v": "693e61efbced28a6ffaa532c7a6f4a1b8baea387cde45fc2d9593a9f0e7dde6a",
+    "source/rtl/afe_stream.v": "37a67cb57745a2da22bb701fa69859655aa28878a21a43a092e09b2aa8d13287",
+    "source/rtl/alchitry_top.v": "f80a06b32ace440c6916cba1e3689daa9f6082c0a609c4cc16745bbf772e84f8",
+    "source/rtl/ctrl_decode.v": "4e5a22a8b66907440fb14170500443c5e0edae237b6700dada9295d65fc7bd15",
+    "source/rtl/dac7554_ramp.v": "f07a136a074eaf5e033e07a8963ecdc4197b0f4f5ed142a6af443d972328012b",
+    "source/rtl/ft601_if.v": "05b300ef7afadf8fba06b16f4e73f4e4e1e4f04e22819fdb4c3477d2f1605cbd",
+    "source/rtl/tx_sequencer.v": "57f239667e0e052c9173d47d620b459d295fe2ca692ba25174ebaf56ff83c849",
+    "source/constraints/au_ft.xdc": "9e122ac3939505d9a34a4c4e456440917a2423b0ff8244e1465d1c75d42e951a",
+    "source/constraints/pulser.xdc": "ec1261bbac770ce326ec0f072969a2a16432f61dd794f9138ebf79044996e6f3",
+    "source/tests/tb_capture_ready.v": "47e6f0f164fb9e36a3fc591326e60c4fa44b188676d71fd0ca2f86c36353eeed",
+    "source/tests/tb_ctrl_lease.v": "1cd78d1d7c0806e0703a5dfc451503a4a6c6a62299ef8388c48fdb55a15b035c",
+    "source/bench_build.tcl": "3094eac02f51a10ddb5a6b3436dcc609d341e1dfe3e3c02e184e1784b0f7f941",
+    "source/bench_vivado.ps1": "d730c21867e3ae66b8df9b1a60dbe0597c81bd917184a60572e4f67a5c30b7a3",
+    "source/bench_lease_sim.ps1": "c4dfb88758ba4e8d954b8b4fd24ddcfb2800444e93cd7397dd358a37856c8ade",
+    "source/bench_capture_sim.ps1": "8cd1c8be74182bd8ad5ccedcec3fd98ec1c6526e23b1be8898ecb34605ddfe77",
+    "source/bench_build.py": "2cbfdcbf0c761a80f0e111f957db52da00b90666a4486f49e3fe5f76fbff5d4d"
+  },
+  "runtime_build_id": "f7f07ac0",
+  "capture_ready_simulation": "passed",
+  "checks": {
+    "setup_slack_ns": 0.419,
+    "hold_slack_ns": 0.048,
+    "drc_failures": 0
+  },
+  "capabilities": [
+    "boot_disarmed",
+    "tx_lease_v1",
+    "runtime_info_v1",
+    "capture_ready_interlock_v1",
+    "tagged_pulse_methods_v1",
+    "multi_rx_v1",
+    "pulser_status_v1"
+  ],
+  "bitstream_sha256": "5b3df915919b1f10fcef4c4fd6a55e76fb19befa014420c2e69822a4962d2c19",
+  "lease_simulation": "passed"
+}

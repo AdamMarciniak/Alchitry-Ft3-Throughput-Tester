@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\tmp\gelatin_viewer.py", line 36, in start
+    win.debug_apply(cfg)
+    ~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Adam\usb3-tester\host\rf_debug_ui.py", line 223, in debug_apply
+    g["send_cmd"](g["cmd"](0x10, 0), "debug_disarm")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 965, in send_cmd
+    sys.exit(f"control write failed ({name}): "
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             f"st={st} ({ft_status(st)}) sent={sent.value}")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SystemExit: control write failed (debug_disarm): st=32 (0x20) sent=0

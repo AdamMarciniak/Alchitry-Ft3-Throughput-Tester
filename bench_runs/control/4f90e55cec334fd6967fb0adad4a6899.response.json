@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "result": {
+    "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\gap300\\capture.rf.npz",
+    "report": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\gap300\\capture.report.json",
+    "frames": 16,
+    "accepted": true,
+    "termination": "frame count reached",
+    "source": "hardware"
+  },
+  "error": null,
+  "finished_unix": 1788915825.5210989
+}

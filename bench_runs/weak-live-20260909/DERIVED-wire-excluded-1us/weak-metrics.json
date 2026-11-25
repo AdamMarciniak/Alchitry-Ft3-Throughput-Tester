@@ -1,0 +1,38 @@
+{
+  "trial": "DERIVED-wire-excluded-1us",
+  "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-excluded-1us.rf.npz",
+  "frame": 0,
+  "aperture_scale": 97280.0,
+  "wire": {
+    "peak": 10.210124969482422,
+    "normalized_peak": 0.00010495605437379135,
+    "position_mm": [
+      -3.486328125,
+      39.296875
+    ],
+    "local_rms": 1.9868699312210083,
+    "local_db": 14.217232409292318
+  },
+  "faint_right": {
+    "peak": 3.2338123321533203,
+    "normalized_peak": 3.3242314269668175e-05,
+    "position_mm": [
+      16.611328125,
+      36.796875
+    ],
+    "local_rms": 1.2447190284729004,
+    "local_db": 8.29286968141361
+  },
+  "faint_left": {
+    "peak": 1.8361306190490723,
+    "normalized_peak": 1.8874697975422206e-05,
+    "position_mm": [
+      -18.935546875,
+      35.234375
+    ],
+    "local_rms": 0.7487578988075256,
+    "local_db": 7.79124312019956
+  },
+  "quiet_rms": 1.968559980392456,
+  "arc_p99_relative_db": -9.000972747802734
+}

@@ -1,0 +1,124 @@
+{
+  "saved": "2026-08-13 17:24:19",
+  "note": "",
+  "host": "tfm_gl_host.py",
+  "source": "hardware",
+  "argv": [],
+  "summary": "48 el  depth 23 cm  c 1481 m/s  dly 0 us  aper 23 deg  apod 65%  coh 1.46  band 0.7-6.7 MHz  de-jit 0.0 ns rms  t0 +0 ns  R 62.3 mm  pitch 0.3160 mm  dyn 70 dB  gain +25 dB  zoom 1.0x  TGC 910-3185",
+  "acquisition": {
+    "depth_cm": 23,
+    "win_words": 5974,
+    "win_samples": 11948,
+    "win_us": 298.7,
+    "dly_us": 0.0,
+    "damp_gap_us": 50,
+    "tgc_min": 910,
+    "tgc_max": 3185,
+    "fs_hz": 40000000,
+    "n_elem_rx": 48
+  },
+  "transmit": {
+    "armed": true,
+    "chirp_on": false,
+    "chirp_f0_mhz": 2.9000000000000004,
+    "chirp_f1_mhz": 6.2,
+    "chirp_us": 1.0,
+    "n_cycles": 2,
+    "t_drive_ns": 50.0,
+    "t_dead_ns": 40.0,
+    "t_settle_us": 5.0,
+    "t_inhib_us": 4.5,
+    "t_ring_us": 3.0,
+    "t_rx_us": 358.7,
+    "n_elem": 48,
+    "single_elem": null,
+    "f0_mhz": 5.556,
+    "burst_us": 0.36,
+    "element_period_us": 367.13,
+    "frame_ms": 17.622
+  },
+  "receive": {
+    "bandpass_on": true,
+    "band_f0_mhz": 3.7,
+    "band_bw_mhz": 6.0,
+    "band_lo_mhz": 0.7,
+    "band_hi_mhz": 6.7,
+    "avg_sweeps": 1,
+    "avg_held": 0,
+    "matched_filter": false,
+    "dejitter_on": true,
+    "jitter_rms_ns": 0.0,
+    "jitter_pp_ns": 0.0,
+    "jitter_used": 0,
+    "jitter_railed": 0,
+    "bg_subtract": false,
+    "bg_ref": false,
+    "near_dbfs": -2.98,
+    "far_dbfs": -36.43
+  },
+  "beamformer": {
+    "c_m_s": 1481.0,
+    "apod": 0.65,
+    "cf": 1.46,
+    "accept_deg": 23.0,
+    "t0_ns": 0.0,
+    "R_mm": 62.300000000000004,
+    "pitch_mm": 0.316,
+    "aperture_mm": 14.852,
+    "flip_lr": true,
+    "dead": [
+      1,
+      3,
+      4,
+      23,
+      25,
+      46
+    ],
+    "alive": 42
+  },
+  "display": {
+    "dyn_db": 70.0,
+    "gain_db": 25.0,
+    "auto_gain": false,
+    "signed": false,
+    "zoom": 1.0,
+    "pan_cx": 0.0,
+    "pan_cz": 0.110593675,
+    "grid": [
+      2218,
+      964
+    ],
+    "mmode_on": false,
+    "mline_a": [
+      0.00011747814705884152,
+      0.07612583929411765
+    ],
+    "mline_b": [
+      0.0010573033235294071,
+      0.08235218108823529
+    ],
+    "measurements_mm": [
+      79.39,
+      158.56,
+      129.87,
+      33.04
+    ]
+  },
+  "stream": {
+    "frozen": false,
+    "mbps": 64.9,
+    "sweeps_per_s": 56.6,
+    "frames": 5528344,
+    "drops": 62,
+    "resyncs": 66,
+    "holes": [
+      182,
+      57331
+    ],
+    "skips": 21,
+    "cine_frames": 1872,
+    "cine_seconds": 32.98,
+    "cine_offset_s": null
+  },
+  "image": "20260813_172419.png"
+}

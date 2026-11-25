@@ -1,0 +1,16 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Tue Nov 24 09:44:53 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+ERROR: [Common 17-356] Failed to install all user apps.
+ERROR: [Common 17-39] 'load_features' failed due to earlier errors.
+
+    while executing
+"load_features base core vivado filemgmt board tclstore writecfgmem"
+    (file "E:/Vivado/2025.2/Vivado/lib/scripts/rdi/products/Vivado.tcl" line 10)
+INFO: [Common 17-206] Exiting Vivado at Tue Nov 24 09:44:55 2026...

@@ -1,0 +1,20 @@
+{
+  "source_session": "C:\\Users\\Adam\\usb3-tester\\host\\heart-recording.rf.npz.rf.npz",
+  "frame": 720,
+  "box_mm": [
+    -65,
+    65,
+    0,
+    165
+  ],
+  "patch": {
+    "receive": {
+      "band_f0_mhz": 3,
+      "band_bw_mhz": 2
+    },
+    "display": {
+      "dyn_db": 80,
+      "gain_db": 30
+    }
+  }
+}

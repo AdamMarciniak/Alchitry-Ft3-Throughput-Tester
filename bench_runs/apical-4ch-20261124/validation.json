@@ -1,0 +1,151 @@
+{
+  "validation_frames": [
+    5,
+    19,
+    37,
+    53,
+    68,
+    84,
+    101,
+    119,
+    138,
+    155,
+    177,
+    197
+  ],
+  "source": "heart-apical-4chamber.rf.npz",
+  "rf_sha256": "51b0755cbf92f6fc32e5ba2d37a8ce00e291efa482845c7fd5db82f913f1c591",
+  "depth_bands_mm": [
+    [
+      45,
+      70
+    ],
+    [
+      70,
+      105
+    ],
+    [
+      105,
+      135
+    ],
+    [
+      135,
+      150
+    ]
+  ],
+  "metrics": "Independent 23-element groups from comparison-metrics.json. Median Pearson correlations across frames for fine and coarse log-envelope texture. Coherent artifacts can agree. Separate side-to-center contrast is median-amplitude ratio at 53-72 mm, |x| 11-18 mm versus |x| <5 mm. Texture lags describe grayscale structure in log amplitude, not target resolution.",
+  "calipers": {
+    "chord_mm": 62.2,
+    "rise_mm": 8.5,
+    "outer_radius_mm": 61.1447,
+    "outer_arc_mm": 65.2527,
+    "pitch_assuming_192_full_face_cells_mm": 0.339858
+  },
+  "candidates": {
+    "recorded": {
+      "split_correlations": [
+        [
+          0.319,
+          0.168,
+          0.066,
+          0.052
+        ],
+        [
+          0.405,
+          0.457,
+          0.189,
+          0.101
+        ]
+      ],
+      "side_to_center_contrast_db": 13.36,
+      "texture_half_correlation_lag_axial_lateral_mm": [
+        0.181,
+        0.694
+      ]
+    },
+    "selected": {
+      "split_correlations": [
+        [
+          0.303,
+          0.191,
+          0.072,
+          0.05
+        ],
+        [
+          0.536,
+          0.389,
+          0.265,
+          0.027
+        ]
+      ],
+      "side_to_center_contrast_db": 6.98,
+      "texture_half_correlation_lag_axial_lateral_mm": [
+        0.194,
+        0.658
+      ]
+    },
+    "selected with original geometry": {
+      "split_correlations": [
+        [
+          0.337,
+          0.17,
+          0.066,
+          0.062
+        ],
+        [
+          0.542,
+          0.48,
+          0.186,
+          0.085
+        ]
+      ],
+      "side_to_center_contrast_db": 6.55,
+      "texture_half_correlation_lag_axial_lateral_mm": [
+        0.192,
+        0.71
+      ]
+    },
+    "coherence off": {
+      "split_correlations": [
+        [
+          0.328,
+          0.248,
+          0.082,
+          0.055
+        ],
+        [
+          0.712,
+          0.483,
+          0.344,
+          0.023
+        ]
+      ],
+      "side_to_center_contrast_db": 2.49,
+      "texture_half_correlation_lag_axial_lateral_mm": [
+        0.196,
+        0.67
+      ]
+    },
+    "frequency compounding": {
+      "split_correlations": [
+        [
+          0.323,
+          0.257,
+          0.103,
+          0.025
+        ],
+        [
+          0.613,
+          0.489,
+          0.268,
+          0.021
+        ]
+      ],
+      "side_to_center_contrast_db": 5.7,
+      "texture_half_correlation_lag_axial_lateral_mm": [
+        0.419,
+        0.808
+      ]
+    }
+  }
+}

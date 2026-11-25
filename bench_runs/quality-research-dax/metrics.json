@@ -1,0 +1,135 @@
+{
+  "DAS": {
+    "left": {
+      "peak": 4583.979427752468,
+      "fwhm_mm": 0.563255334247982,
+      "wings_p95_db": -25.252015948332897
+    },
+    "right": {
+      "peak": 6186.370425015975,
+      "fwhm_mm": 0.7752749319373846,
+      "wings_p95_db": -24.372251018857582
+    },
+    "near": {
+      "median_db_vs_DAS": 0.0,
+      "contrast_sd_over_mean": 0.5824628877860668
+    },
+    "far": {
+      "median_db_vs_DAS": 0.0,
+      "contrast_sd_over_mean": 0.5818284217938192
+    }
+  },
+  "CF0.15": {
+    "left": {
+      "peak": 4338.894088329004,
+      "fwhm_mm": 0.5052820689422699,
+      "wings_p95_db": -29.6925320836707
+    },
+    "right": {
+      "peak": 5918.487597285483,
+      "fwhm_mm": 0.6970570057202634,
+      "wings_p95_db": -28.25572663989703
+    },
+    "near": {
+      "median_db_vs_DAS": -4.943528180858015,
+      "contrast_sd_over_mean": 0.7481281034254817
+    },
+    "far": {
+      "median_db_vs_DAS": -5.165616037180785,
+      "contrast_sd_over_mean": 0.7378469387633678
+    }
+  },
+  "DAX2": {
+    "left": {
+      "peak": 4561.518732033546,
+      "fwhm_mm": 0.5615719810811965,
+      "wings_p95_db": -33.901850619220816
+    },
+    "right": {
+      "peak": 6173.1049844905165,
+      "fwhm_mm": 0.7739298817479652,
+      "wings_p95_db": -32.18480619650806
+    },
+    "near": {
+      "median_db_vs_DAS": -56.58032430753481,
+      "contrast_sd_over_mean": 1.832660164439053
+    },
+    "far": {
+      "median_db_vs_DAS": -23.219129770491715,
+      "contrast_sd_over_mean": 1.5374907993156248
+    }
+  },
+  "DAX4": {
+    "left": {
+      "peak": 4444.658428085145,
+      "fwhm_mm": 0.5476849389961993,
+      "wings_p95_db": -33.600502607481644
+    },
+    "right": {
+      "peak": 6092.58559252236,
+      "fwhm_mm": 0.7404395046174326,
+      "wings_p95_db": -32.91477713283616
+    },
+    "near": {
+      "median_db_vs_DAS": -56.83981741869665,
+      "contrast_sd_over_mean": 1.739120363753497
+    },
+    "far": {
+      "median_db_vs_DAS": -28.69799397173133,
+      "contrast_sd_over_mean": 1.632195740359559
+    }
+  },
+  "DAX4-soft": {
+    "left": {
+      "peak": 4521.284977902173,
+      "fwhm_mm": 0.5558129404979857,
+      "wings_p95_db": -29.009066442757238
+    },
+    "right": {
+      "peak": 6127.800017724456,
+      "fwhm_mm": 0.7519780584172082,
+      "wings_p95_db": -27.907605883671938
+    },
+    "near": {
+      "median_db_vs_DAS": -4.497457858526757,
+      "contrast_sd_over_mean": 0.7543966217077073
+    },
+    "far": {
+      "median_db_vs_DAS": -4.305559234405155,
+      "contrast_sd_over_mean": 0.7580271163885556
+    }
+  },
+  "Uniform-Hann": {
+    "left": {
+      "peak": 4559.026134809421,
+      "fwhm_mm": 0.44402976578735665,
+      "wings_p95_db": -26.164371170346268
+    },
+    "right": {
+      "peak": 6169.411503026794,
+      "fwhm_mm": 0.6578622715782281,
+      "wings_p95_db": -25.22410083154725
+    },
+    "near": {
+      "median_db_vs_DAS": -0.7604620599210326,
+      "contrast_sd_over_mean": 0.6427603414429243
+    },
+    "far": {
+      "median_db_vs_DAS": -2.3416130207375256,
+      "contrast_sd_over_mean": 0.7425714351839467
+    }
+  },
+  "production_DAS_pixel_similarity": 0.9999998648152132,
+  "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\two-wire\\gelatin-2-wires-trim-comp.rf.npz",
+  "frame": 0,
+  "anchors_mm": [
+    [
+      -7.18,
+      18.62
+    ],
+    [
+      7.67,
+      20.12
+    ]
+  ]
+}

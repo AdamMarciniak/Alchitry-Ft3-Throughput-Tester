@@ -1,2 +1,5 @@
 # Recovery artifacts and frozen inputs must retain their original bytes.
 recovery/2026-10-25/** -text
+
+# Preserve acquisition arrays in Git Large File Storage.
+*.npz filter=lfs diff=lfs merge=lfs -text

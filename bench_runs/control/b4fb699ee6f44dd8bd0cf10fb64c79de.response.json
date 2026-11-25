@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "result": null,
+  "error": "Running FPGA did not echo this nonce/build ID; reprogram the checked build before acquisition",
+  "finished_unix": 1788964217.3332803
+}

@@ -1,0 +1,93 @@
+{
+  "receive": {
+    "bandpass_on": true,
+    "band_f0_mhz": 3.5,
+    "band_bw_mhz": 3,
+    "avg_sweeps": 4,
+    "frequency_compounding": false,
+    "matched_filter": false
+  },
+  "beamformer": {
+    "dead": [
+      2,
+      3,
+      6,
+      7,
+      18,
+      19,
+      22,
+      23,
+      25,
+      46
+    ],
+    "c_m_s": 1485,
+    "t0_ns": 0,
+    "apod": 1,
+    "cf": 2
+  },
+  "display": {
+    "debug_view": 0,
+    "gain_db": 40,
+    "dyn_db": 45,
+    "curve": 1,
+    "auto_gain": false
+  },
+  "acquisition": {
+    "tgc_min": 1600,
+    "tgc_max": 1600,
+    "dly_us": 15,
+    "damp_gap_us": 300
+  },
+  "transmit": {
+    "trim_ns": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  }
+}

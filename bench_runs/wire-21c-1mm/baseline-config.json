@@ -1,0 +1,5 @@
+{
+  "beamformer": {"c_m_s": 1485, "t0_ns": 0, "cf": 0},
+  "receive": {"avg_sweeps": 1, "bg_subtract": false, "dejitter_on": false, "frequency_compounding": false},
+  "display": {"debug_view": 1, "auto_gain": false, "dyn_db": 80, "gain_db": 15, "curve": 1}
+}

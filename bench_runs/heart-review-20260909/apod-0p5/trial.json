@@ -1,0 +1,15 @@
+{
+  "source_session": "C:\\Users\\Adam\\usb3-tester\\host\\heart-recording.rf.npz.rf.npz",
+  "frame": 480,
+  "box_mm": [
+    -65,
+    65,
+    0,
+    165
+  ],
+  "patch": {
+    "beamformer": {
+      "apod": 0.5
+    }
+  }
+}

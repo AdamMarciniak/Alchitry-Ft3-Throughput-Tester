@@ -1,0 +1,59 @@
+{
+  "source_adc_sha256": "39d29a645267cc9d76f56b2769dc74fb579e2bf85695a63f4e9819aef9557f75",
+  "valid_frame": true,
+  "shape": [
+    48,
+    3208
+  ],
+  "geometry": {
+    "c_m_s": 1528.0,
+    "pitch_mm": 0.3375,
+    "R_mm": 61.1,
+    "t0_us": 2
+  },
+  "peak_fit_gate_us": [
+    23,
+    33
+  ],
+  "peak_fit_description": "dominant echo per row, subsets IDs 0\u201324 and 26\u201347, excluding dead 25 and 46",
+  "active_wire_range_clip_count": 0,
+  "active_wire_range_sample_count": 18446,
+  "active_global_clip_count": 345,
+  "active_global_sample_count": 147568,
+  "trim_scale_0": {
+    "heldout_timing_rms_ns": 119.02406369418773,
+    "heldout_median_abs_ns": 63.892486327107534,
+    "fitted_wire_positions_mm": [
+      -7.2089380731122725,
+      19.04790849039883,
+      7.9456349340636,
+      20.400660720424558
+    ]
+  },
+  "trim_scale_1": {
+    "heldout_timing_rms_ns": 18.88481609722452,
+    "heldout_median_abs_ns": 16.86225049269474,
+    "fitted_wire_positions_mm": [
+      -7.464832007792562,
+      18.993384241496678,
+      7.920746551757242,
+      20.515829096708423
+    ]
+  },
+  "wire_1": {
+    "angle_eligible_channels": 24,
+    "angle_eligible_aperture_span_mm": 7.74024532995705,
+    "dominant_echo_channels": 25,
+    "strongest_half_amplitude_channels": 25,
+    "observed_wire_spectrum_peak_mhz": 3.984375,
+    "observed_wire_spectrum_power_centroid_1to8mhz": 4.021586877947154
+  },
+  "wire_2": {
+    "angle_eligible_channels": 23,
+    "angle_eligible_aperture_span_mm": 8.077744900887689,
+    "dominant_echo_channels": 21,
+    "strongest_half_amplitude_channels": 14,
+    "observed_wire_spectrum_peak_mhz": 4.0625,
+    "observed_wire_spectrum_power_centroid_1to8mhz": 4.096877491962284
+  }
+}

@@ -1,0 +1,65 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Sep  7 18:00:54 2026
+| Host         : Adam-PC running 64-bit major release  (build 9200)
+| Command      : report_drc -file C:/Users/Adam/usb3-tester/bench_runs/builds/20260908T005728Z-811741/drc.rpt
+| Design       : alchitry_top
+| Device       : xc7a35tftg256-2
+| Speed File   : -2
+| Design State : Fully Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Report DRC
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: alchitry_top
+          Floorplan: design_1
+      Design limits: <entire design considered>
+           Ruledeck: default
+             Max checks: <unlimited>
+             Checks found: 5
++-----------+----------+---------------------------------+--------+
+| Rule      | Severity | Description                     | Checks |
++-----------+----------+---------------------------------+--------+
+| RPBF-3    | Warning  | IO port buffering is incomplete | 4      |
+| RTSTAT-10 | Warning  | No routable loads               | 1      |
++-----------+----------+---------------------------------+--------+
+
+2. REPORT DETAILS
+-----------------
+RPBF-3#1 Warning
+IO port buffering is incomplete  
+Device port ft_be[0] expects both input and output buffering but the buffers are incomplete.
+Related violations: <none>
+
+RPBF-3#2 Warning
+IO port buffering is incomplete  
+Device port ft_be[1] expects both input and output buffering but the buffers are incomplete.
+Related violations: <none>
+
+RPBF-3#3 Warning
+IO port buffering is incomplete  
+Device port ft_be[2] expects both input and output buffering but the buffers are incomplete.
+Related violations: <none>
+
+RPBF-3#4 Warning
+IO port buffering is incomplete  
+Device port ft_be[3] expects both input and output buffering but the buffers are incomplete.
+Related violations: <none>
+
+RTSTAT-10#1 Warning
+No routable loads  
+4 net(s) have no routable loads. The problem bus(es) and/or net(s) are u_rx_fifo/gnuram_async_fifo.xpm_fifo_base_inst/data_valid,
+u_rx_fifo/gnuram_async_fifo.xpm_fifo_base_inst/xpm_fifo_rst_inst/wr_rst_busy,
+u_stream/u_adc_fifo/gnuram_async_fifo.xpm_fifo_base_inst/data_valid
+u_tx_fifo/gnuram_async_fifo.xpm_fifo_base_inst/data_valid.
+Related violations: <none>
+
+

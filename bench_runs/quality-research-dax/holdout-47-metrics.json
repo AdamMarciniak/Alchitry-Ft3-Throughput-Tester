@@ -1,0 +1,100 @@
+{
+  "DAS": {
+    "wire": {
+      "peak": 1370.0526071831155,
+      "fwhm_mm": 0.612792544022362,
+      "wings_p95_db": -19.978860795496168
+    },
+    "near": {
+      "median_db_vs_DAS": 0.0,
+      "contrast_sd_over_mean": 0.7562715681026663
+    },
+    "far": {
+      "median_db_vs_DAS": 0.0,
+      "contrast_sd_over_mean": 0.5382572316510483
+    }
+  },
+  "CF0.15": {
+    "wire": {
+      "peak": 1193.6827222362976,
+      "fwhm_mm": 0.5266726189862037,
+      "wings_p95_db": -23.620731560352887
+    },
+    "near": {
+      "median_db_vs_DAS": -5.457867128455901,
+      "contrast_sd_over_mean": 0.9134322823776916
+    },
+    "far": {
+      "median_db_vs_DAS": -5.294609463966474,
+      "contrast_sd_over_mean": 0.6778591404388178
+    }
+  },
+  "DAX2": {
+    "wire": {
+      "peak": 1352.366614524437,
+      "fwhm_mm": 0.45379130047383764,
+      "wings_p95_db": -33.78847035179795
+    },
+    "near": {
+      "median_db_vs_DAS": -57.45544150537712,
+      "contrast_sd_over_mean": 2.6137777616668894
+    },
+    "far": {
+      "median_db_vs_DAS": -54.497375297640794,
+      "contrast_sd_over_mean": 1.6242982546301599
+    }
+  },
+  "DAX4": {
+    "wire": {
+      "peak": 1285.410595626199,
+      "fwhm_mm": 0.2915360439536605,
+      "wings_p95_db": -31.531865895209926
+    },
+    "near": {
+      "median_db_vs_DAS": -56.997838975106646,
+      "contrast_sd_over_mean": 2.408374537577158
+    },
+    "far": {
+      "median_db_vs_DAS": -47.09292176302838,
+      "contrast_sd_over_mean": 1.6078937450510824
+    }
+  },
+  "DAX4-soft": {
+    "wire": {
+      "peak": 1325.0777493969304,
+      "fwhm_mm": 0.3661661560059555,
+      "wings_p95_db": -23.4351212261056
+    },
+    "near": {
+      "median_db_vs_DAS": -4.53335956842177,
+      "contrast_sd_over_mean": 0.9306075820341684
+    },
+    "far": {
+      "median_db_vs_DAS": -4.434770106717042,
+      "contrast_sd_over_mean": 0.6968770719303299
+    }
+  },
+  "Uniform-Hann": {
+    "wire": {
+      "peak": 1366.1474583234262,
+      "fwhm_mm": 0.5877644975959275,
+      "wings_p95_db": -20.337535085522774
+    },
+    "near": {
+      "median_db_vs_DAS": -0.735664065848302,
+      "contrast_sd_over_mean": 0.8143927627136528
+    },
+    "far": {
+      "median_db_vs_DAS": -2.100131343376441,
+      "contrast_sd_over_mean": 0.661747739671071
+    }
+  },
+  "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\phantom-pulse-comparison\\one-cycle.rf.npz",
+  "frame": 47,
+  "anchors_mm": [
+    [
+      2.392578125,
+      16.1640625
+    ]
+  ]
+}

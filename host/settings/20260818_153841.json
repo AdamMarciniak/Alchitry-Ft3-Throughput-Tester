@@ -1,0 +1,121 @@
+{
+  "saved": "2026-08-18 15:38:41",
+  "note": "",
+  "host": "tfm_gl_host.py",
+  "source": "hardware",
+  "argv": [],
+  "summary": "48 el  depth 10 cm  c 1470 m/s  dly 5 us  aper 16 deg  apod 26%  coh 0.69  drive 1.4-7.5 MHz  band 5.9-8.9 MHz  de-jit 0.0 ns rms  t0 +0 ns  R 102.3 mm  pitch 0.3580 mm  dyn 80 dB  gain +40 dB  curve 0.30  zoom 1.0x  TGC 2540-4095",
+  "acquisition": {
+    "depth_cm": 10,
+    "win_words": 2673,
+    "win_samples": 5346,
+    "win_us": 133.65,
+    "dly_us": 5.0,
+    "damp_gap_us": 188,
+    "tgc_min": 2540,
+    "tgc_max": 4095,
+    "fs_hz": 40000000,
+    "n_elem_rx": 48
+  },
+  "transmit": {
+    "armed": true,
+    "chirp_on": false,
+    "chirp_f0_mhz": 4.0,
+    "chirp_f1_mhz": 5.5,
+    "chirp_us": 1.0,
+    "n_cycles": 1,
+    "t_drive_ns": 70.0,
+    "t_dead_ns": 40.0,
+    "t_settle_us": 12.5,
+    "t_inhib_us": 19.5,
+    "t_ring_us": 29.0,
+    "t_rx_us": 336.65,
+    "n_elem": 48,
+    "single_elem": null,
+    "f0_mhz": 4.545,
+    "drive_pk_mhz": 4.248,
+    "drive_mid_mhz": 4.381,
+    "drive_lo_mhz": 1.396,
+    "drive_hi_mhz": 7.49,
+    "drive_in_band": 0.702,
+    "probe_band_mhz": [
+      2.0,
+      6.0
+    ],
+    "burst_us": 0.22,
+    "element_period_us": 384.84,
+    "frame_ms": 18.472
+  },
+  "receive": {
+    "bandpass_on": true,
+    "band_f0_mhz": 7.4,
+    "band_bw_mhz": 3.0,
+    "band_lo_mhz": 5.9,
+    "band_hi_mhz": 8.9,
+    "avg_sweeps": 1,
+    "avg_held": 0,
+    "matched_filter": false,
+    "dejitter_on": true,
+    "jitter_rms_ns": 0.0,
+    "jitter_pp_ns": 0.0,
+    "jitter_used": 0,
+    "jitter_railed": 2,
+    "bg_subtract": true,
+    "bg_ref": true,
+    "near_dbfs": 0.0,
+    "far_dbfs": -18.99
+  },
+  "beamformer": {
+    "c_m_s": 1470.0,
+    "apod": 0.26,
+    "cf": 0.69,
+    "accept_deg": 16.0,
+    "t0_ns": 0.0,
+    "R_mm": 102.30000000000001,
+    "pitch_mm": 0.358,
+    "aperture_mm": 16.826,
+    "flip_lr": false,
+    "dead": [
+      25,
+      46
+    ],
+    "alive": 46
+  },
+  "display": {
+    "dyn_db": 80.0,
+    "gain_db": 40.0,
+    "curve": 0.3,
+    "auto_gain": false,
+    "signed": false,
+    "zoom": 1.0,
+    "pan_cx": 0.0,
+    "pan_cz": 0.050953874999999996,
+    "grid": [
+      2218,
+      964
+    ],
+    "mmode_on": false,
+    "mline_a": null,
+    "mline_b": null,
+    "measurements_mm": [
+      0.32
+    ]
+  },
+  "stream": {
+    "frozen": false,
+    "mbps": 27.8,
+    "sweeps_per_s": 54.1,
+    "frames": 3647139,
+    "drops": 21,
+    "resyncs": 77,
+    "holes": [
+      371,
+      38952
+    ],
+    "skips": 29564,
+    "cine_frames": 2167,
+    "cine_seconds": 40.0,
+    "cine_offset_s": null
+  },
+  "image": "20260818_153841.png"
+}

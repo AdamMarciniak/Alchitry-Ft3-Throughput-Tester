@@ -1,0 +1,15 @@
+running in SIMULATION mode - synthetic phantom, no FPGA.
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\host\bench_host.py", line 415, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\Adam\usb3-tester\host\bench_host.py", line 404, in main
+    window = h.Main()
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 4691, in __init__
+    mkslider(r2, "TGC full @", 1, 100, TGC_REACH_DEF,
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             on_change=self.set_tgc_reach, width=98, unit="%",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             tip="Depth fraction where the TGC ramp reaches its maximum; the FPGA holds that gain for the rest of the receive window.")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: mkslider() got an unexpected keyword argument 'tip'

@@ -1,0 +1,36 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/three-rx-1/source/rtl/ctrl_decode.v" into library work
+INFO: [VRFC 10-311] analyzing module ctrl_decode
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/three-rx-1/source/tests/tb_ctrl_lease.v" into library work
+INFO: [VRFC 10-311] analyzing module tb_ctrl_lease
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: E:/Vivado/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe tb_ctrl_lease -s lease_test 
+Multi-threading is on. Using 14 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3645] port 'ctrl_rd_en' remains unconnected for this instance [C:/Users/Adam/usb3-tester/bench_runs/builds/three-rx-1/source/tests/tb_ctrl_lease.v:10]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module work.ctrl_decode(LEASE_CYCLES_PER_MS=...
+Compiling module work.tb_ctrl_lease
+Built simulation snapshot lease_test
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Tue Nov 24 07:21:06 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/lease_test/xsim_script.tcl
+# xsim {lease_test} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+LEASE_TEST_PASS
+$finish called at time : 1990 ns : File "C:/Users/Adam/usb3-tester/bench_runs/builds/three-rx-1/source/tests/tb_ctrl_lease.v" Line 66
+exit
+INFO: [Common 17-206] Exiting xsim at Tue Nov 24 07:21:08 2026...

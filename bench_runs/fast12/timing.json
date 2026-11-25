@@ -1,0 +1,29 @@
+{
+  "recorded-17cm": {
+    "receive_window_us": 227.25,
+    "post_receive_gap_us": 313.0,
+    "element_period_us": 585.1999999999999,
+    "aperture_ms_nominal": 28.089599999999997,
+    "fps_ceiling_nominal": 35.60036454773297,
+    "rf_link_MB_s_nominal": 31.073137388926863,
+    "note": "Nominal requested timing, not measured FPS; stalls, grid alignment and element trims add time."
+  },
+  "12cm-313us": {
+    "receive_window_us": 160.4,
+    "post_receive_gap_us": 313,
+    "element_period_us": 518.35,
+    "aperture_ms_nominal": 24.880800000000004,
+    "fps_ceiling_nominal": 40.19163370952702,
+    "rf_link_MB_s_nominal": 24.763190894183463,
+    "note": "Nominal requested timing, not measured FPS; stalls, grid alignment and element trims add time."
+  },
+  "12cm-50us": {
+    "receive_window_us": 160.4,
+    "post_receive_gap_us": 50.0,
+    "element_period_us": 255.35000000000002,
+    "aperture_ms_nominal": 12.256800000000002,
+    "fps_ceiling_nominal": 81.58736374910254,
+    "rf_link_MB_s_nominal": 50.26825925200704,
+    "note": "Nominal requested timing, not measured FPS; stalls, grid alignment and element trims add time."
+  }
+}

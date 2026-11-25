@@ -1,0 +1,102 @@
+{
+  "clip": "start",
+  "pair_indices": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    100,
+    104,
+    108,
+    112,
+    116,
+    120,
+    125
+  ],
+  "band_mhz": [
+    2,
+    4
+  ],
+  "max_lag_samples": 80,
+  "max_lag_us": 2,
+  "stats": [
+    {
+      "range_mm": [
+        20,
+        40
+      ],
+      "zero_lag_median": 0.7315405262521529,
+      "best_shift_correlation_median": 0.7470533711813445,
+      "quiet_best_shift_correlation_median": 0.22456901110729727,
+      "best_shift_samples_quantiles": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "range_mm": [
+        40,
+        60
+      ],
+      "zero_lag_median": 0.43469249015665445,
+      "best_shift_correlation_median": 0.4628446741615184,
+      "quiet_best_shift_correlation_median": 0.22207860064946963,
+      "best_shift_samples_quantiles": [
+        -11.0,
+        0.0,
+        12.0
+      ]
+    },
+    {
+      "range_mm": [
+        60,
+        80
+      ],
+      "zero_lag_median": 0.5045031123799838,
+      "best_shift_correlation_median": 0.5222773982724166,
+      "quiet_best_shift_correlation_median": 0.21735023661559422,
+      "best_shift_samples_quantiles": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "range_mm": [
+        80,
+        120
+      ],
+      "zero_lag_median": 0.12185971452455288,
+      "best_shift_correlation_median": 0.26377764860051045,
+      "quiet_best_shift_correlation_median": 0.1550920478993359,
+      "best_shift_samples_quantiles": [
+        -44.0,
+        0.0,
+        42.0
+      ]
+    }
+  ],
+  "interpretation": "Maximum normalized RF correlation over +/-2us, with overlap attenuated by full-gate normalization. Lag search also increases random correlations; quiet controls are included. Does not identify which reflector moved, establish speed, or correct the sequential aperture."
+}

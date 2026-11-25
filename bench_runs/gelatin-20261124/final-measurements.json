@@ -1,0 +1,129 @@
+{
+  "verified-live": {
+    "displayed": [
+      {
+        "x_mm": 2.5000000000000018,
+        "z_mm": 18.5,
+        "lateral_mm": 0.8301798472037687,
+        "axial_mm": 0.8353394281405677,
+        "peak_vs_background_p95_db": 15.304058074951172,
+        "gel_median_gray": 56.0
+      },
+      {
+        "x_mm": 2.5000000000000018,
+        "z_mm": 18.5,
+        "lateral_mm": 0.82999218427218,
+        "axial_mm": 0.8352696431370887,
+        "peak_vs_background_p95_db": 15.493498802185059,
+        "gel_median_gray": 56.0
+      },
+      {
+        "x_mm": 2.5000000000000018,
+        "z_mm": 18.5,
+        "lateral_mm": 0.8308343474681568,
+        "axial_mm": 0.8347973714654273,
+        "peak_vs_background_p95_db": 15.464347839355469,
+        "gel_median_gray": 56.0
+      }
+    ],
+    "ordinary_DAS": [
+      {
+        "x_mm": 2.5000000000000018,
+        "z_mm": 18.5,
+        "lateral_mm": 1.0572370316546693,
+        "axial_mm": 0.8795362986051138,
+        "peak_vs_background_p95_db": 11.9526948928833,
+        "gel_median_gray": 88.0
+      },
+      {
+        "x_mm": 2.5000000000000018,
+        "z_mm": 18.5,
+        "lateral_mm": 1.0457114330851112,
+        "axial_mm": 0.8792772453564872,
+        "peak_vs_background_p95_db": 12.164278030395508,
+        "gel_median_gray": 88.0
+      },
+      {
+        "x_mm": 2.5000000000000018,
+        "z_mm": 18.5,
+        "lateral_mm": 1.0462255730078769,
+        "axial_mm": 0.8787904633925514,
+        "peak_vs_background_p95_db": 12.129411697387695,
+        "gel_median_gray": 88.0
+      }
+    ],
+    "central_region_repeatability": 0.9973743701089027,
+    "valid_sweeps": 48,
+    "included_ADC_rail_samples": 0
+  },
+  "final-live": {
+    "displayed": [
+      {
+        "x_mm": 1.8076923076923086,
+        "z_mm": 18.57692307692308,
+        "lateral_mm": 0.6217277456934611,
+        "axial_mm": 0.8813472252625694,
+        "peak_vs_background_p95_db": 30.373228073120117,
+        "gel_median_gray": 55.0
+      },
+      {
+        "x_mm": 1.8076923076923086,
+        "z_mm": 18.57692307692308,
+        "lateral_mm": 0.6210768417670152,
+        "axial_mm": 0.8810617969586296,
+        "peak_vs_background_p95_db": 30.357955932617188,
+        "gel_median_gray": 54.0
+      },
+      {
+        "x_mm": 1.8076923076923086,
+        "z_mm": 18.57692307692308,
+        "lateral_mm": 0.6210443681249227,
+        "axial_mm": 0.8810443442601397,
+        "peak_vs_background_p95_db": 30.402257919311523,
+        "gel_median_gray": 55.0
+      }
+    ],
+    "ordinary_DAS": [
+      {
+        "x_mm": 1.8076923076923086,
+        "z_mm": 18.57692307692308,
+        "lateral_mm": 0.7716187549611666,
+        "axial_mm": 0.891689761326866,
+        "peak_vs_background_p95_db": 22.370271682739258,
+        "gel_median_gray": 87.0
+      },
+      {
+        "x_mm": 1.8076923076923086,
+        "z_mm": 18.57692307692308,
+        "lateral_mm": 0.7705629591185283,
+        "axial_mm": 0.8915064804829065,
+        "peak_vs_background_p95_db": 22.33342933654785,
+        "gel_median_gray": 87.0
+      },
+      {
+        "x_mm": 1.8076923076923086,
+        "z_mm": 18.57692307692308,
+        "lateral_mm": 0.7705163540891702,
+        "axial_mm": 0.8914649440692024,
+        "peak_vs_background_p95_db": 22.355934143066406,
+        "gel_median_gray": 87.0
+      }
+    ],
+    "central_region_repeatability": 0.9990743378391171,
+    "local_peaks_within_23_to_29_mm": [
+      27.58,
+      24.81,
+      23.12,
+      28.96
+    ],
+    "valid_sweeps": 48,
+    "included_ADC_rail_samples": 0
+  },
+  "method": {
+    "units": "Linear beamformed envelope before log display mapping. Widths at half peak amplitude on orthogonal profiles. Depth uses nominal 1531 m/s.",
+    "comparison": "Same receive, beamforming and display settings for the two fresh acquisitions. Only the per-element transmit timing table differs between their physical acquisition configurations.",
+    "groups": "Frames 0-7, 16-23 and 40-47, averaged before envelope detection.",
+    "background": "Same-depth gate x between -8 and 9 mm, excluding x within 2 mm of 2 mm. Depth 17 to 20 mm. Contrast is 20 log10(wire peak / background 95th percentile).",
+    "texture": "Pearson correlation of ordinary DAS envelopes between first and last groups in central x +/-6 mm, z 23-36 mm. Persistent clutter and stationary phantom scattering both contribute."
+  }
+}

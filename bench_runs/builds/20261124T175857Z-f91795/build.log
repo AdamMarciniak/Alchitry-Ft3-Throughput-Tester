@@ -1,0 +1,1860 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Tue Nov 24 09:59:38 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {C:\Users\Adam\usb3-tester\bench_runs\builds\20261124T175857Z-f91795\source\bench_build.tcl}
+# set src [file normalize [lindex $argv 0]]
+# set out [file normalize [lindex $argv 1]]
+# set part [lindex $argv 2]
+# set build_id [lindex $argv 3]
+# create_project -in_memory -part $part
+create_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:06 . Memory (MB): peak = 526.855 ; gain = 221.238
+# set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY XPM_FIFO} [current_project]
+# set_property verilog_define [list "USB3_BENCH_BUILD_ID=32'h$build_id"] [current_fileset]
+# read_verilog [glob [file join $src rtl *.v]]
+# read_xdc [glob [file join $src constraints *.xdc]]
+# synth_design -top alchitry_top -part $part
+Command: synth_design -top alchitry_top -part xc7a35tftg256-2
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Device 21-403] Loading part xc7a35tftg256-2
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 17988
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 1257.551 ; gain = 539.934
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'alchitry_top' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/alchitry_top.v:7]
+INFO: [Synth 8-6157] synthesizing module 'MMCME2_BASE' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95964]
+	Parameter BANDWIDTH bound to: OPTIMIZED - type: string 
+	Parameter CLKFBOUT_MULT_F bound to: 1.000000e+01 - type: double 
+	Parameter CLKIN1_PERIOD bound to: 1.000000e+01 - type: double 
+	Parameter CLKOUT0_DIVIDE_F bound to: 1.000000e+01 - type: double 
+	Parameter CLKOUT0_PHASE bound to: 0.000000e+00 - type: double 
+	Parameter CLKOUT1_DIVIDE bound to: 10 - type: integer 
+	Parameter CLKOUT1_PHASE bound to: 1.890000e+02 - type: double 
+	Parameter DIVCLK_DIVIDE bound to: 1 - type: integer 
+	Parameter STARTUP_WAIT bound to: FALSE - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'MMCME2_BASE' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95964]
+INFO: [Synth 8-6157] synthesizing module 'BUFG' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6155] done synthesizing module 'BUFG' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6157] synthesizing module 'afe5804_ctrl' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:197]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+	Parameter BAUD bound to: 2000000 - type: integer 
+	Parameter AUTO_EYE bound to: 0 - type: integer 
+	Parameter ALIGN_DAT_TAP bound to: 5'b01010 
+	Parameter ALIGN_FCLK_TAP bound to: 5'b01001 
+INFO: [Synth 8-6157] synthesizing module 'afe_rx' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe_rx.v:16]
+INFO: [Synth 8-6157] synthesizing module 'MMCME2_BASE__parameterized0' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95964]
+	Parameter CLKFBOUT_MULT_F bound to: 1.000000e+01 - type: double 
+	Parameter CLKIN1_PERIOD bound to: 1.000000e+01 - type: double 
+	Parameter CLKOUT0_DIVIDE_F bound to: 5.000000e+00 - type: double 
+	Parameter DIVCLK_DIVIDE bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'MMCME2_BASE__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95964]
+INFO: [Synth 8-6157] synthesizing module 'IDELAYCTRL' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:85096]
+INFO: [Synth 8-6155] done synthesizing module 'IDELAYCTRL' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:85096]
+INFO: [Synth 8-6157] synthesizing module 'IBUFDS' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:82819]
+	Parameter IOSTANDARD bound to: LVDS_25 - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'IBUFDS' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:82819]
+INFO: [Synth 8-6157] synthesizing module 'BUFIO' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2951]
+INFO: [Synth 8-6155] done synthesizing module 'BUFIO' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2951]
+INFO: [Synth 8-6157] synthesizing module 'BUFR' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:3017]
+	Parameter BUFR_DIVIDE bound to: 3 - type: string 
+	Parameter SIM_DEVICE bound to: 7SERIES - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'BUFR' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:3017]
+INFO: [Synth 8-6157] synthesizing module 'IDELAYE2' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:85109]
+	Parameter DELAY_SRC bound to: IDATAIN - type: string 
+	Parameter HIGH_PERFORMANCE_MODE bound to: TRUE - type: string 
+	Parameter IDELAY_TYPE bound to: VAR_LOAD - type: string 
+	Parameter IDELAY_VALUE bound to: 0 - type: integer 
+	Parameter REFCLK_FREQUENCY bound to: 2.000000e+02 - type: double 
+	Parameter SIGNAL_PATTERN bound to: DATA - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'IDELAYE2' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:85109]
+INFO: [Synth 8-6157] synthesizing module 'ISERDESE2' [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:90334]
+	Parameter DATA_RATE bound to: DDR - type: string 
+	Parameter DATA_WIDTH bound to: 6 - type: integer 
+	Parameter DYN_CLKDIV_INV_EN bound to: FALSE - type: string 
+	Parameter DYN_CLK_INV_EN bound to: FALSE - type: string 
+	Parameter INTERFACE_TYPE bound to: NETWORKING - type: string 
+	Parameter IOBDELAY bound to: IFD - type: string 
+	Parameter NUM_CE bound to: 2 - type: integer 
+	Parameter OFB_USED bound to: FALSE - type: string 
+	Parameter SERDES_MODE bound to: MASTER - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'ISERDESE2' (0#1) [E:/Vivado/2025.2/Vivado/scripts/rt/data/unisim_comp.v:90334]
+INFO: [Synth 8-6155] done synthesizing module 'afe_rx' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe_rx.v:16]
+INFO: [Synth 8-6157] synthesizing module 'uart_rx' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:32]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+	Parameter BAUD bound to: 2000000 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'uart_rx' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:32]
+INFO: [Synth 8-6157] synthesizing module 'uart_tx' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:85]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+	Parameter BAUD bound to: 2000000 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'uart_tx' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:85]
+INFO: [Synth 8-6157] synthesizing module 'spi_master24' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:126]
+	Parameter CLK_HZ bound to: 100000000 - type: integer 
+	Parameter SCLK_HZ bound to: 1000000 - type: integer 
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:156]
+INFO: [Synth 8-6155] done synthesizing module 'spi_master24' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:126]
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:671]
+INFO: [Synth 8-6155] done synthesizing module 'afe5804_ctrl' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:197]
+INFO: [Synth 8-6157] synthesizing module 'afe_stream' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe_stream.v:19]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_async' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:2173]
+	Parameter FIFO_MEMORY_TYPE bound to: block - type: string 
+	Parameter FIFO_WRITE_DEPTH bound to: 4096 - type: integer 
+	Parameter WRITE_DATA_WIDTH bound to: 32 - type: integer 
+	Parameter USE_ADV_FEATURES bound to: 1000 - type: string 
+	Parameter READ_MODE bound to: fwft - type: string 
+	Parameter FIFO_READ_LATENCY bound to: 0 - type: integer 
+	Parameter READ_DATA_WIDTH bound to: 32 - type: integer 
+	Parameter CDC_SYNC_STAGES bound to: 2 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_base' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:53]
+INFO: [Synth 8-6157] synthesizing module 'xpm_memory_base' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:54]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_memory_base' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:54]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_reg_vec' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_reg_vec' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized0' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_reg_vec__parameterized0' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_reg_vec__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized1' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized1' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1220]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1287]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1309]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_reg_bit' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1927]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_reg_bit' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1927]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_rst' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1639]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_sync_rst' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:1059]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_sync_rst' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:1059]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_rst' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1639]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized0' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized1' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized1' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized2' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized2' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_base' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:53]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_async' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:2173]
+WARNING: [Synth 8-7071] port 'wr_ack' of module 'xpm_fifo_async' is unconnected for instance 'u_adc_fifo' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe_stream.v:107]
+WARNING: [Synth 8-7023] instance 'u_adc_fifo' of module 'xpm_fifo_async' has 26 connections declared, but only 25 given [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe_stream.v:107]
+INFO: [Synth 8-6155] done synthesizing module 'afe_stream' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe_stream.v:19]
+INFO: [Synth 8-6157] synthesizing module 'ctrl_decode' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/ctrl_decode.v:71]
+INFO: [Synth 8-6155] done synthesizing module 'ctrl_decode' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/ctrl_decode.v:71]
+INFO: [Synth 8-6157] synthesizing module 'dac7554_ramp' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/dac7554_ramp.v:33]
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/dac7554_ramp.v:145]
+INFO: [Synth 8-6155] done synthesizing module 'dac7554_ramp' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/dac7554_ramp.v:33]
+INFO: [Synth 8-6157] synthesizing module 'tx_sequencer' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/tx_sequencer.v:71]
+	Parameter F_SYS bound to: 100000000 - type: integer 
+	Parameter SPI_HALF bound to: 5 - type: integer 
+	Parameter T_SETTLE_MIN bound to: 400 - type: integer 
+	Parameter T_INHIBIT_MIN bound to: 450 - type: integer 
+	Parameter CHAIN_CHECK bound to: 0 - type: integer 
+	Parameter N_ELEM bound to: 48 - type: integer 
+	Parameter ROOT_SW_BR0 bound to: 5 - type: integer 
+	Parameter ROOT_SW_BR1 bound to: 7 - type: integer 
+	Parameter ROOT_SW_BR2 bound to: 11 - type: integer 
+	Parameter MUX_STATIC bound to: 0 - type: integer 
+	Parameter MUX_STATIC_ROOT bound to: 5 - type: integer 
+	Parameter MUX_STATIC_BR bound to: 0 - type: integer 
+	Parameter MUX_STATIC_CH bound to: 10 - type: integer 
+INFO: [Synth 8-226] default block is never used [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/tx_sequencer.v:809]
+INFO: [Synth 8-6155] done synthesizing module 'tx_sequencer' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/tx_sequencer.v:71]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_async__parameterized0' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:2173]
+	Parameter FIFO_MEMORY_TYPE bound to: block - type: string 
+	Parameter FIFO_WRITE_DEPTH bound to: 8192 - type: integer 
+	Parameter WRITE_DATA_WIDTH bound to: 32 - type: integer 
+	Parameter USE_ADV_FEATURES bound to: 1000 - type: string 
+	Parameter READ_MODE bound to: fwft - type: string 
+	Parameter FIFO_READ_LATENCY bound to: 0 - type: integer 
+	Parameter READ_DATA_WIDTH bound to: 32 - type: integer 
+	Parameter CDC_SYNC_STAGES bound to: 2 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_base__parameterized0' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:53]
+INFO: [Synth 8-6157] synthesizing module 'xpm_memory_base__parameterized0' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:54]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_memory_base__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:54]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized2' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized2' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_reg_vec__parameterized1' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_reg_vec__parameterized1' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized3' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized3' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1220]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1287]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1309]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized3' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized3' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized4' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized4' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized5' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized5' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_base__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:53]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_async__parameterized0' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:2173]
+WARNING: [Synth 8-7071] port 'wr_ack' of module 'xpm_fifo_async' is unconnected for instance 'u_tx_fifo' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/alchitry_top.v:452]
+WARNING: [Synth 8-7023] instance 'u_tx_fifo' of module 'xpm_fifo_async' has 26 connections declared, but only 25 given [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/alchitry_top.v:452]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_async__parameterized1' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:2173]
+	Parameter FIFO_MEMORY_TYPE bound to: distributed - type: string 
+	Parameter FIFO_WRITE_DEPTH bound to: 32 - type: integer 
+	Parameter WRITE_DATA_WIDTH bound to: 32 - type: integer 
+	Parameter USE_ADV_FEATURES bound to: 1000 - type: string 
+	Parameter READ_MODE bound to: fwft - type: string 
+	Parameter FIFO_READ_LATENCY bound to: 0 - type: integer 
+	Parameter READ_DATA_WIDTH bound to: 32 - type: integer 
+	Parameter CDC_SYNC_STAGES bound to: 2 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_base__parameterized1' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:53]
+INFO: [Synth 8-6157] synthesizing module 'xpm_memory_base__parameterized1' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:54]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_memory_base__parameterized1' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:54]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized4' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized4' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_reg_vec__parameterized2' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_reg_vec__parameterized2' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized5' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized5' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6157] synthesizing module 'xpm_fifo_reg_vec__parameterized3' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_reg_vec__parameterized3' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1905]
+INFO: [Synth 8-6157] synthesizing module 'xpm_cdc_gray__parameterized6' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_cdc_gray__parameterized6' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:283]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1220]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1287]
+INFO: [Synth 8-226] default block is never used [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1309]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized6' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized6' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized7' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized7' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6157] synthesizing module 'xpm_counter_updn__parameterized8' [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_counter_updn__parameterized8' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1879]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_base__parameterized1' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:53]
+INFO: [Synth 8-6155] done synthesizing module 'xpm_fifo_async__parameterized1' (0#1) [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:2173]
+WARNING: [Synth 8-7071] port 'wr_ack' of module 'xpm_fifo_async' is unconnected for instance 'u_rx_fifo' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/alchitry_top.v:484]
+WARNING: [Synth 8-7023] instance 'u_rx_fifo' of module 'xpm_fifo_async' has 26 connections declared, but only 25 given [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/alchitry_top.v:484]
+INFO: [Synth 8-6157] synthesizing module 'ft601_interface' [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/ft601_if.v:25]
+	Parameter RD_WINDOW bound to: 4 - type: integer 
+	Parameter RX_MAGIC bound to: -1515890086 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'ft601_interface' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/ft601_if.v:25]
+INFO: [Synth 8-6155] done synthesizing module 'alchitry_top' (0#1) [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/alchitry_top.v:7]
+WARNING: [Synth 8-6014] Unused sequential element gen_rd_b.gen_doutb_pipe.enb_pipe_reg[0] was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:3087]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element gdvld.data_valid_std_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:550]
+WARNING: [Synth 8-6014] Unused sequential element gen_fwft.empty_fwft_fb_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1404]
+WARNING: [Synth 8-6014] Unused sequential element gen_rd_b.gen_doutb_pipe.enb_pipe_reg[0] was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:3087]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element gdvld.data_valid_std_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:550]
+WARNING: [Synth 8-6014] Unused sequential element gen_fwft.empty_fwft_fb_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1404]
+WARNING: [Synth 8-6014] Unused sequential element gen_rd_b.gen_doutb_pipe.enb_pipe_reg[0] was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv:3087]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element dest_out_bin_ff_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv:417]
+WARNING: [Synth 8-6014] Unused sequential element gdvld.data_valid_std_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:550]
+WARNING: [Synth 8-6014] Unused sequential element gen_fwft.empty_fwft_fb_reg was removed.  [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv:1404]
+WARNING: [Synth 8-6014] Unused sequential element match_reg was removed.  [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/ft601_if.v:335]
+WARNING: [Synth 8-7129] Port sleep in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rsta in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port regcea in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectsbiterra in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectdbiterra in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port web[0] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[31] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[30] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[29] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[28] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[27] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[26] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[25] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[24] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[23] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[22] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[21] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[20] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[19] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[18] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[17] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[16] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[15] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[14] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[13] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[12] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[11] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[10] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[9] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[8] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[7] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[6] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[5] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[4] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[3] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[2] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[1] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[0] in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectsbiterrb in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectdbiterrb in module xpm_memory_base__parameterized1 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sleep in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rsta in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port regcea in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectsbiterra in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectdbiterra in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[31] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[30] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[29] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[28] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[27] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[26] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[25] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[24] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[23] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[22] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[21] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[20] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[19] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[18] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[17] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[16] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[15] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[14] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[13] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[12] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[11] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[10] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[9] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[8] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[7] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[6] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[5] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[4] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[3] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[2] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[1] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[0] in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectsbiterrb in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectdbiterrb in module xpm_memory_base__parameterized0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sleep in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port rsta in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port regcea in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectsbiterra in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port injectdbiterra in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[31] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[30] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[29] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[28] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[27] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[26] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[25] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[24] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[23] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[22] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[21] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[20] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[19] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[18] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[17] in module xpm_memory_base is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dinb[16] in module xpm_memory_base is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:11 ; elapsed = 00:00:12 . Memory (MB): peak = 1450.914 ; gain = 733.297
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:12 ; elapsed = 00:00:12 . Memory (MB): peak = 1450.914 ; gain = 733.297
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:12 . Memory (MB): peak = 1450.914 ; gain = 733.297
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.189 . Memory (MB): peak = 1450.914 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 10 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc]
+INFO: [Timing 38-2] Deriving generated clocks [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc:156]
+Finished Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/alchitry_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/alchitry_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/pulser.xdc]
+Finished Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/pulser.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/pulser.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/alchitry_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/alchitry_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_cdc/tcl/xpm_cdc_gray.tcl]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/alchitry_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/alchitry_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [E:/Vivado/2025.2/Vivado/data/ip/xpm/xpm_fifo/tcl/xpm_fifo_rst.tcl]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/alchitry_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/alchitry_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+INFO: [Project 1-1714] 21 XPM XDC files have been applied to the design.
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.005 . Memory (MB): peak = 1532.766 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 2 instances were transformed.
+  MMCME2_BASE => MMCME2_ADV: 2 instances
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.086 . Memory (MB): peak = 1532.766 ; gain = 0.000
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:24 ; elapsed = 00:00:25 . Memory (MB): peak = 1532.766 ; gain = 815.148
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tftg256-2
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:24 ; elapsed = 00:00:25 . Memory (MB): peak = 1532.766 ; gain = 815.148
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:25 ; elapsed = 00:00:25 . Memory (MB): peak = 1532.766 ; gain = 815.148
+---------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'st_reg' in module 'uart_rx'
+INFO: [Synth 8-802] inferred FSM for state register 'st_reg' in module 'spi_master24'
+WARNING: [Synth 8-3936] Found unconnected internal register 'rawreg_reg' and it is trimmed from '24' to '20' bits. [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/rtl/afe5804_ctrl.v:646]
+INFO: [Synth 8-802] inferred FSM for state register 'scan_ph_reg' in module 'afe5804_ctrl'
+INFO: [Synth 8-802] inferred FSM for state register 'col_reg' in module 'afe5804_ctrl'
+INFO: [Synth 8-802] inferred FSM for state register 'gen_rst_ic.curr_wrst_state_reg' in module 'xpm_fifo_rst'
+INFO: [Synth 8-802] inferred FSM for state register 'gen_rst_ic.curr_rrst_state_reg' in module 'xpm_fifo_rst'
+INFO: [Synth 8-802] inferred FSM for state register 'gen_fwft.curr_fwft_state_reg' in module 'xpm_fifo_base'
+INFO: [Synth 8-802] inferred FSM for state register 'sstate_reg' in module 'ctrl_decode'
+INFO: [Synth 8-802] inferred FSM for state register 'spi_state_reg' in module 'dac7554_ramp'
+INFO: [Synth 8-802] inferred FSM for state register 'seq_reg' in module 'dac7554_ramp'
+INFO: [Synth 8-802] inferred FSM for state register 'rx_slot_reg' in module 'tx_sequencer'
+INFO: [Synth 8-802] inferred FSM for state register 'gen_fwft.curr_fwft_state_reg' in module 'xpm_fifo_base__parameterized0'
+INFO: [Synth 8-802] inferred FSM for state register 'gen_fwft.curr_fwft_state_reg' in module 'xpm_fifo_base__parameterized1'
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'ft601_interface'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                  S_IDLE |                               00 |                               00
+                 S_START |                               01 |                               01
+                  S_DATA |                               10 |                               10
+                  S_STOP |                               11 |                               11
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'st_reg' using encoding 'sequential' in module 'uart_rx'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                  S_IDLE |                            00001 |                              000
+                 S_SETUP |                            00010 |                              001
+                   S_LOW |                            00100 |                              010
+                  S_HIGH |                            01000 |                              011
+                  S_HOLD |                            10000 |                              100
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'st_reg' using encoding 'one-hot' in module 'spi_master24'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+                  iSTATE |                              000 |                              000
+                 iSTATE0 |                              001 |                              001
+                 iSTATE1 |                              010 |                              010
+                 iSTATE2 |                              011 |                              011
+                 iSTATE3 |                              100 |                              100
+                 iSTATE4 |                              101 |                              101
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'col_reg' using encoding 'sequential' in module 'afe5804_ctrl'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+                  iSTATE |                               00 |                               00
+                 iSTATE0 |                               01 |                               01
+                 iSTATE1 |                               10 |                               10
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'scan_ph_reg' using encoding 'sequential' in module 'afe5804_ctrl'
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5552] Implemented safe state 'default_state' for state register 'gen_rst_ic.curr_wrst_state_reg' in module 'xpm_fifo_rst'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+               WRST_IDLE |                            00001 |                              000
+                 WRST_IN |                            00010 |                              010
+                WRST_OUT |                            00100 |                              111
+               WRST_EXIT |                            01000 |                              110
+            WRST_GO2IDLE |                            10000 |                              100
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'gen_rst_ic.curr_wrst_state_reg' using encoding 'one-hot' in module 'xpm_fifo_rst'
+INFO: [Synth 8-5552] Implemented safe state 'default_state' for state register 'gen_rst_ic.curr_rrst_state_reg' in module 'xpm_fifo_rst'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+               RRST_IDLE |                               00 |                               00
+                 RRST_IN |                               01 |                               10
+                RRST_OUT |                               10 |                               11
+               RRST_EXIT |                               11 |                               01
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'gen_rst_ic.curr_rrst_state_reg' using encoding 'sequential' in module 'xpm_fifo_rst'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                 invalid |                               00 |                               00
+            stage1_valid |                               01 |                               10
+       both_stages_valid |                               10 |                               11
+            stage2_valid |                               11 |                               01
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'gen_fwft.curr_fwft_state_reg' using encoding 'sequential' in module 'xpm_fifo_base'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                  S_DAMP |                               00 |                              000
+                 S_ARMED |                               11 |                              001
+                   S_DLY |                               10 |                              010
+                    S_RX |                               01 |                              100
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'sstate_reg' using encoding 'sequential' in module 'ctrl_decode'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                SEQ_WAIT |                              000 |                              000
+                SEQ_PD_A |                              001 |                              001
+                SEQ_PD_C |                              010 |                              010
+                SEQ_PD_D |                              011 |                              011
+                SEQ_RAMP |                              100 |                              100
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'seq_reg' using encoding 'sequential' in module 'dac7554_ramp'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                SPI_IDLE |                               00 |                               00
+                SPI_SYNC |                               01 |                               01
+               SPI_SHIFT |                               10 |                               10
+                 SPI_GAP |                               11 |                               11
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'spi_state_reg' using encoding 'sequential' in module 'dac7554_ramp'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                 iSTATE0 |                              001 |                               00
+                  iSTATE |                              010 |                               01
+*
+                 iSTATE1 |                              100 |                               10
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'rx_slot_reg' using encoding 'one-hot' in module 'tx_sequencer'
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                 invalid |                               00 |                               00
+            stage1_valid |                               01 |                               10
+       both_stages_valid |                               10 |                               11
+            stage2_valid |                               11 |                               01
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'gen_fwft.curr_fwft_state_reg' using encoding 'sequential' in module 'xpm_fifo_base__parameterized0'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                 invalid |                               00 |                               00
+            stage1_valid |                               01 |                               10
+       both_stages_valid |                               10 |                               11
+            stage2_valid |                               11 |                               01
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'gen_fwft.curr_fwft_state_reg' using encoding 'sequential' in module 'xpm_fifo_base__parameterized1'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                  S_IDLE |                              000 |                              000
+                 S_RD_OE |                              001 |                              010
+                S_RD_STB |                              010 |                              011
+               S_RD_WAIT |                              011 |                              100
+                  S_TURN |                              100 |                              101
+                 S_WRITE |                              101 |                              001
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'sequential' in module 'ft601_interface'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:28 ; elapsed = 00:00:29 . Memory (MB): peak = 1532.766 ; gain = 815.148
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   32 Bit       Adders := 1     
+	   2 Input   25 Bit       Adders := 2     
+	   2 Input   24 Bit       Adders := 6     
+	   2 Input   17 Bit       Adders := 1     
+	   2 Input   16 Bit       Adders := 12    
+	   4 Input   14 Bit       Adders := 2     
+	   2 Input   14 Bit       Adders := 2     
+	   2 Input   13 Bit       Adders := 4     
+	   4 Input   13 Bit       Adders := 5     
+	   4 Input   12 Bit       Adders := 3     
+	   2 Input    9 Bit       Adders := 1     
+	   2 Input    8 Bit       Adders := 4     
+	   2 Input    7 Bit       Adders := 8     
+	   2 Input    6 Bit       Adders := 8     
+	   4 Input    6 Bit       Adders := 2     
+	   2 Input    5 Bit       Adders := 7     
+	   4 Input    5 Bit       Adders := 3     
+	   2 Input    4 Bit       Adders := 6     
+	   2 Input    3 Bit       Adders := 3     
+	   4 Input    2 Bit       Adders := 3     
+	   2 Input    2 Bit       Adders := 1     
+	   2 Input    1 Bit       Adders := 1     
++---XORs : 
+	   2 Input     14 Bit         XORs := 2     
+	   2 Input     13 Bit         XORs := 4     
+	   2 Input     12 Bit         XORs := 2     
+	   2 Input      6 Bit         XORs := 3     
+	   2 Input      5 Bit         XORs := 2     
+	   2 Input      1 Bit         XORs := 122   
+	   4 Input      1 Bit         XORs := 1     
++---Registers : 
+	               64 Bit    Registers := 5     
+	               32 Bit    Registers := 22    
+	               24 Bit    Registers := 19    
+	               20 Bit    Registers := 1     
+	               17 Bit    Registers := 1     
+	               16 Bit    Registers := 16    
+	               14 Bit    Registers := 12    
+	               13 Bit    Registers := 25    
+	               12 Bit    Registers := 14    
+	               10 Bit    Registers := 1     
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 10    
+	                7 Bit    Registers := 3     
+	                6 Bit    Registers := 28    
+	                5 Bit    Registers := 22    
+	                4 Bit    Registers := 10    
+	                3 Bit    Registers := 14    
+	                2 Bit    Registers := 27    
+	                1 Bit    Registers := 135   
++---RAMs : 
+	             256K Bit	(8192 X 32 bit)          RAMs := 1     
+	             128K Bit	(8192 X 16 bit)          RAMs := 1     
+	             128K Bit	(4096 X 32 bit)          RAMs := 1     
+	              512 Bit	(32 X 16 bit)          RAMs := 1     
++---Muxes : 
+	   2 Input   64 Bit        Muxes := 2     
+	  15 Input   64 Bit        Muxes := 1     
+	   2 Input   32 Bit        Muxes := 5     
+	  32 Input   32 Bit        Muxes := 2     
+	   4 Input   32 Bit        Muxes := 4     
+	   3 Input   32 Bit        Muxes := 1     
+	   5 Input   24 Bit        Muxes := 2     
+	  17 Input   24 Bit        Muxes := 1     
+	  32 Input   24 Bit        Muxes := 1     
+	   2 Input   24 Bit        Muxes := 18    
+	   4 Input   24 Bit        Muxes := 1     
+	  15 Input   24 Bit        Muxes := 2     
+	   2 Input   17 Bit        Muxes := 5     
+	   2 Input   16 Bit        Muxes := 17    
+	   4 Input   16 Bit        Muxes := 4     
+	   5 Input   16 Bit        Muxes := 2     
+	  32 Input   16 Bit        Muxes := 1     
+	  15 Input   16 Bit        Muxes := 1     
+	  32 Input   13 Bit        Muxes := 1     
+	   2 Input   13 Bit        Muxes := 6     
+	   5 Input   13 Bit        Muxes := 1     
+	   2 Input   12 Bit        Muxes := 4     
+	   2 Input   10 Bit        Muxes := 1     
+	  15 Input    9 Bit        Muxes := 1     
+	   2 Input    9 Bit        Muxes := 2     
+	   2 Input    8 Bit        Muxes := 1     
+	   5 Input    8 Bit        Muxes := 1     
+	  15 Input    8 Bit        Muxes := 1     
+	   2 Input    7 Bit        Muxes := 4     
+	   4 Input    7 Bit        Muxes := 1     
+	   2 Input    6 Bit        Muxes := 14    
+	   4 Input    6 Bit        Muxes := 1     
+	  32 Input    6 Bit        Muxes := 2     
+	  15 Input    6 Bit        Muxes := 1     
+	   5 Input    5 Bit        Muxes := 2     
+	   2 Input    5 Bit        Muxes := 29    
+	  32 Input    5 Bit        Muxes := 4     
+	   3 Input    5 Bit        Muxes := 1     
+	   6 Input    5 Bit        Muxes := 3     
+	   4 Input    5 Bit        Muxes := 1     
+	  32 Input    4 Bit        Muxes := 2     
+	   2 Input    4 Bit        Muxes := 13    
+	   3 Input    4 Bit        Muxes := 1     
+	  15 Input    4 Bit        Muxes := 1     
+	   4 Input    3 Bit        Muxes := 3     
+	   6 Input    3 Bit        Muxes := 2     
+	  38 Input    3 Bit        Muxes := 1     
+	  32 Input    3 Bit        Muxes := 2     
+	   2 Input    3 Bit        Muxes := 7     
+	   5 Input    3 Bit        Muxes := 1     
+	  18 Input    3 Bit        Muxes := 1     
+	   4 Input    2 Bit        Muxes := 25    
+	   2 Input    2 Bit        Muxes := 108   
+	  35 Input    2 Bit        Muxes := 1     
+	   5 Input    2 Bit        Muxes := 3     
+	   3 Input    2 Bit        Muxes := 1     
+	   2 Input    1 Bit        Muxes := 198   
+	   4 Input    1 Bit        Muxes := 44    
+	   3 Input    1 Bit        Muxes := 1     
+	   5 Input    1 Bit        Muxes := 28    
+	   7 Input    1 Bit        Muxes := 3     
+	  32 Input    1 Bit        Muxes := 22    
+	   6 Input    1 Bit        Muxes := 12    
+	  34 Input    1 Bit        Muxes := 29    
+	  15 Input    1 Bit        Muxes := 35    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5784] Optimized 4 bits of RAM "bmem_reg" due to constant propagation. Old ram width 16 bits, new ram width 12 bits.
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:50 ; elapsed = 00:00:51 . Memory (MB): peak = 1553.223 ; gain = 835.605
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+ROM: Preliminary Mapping Report
++-------------+------------+---------------+----------------+
+|Module Name  | RTL Object | Depth x Width | Implemented As | 
++-------------+------------+---------------+----------------+
+|tx_sequencer | mux_code   | 64x6          | LUT            | 
+|tx_sequencer | mux_code   | 64x6          | LUT            | 
++-------------+------------+---------------+----------------+
+
+
+Block RAM: Preliminary Mapping Report (see note below)
++-----------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name                                                                                    | RTL Object                       | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-----------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|u_afe/u_rx                                                                                     | bmem_reg                         | 8 K x 12(NO_CHANGE)    | W |   | 8 K x 16(WRITE_FIRST)  |   | R | Port A and B     | 0      | 3      | 
+|\u_stream/u_adc_fifo /\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | 4 K x 32(NO_CHANGE)    | W |   | 4 K x 32(NO_CHANGE)    |   | R | Port A and B     | 0      | 4      | 
+|u_tx_fifo/\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst              | gen_wr_a.gen_word_narrow.mem_reg | 8 K x 32(NO_CHANGE)    | W |   | 8 K x 32(NO_CHANGE)    |   | R | Port A and B     | 0      | 8      | 
++-----------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+
+Distributed RAM: Preliminary Mapping Report (see note below)
++-----------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|Module Name                                                                        | RTL Object                       | Inference      | Size (Depth x Width) | Primitives   | 
++-----------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|u_afe/u_rx                                                                         | cap_mem_reg                      | Implied        | 32 x 16              | RAM32M x 3   | 
+|u_tx                                                                               | chirp_ram_reg                    | User Attribute | 256 x 16             | RAM64M x 24  | 
+|u_tx                                                                               | trim_tab_reg                     | User Attribute | 64 x 12              | RAM64M x 4   | 
+|u_tx                                                                               | elem_list_reg                    | User Attribute | 64 x 6               | RAM64M x 2   | 
+|u_rx_fifo/\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 32              | RAM32M x 6   | 
++-----------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+--------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:57 ; elapsed = 00:00:58 . Memory (MB): peak = 1640.242 ; gain = 922.625
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:58 ; elapsed = 00:00:59 . Memory (MB): peak = 1653.691 ; gain = 936.074
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Final Mapping Report
++-----------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name                                                                                    | RTL Object                       | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-----------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|u_afe/u_rx                                                                                     | bmem_reg                         | 8 K x 12(NO_CHANGE)    | W |   | 8 K x 16(WRITE_FIRST)  |   | R | Port A and B     | 0      | 3      | 
+|\u_stream/u_adc_fifo /\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | 4 K x 32(NO_CHANGE)    | W |   | 4 K x 32(NO_CHANGE)    |   | R | Port A and B     | 0      | 4      | 
+|u_tx_fifo/\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst              | gen_wr_a.gen_word_narrow.mem_reg | 8 K x 32(NO_CHANGE)    | W |   | 8 K x 32(NO_CHANGE)    |   | R | Port A and B     | 0      | 8      | 
++-----------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+
+Distributed RAM: Final Mapping Report
++-----------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|Module Name                                                                        | RTL Object                       | Inference      | Size (Depth x Width) | Primitives   | 
++-----------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+--------------+
+|u_afe/u_rx                                                                         | cap_mem_reg                      | Implied        | 32 x 16              | RAM32M x 3   | 
+|u_tx                                                                               | chirp_ram_reg                    | User Attribute | 256 x 16             | RAM64M x 24  | 
+|u_tx                                                                               | trim_tab_reg                     | User Attribute | 64 x 12              | RAM64M x 4   | 
+|u_tx                                                                               | elem_list_reg                    | User Attribute | 64 x 6               | RAM64M x 2   | 
+|u_rx_fifo/\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 32              | RAM32M x 6   | 
++-----------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+--------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+INFO: [Synth 8-7052] The timing for the instance u_afe/u_rx/bmem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_afe/u_rx/bmem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_afe/u_rx/bmem_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:01:01 ; elapsed = 00:01:02 . Memory (MB): peak = 1698.609 ; gain = 980.992
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[0]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[1]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[2]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[3]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[4]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[5]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[6]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[7]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[8]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[9]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[10]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[11]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[12]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[13]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[14]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[15]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[16]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[17]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[18]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[19]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[20]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[21]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[22]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[23]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[24]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[25]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[26]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[27]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[28]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[29]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[30]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_in_r_reg[31]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/txe_n_r_reg  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/rxf_n_r_reg  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_oe_r_reg[0]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_out_r_reg[0]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_oe_r_reg[1]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_out_r_reg[1]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_oe_r_reg[2]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_out_r_reg[2]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_oe_r_reg[3]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_be_out_r_reg[3]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[0]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[0]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[1]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[1]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[2]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[2]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[3]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[3]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[4]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[4]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[5]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[5]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[6]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[6]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[7]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[7]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[8]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[8]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[9]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[9]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[10]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[10]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[11]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[11]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[12]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[12]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[13]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[13]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[14]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[14]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[15]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[15]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[16]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[16]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[17]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[17]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[18]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[18]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[19]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[19]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[20]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[20]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[21]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[21]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[22]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[22]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[23]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[23]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[24]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[24]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[25]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[25]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[26]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[26]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[27]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[27]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_oe_r_reg[28]  to handle IOB=TRUE attribute
+INFO: [Synth 8-4163] Replicating register \u_ft601_core/ft_data_out_r_reg[28]  to handle IOB=TRUE attribute
+INFO: [Common 17-14] Message 'Synth 8-4163' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:01:06 ; elapsed = 00:01:07 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:01:06 ; elapsed = 00:01:07 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++-------------+-----------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name  | RTL Name              | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++-------------+-----------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|alchitry_top | u_afe/rst_sync_reg[2] | 3      | 1     | NO           | NO                 | YES               | 1      | 0       | 
++-------------+-----------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+------------+------+
+|      |Cell        |Count |
++------+------------+------+
+|1     |BUFG        |     6|
+|2     |BUFIO       |     1|
+|3     |BUFR        |     1|
+|4     |CARRY4      |   251|
+|5     |IDELAYCTRL  |     1|
+|6     |IDELAYE2    |     2|
+|7     |ISERDESE2   |     2|
+|8     |LUT1        |   296|
+|9     |LUT2        |   435|
+|10    |LUT3        |   359|
+|11    |LUT4        |   433|
+|12    |LUT5        |   396|
+|13    |LUT6        |  1158|
+|14    |MMCME2_BASE |     2|
+|15    |MUXF7       |    30|
+|16    |RAM32M      |     7|
+|17    |RAM32X1D    |     4|
+|18    |RAM64M      |    26|
+|19    |RAM64X1D    |     4|
+|20    |RAMB36E1    |    15|
+|23    |SRL16E      |     1|
+|24    |FDPE        |     4|
+|25    |FDRE        |  2856|
+|26    |FDSE        |   221|
+|27    |IBUF        |     7|
+|28    |IBUFDS      |     3|
+|29    |IOBUF       |    32|
+|30    |OBUF        |    27|
+|31    |OBUFT       |     4|
++------+------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 117 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:50 ; elapsed = 00:01:04 . Memory (MB): peak = 1900.211 ; gain = 1100.742
+Synthesis Optimization Complete : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 1900.211 ; gain = 1182.594
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.122 . Memory (MB): peak = 1905.422 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 379 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc]
+INFO: [Timing 38-35] Done setting XDC timing constraints. [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc:156]
+INFO: [Timing 38-2] Deriving generated clocks [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc:156]
+get_clocks: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2421.211 ; gain = 508.137
+Finished Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/au_ft.xdc]
+Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/pulser.xdc]
+Finished Parsing XDC File [C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/source/constraints/pulser.xdc]
+INFO: [Project 1-1714] 21 XPM XDC files have been applied to the design.
+INFO: [Opt 31-138] Pushed 1 inverter(s) to 2 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 75 instances were transformed.
+  IOBUF => IOBUF (IBUF, OBUFT): 32 instances
+  MMCME2_BASE => MMCME2_ADV: 2 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 7 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 4 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 26 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 4 instances
+
+Synth Design complete | Checksum: 6686bb47
+INFO: [Common 17-83] Releasing license: Synthesis
+316 Infos, 125 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:01:21 ; elapsed = 00:01:24 . Memory (MB): peak = 2421.211 ; gain = 1894.355
+# opt_design
+Command: opt_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Project 1-461] DRC finished with 0 Errors, 4 Warnings
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Starting Cache Timing Information Task
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Ending Cache Timing Information Task | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.268 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Starting Logic Optimization Task
+
+Phase 1 Initialization
+
+Phase 1.1 Core Generation And Design Setup
+Phase 1.1 Core Generation And Design Setup | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.007 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 1.2 Setup Constraints And Sort Netlist
+Phase 1.2 Setup Constraints And Sort Netlist | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.014 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 1 Initialization | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2 Timer Update And Timing Data Collection
+
+Phase 2.1 Detect if minReqCache needed
+Phase 2.1 Detect if minReqCache needed | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.028 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.2 Timer Update
+Phase 2.2 Timer Update | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.163 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.3 Timing Data Collection
+Phase 2.3 Timing Data Collection | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.167 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 2 Timer Update And Timing Data Collection | Checksum: 1bcaf8a97
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.169 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3 Retarget
+INFO: [Opt 31-1851] Number of loadless carry chains removed were: 0
+INFO: [Opt 31-1834] Total Chains To Be Transformed Were: 0 AND Number of Transformed insts Created are: 0
+INFO: [Opt 31-1566] Pulled 4 inverters resulting in an inversion of 11 pins
+INFO: [Opt 31-138] Pushed 1 inverter(s) to 1 load pin(s).
+INFO: [Opt 31-49] Retargeted 0 cell(s).
+Phase 3 Retarget | Checksum: 2397344c5
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.303 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Retarget | Checksum: 2397344c5
+INFO: [Opt 31-389] Phase Retarget created 7 cells and removed 12 cells
+INFO: [Opt 31-1021] In phase Retarget, 1 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 4 Constant propagation
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Phase 4 Constant propagation | Checksum: 2397344c5
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.354 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Constant propagation | Checksum: 2397344c5
+INFO: [Opt 31-389] Phase Constant propagation created 0 cells and removed 0 cells
+
+Phase 5 Sweep
+INFO: [Constraints 18-11670] Building netlist checker database with flags, 0x8
+Done building netlist checker database: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Constraints 18-11670] Building netlist checker database with flags, 0x8
+Done building netlist checker database: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 5 Sweep | Checksum: 2022c20f9
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.524 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Sweep | Checksum: 2022c20f9
+INFO: [Opt 31-389] Phase Sweep created 0 cells and removed 556 cells
+INFO: [Opt 31-1021] In phase Sweep, 2 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 6 BUFG optimization
+Phase 6 BUFG optimization | Checksum: 2022c20f9
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.576 . Memory (MB): peak = 2421.211 ; gain = 0.000
+BUFG optimization | Checksum: 2022c20f9
+INFO: [Opt 31-662] Phase BUFG optimization created 0 cells of which 0 are BUFGs and removed 0 cells.
+
+Phase 7 Shift Register Optimization
+INFO: [Opt 31-1064] SRL Remap converted 0 SRLs to 0 registers and converted 0 registers of register chains to 0 SRLs
+Phase 7 Shift Register Optimization | Checksum: 2022c20f9
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.591 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Shift Register Optimization | Checksum: 2022c20f9
+INFO: [Opt 31-389] Phase Shift Register Optimization created 0 cells and removed 0 cells
+
+Phase 8 Post Processing Netlist
+Phase 8 Post Processing Netlist | Checksum: 2022c20f9
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.610 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Post Processing Netlist | Checksum: 2022c20f9
+INFO: [Opt 31-389] Phase Post Processing Netlist created 0 cells and removed 0 cells
+
+Phase 9 Finalization
+
+Phase 9.1 Finalizing Design Cores and Updating Shapes
+Phase 9.1 Finalizing Design Cores and Updating Shapes | Checksum: 18835714d
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.789 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 9.2 Verifying Netlist Connectivity
+
+Starting Connectivity Check Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.018 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 9.2 Verifying Netlist Connectivity | Checksum: 18835714d
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.809 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 9 Finalization | Checksum: 18835714d
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.811 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Opt_design Change Summary
+=========================
+
+
+-------------------------------------------------------------------------------------------------------------------------
+|  Phase                        |  #Cells created  |  #Cells Removed  |  #Constrained objects preventing optimizations  |
+-------------------------------------------------------------------------------------------------------------------------
+|  Retarget                     |               7  |              12  |                                              1  |
+|  Constant propagation         |               0  |               0  |                                              0  |
+|  Sweep                        |               0  |             556  |                                              2  |
+|  BUFG optimization            |               0  |               0  |                                              0  |
+|  Shift Register Optimization  |               0  |               0  |                                              0  |
+|  Post Processing Netlist      |               0  |               0  |                                              0  |
+-------------------------------------------------------------------------------------------------------------------------
+
+
+Ending Logic Optimization Task | Checksum: 18835714d
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.814 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Starting Power Optimization Task
+INFO: [Pwropt 34-132] Skipping clock gating for clocks with a period < 2.00 ns.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Running Vector-less Activity Propagation...
+INFO: [Pwropt 34-9] Applying IDT optimizations ...
+INFO: [Pwropt 34-10] Applying ODC optimizations ...
+
+Finished Running Vector-less Activity Propagation
+
+
+Starting PowerOpt Patch Enables Task
+INFO: [Pwropt 34-162] WRITE_MODE attribute of 0 BRAM(s) out of a total of 15 has been updated to save power. Run report_power_opt to get a complete listing of the BRAMs updated.
+INFO: [Pwropt 34-201] Structural ODC has moved 0 WE to EN ports
+Number of BRAM Ports augmented: 3 newly gated: 0 Total Ports: 30
+Ending PowerOpt Patch Enables Task | Checksum: 209e7a1ee
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.097 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Ending Power Optimization Task | Checksum: 209e7a1ee
+
+Time (s): cpu = 00:00:04 ; elapsed = 00:00:03 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Starting Final Cleanup Task
+
+Starting Logic Optimization Task
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Ending Logic Optimization Task | Checksum: 1718c7a1a
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.454 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Ending Final Cleanup Task | Checksum: 1718c7a1a
+
+Time (s): cpu = 00:00:05 ; elapsed = 00:00:04 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Common 17-83] Releasing license: Implementation
+30 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+opt_design completed successfully
+opt_design: Time (s): cpu = 00:00:15 ; elapsed = 00:00:13 . Memory (MB): peak = 2421.211 ; gain = 0.000
+# place_design
+Command: place_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-83] Releasing license: Implementation
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Running DRC as a precondition to command place_design
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors, 4 Warnings
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+INFO: [Place 30-611] Multithreading enabled for place_design using a maximum of 2 CPUs
+
+Starting Placer Task
+
+Phase 1 Placer Initialization
+
+Phase 1.1 Placer Initialization Netlist Sorting
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 1.1 Placer Initialization Netlist Sorting | Checksum: 1547339ee
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.008 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device
+Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device | Checksum: 19ec8be81
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 1.3 Build Placer Netlist Model
+Phase 1.3 Build Placer Netlist Model | Checksum: 2777fa97a
+
+Time (s): cpu = 00:00:05 ; elapsed = 00:00:03 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 1.4 Constrain Clocks/Macros
+Phase 1.4 Constrain Clocks/Macros | Checksum: 2777fa97a
+
+Time (s): cpu = 00:00:05 ; elapsed = 00:00:03 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 1 Placer Initialization | Checksum: 2777fa97a
+
+Time (s): cpu = 00:00:05 ; elapsed = 00:00:03 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2 Global Placement
+
+Phase 2.1 Floorplanning
+Phase 2.1 Floorplanning | Checksum: 2311cae51
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:04 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.2 Update Timing before SLR Path Opt
+Phase 2.2 Update Timing before SLR Path Opt | Checksum: 1a3c657a6
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:04 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.3 Post-Processing in Floorplanning
+Phase 2.3 Post-Processing in Floorplanning | Checksum: 1a3c657a6
+
+Time (s): cpu = 00:00:07 ; elapsed = 00:00:04 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.4 Global Place Phase1
+Phase 2.4 Global Place Phase1 | Checksum: 2d1f45475
+
+Time (s): cpu = 00:00:14 ; elapsed = 00:00:08 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.5 Global Place Phase2
+
+Phase 2.5.1 UpdateTiming Before Physical Synthesis
+Phase 2.5.1 UpdateTiming Before Physical Synthesis | Checksum: 1f5a9bd4a
+
+Time (s): cpu = 00:00:15 ; elapsed = 00:00:09 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.5.2 Physical Synthesis In Placer
+INFO: [Physopt 32-1035] Found 0 LUTNM shape to break, 119 LUT instances to create LUTNM shape
+INFO: [Physopt 32-1044] Break lutnm for timing: one critical 0, two critical 0, total 0, new lutff created 0
+INFO: [Physopt 32-1138] End 1 Pass. Optimized 53 nets or LUTs. Breaked 0 LUT, combined 53 existing LUTs and moved 0 existing LUT
+INFO: [Physopt 32-65] No nets found for high-fanout optimization.
+INFO: [Physopt 32-232] Optimized 0 net. Created 0 new instance.
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-456] No candidate cells for DSP register optimization found in the design.
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-1123] No candidate cells found for Shift Register to Pipeline optimization
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-1401] No candidate cells found for Shift Register optimization.
+INFO: [Physopt 32-677] No candidate cells for Shift Register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-526] No candidate cells for BRAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-846] No candidate cells for URAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-846] No candidate cells for URAM register optimization found in the design
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+INFO: [Physopt 32-949] No candidate nets found for dynamic/static region interface net replication
+INFO: [Physopt 32-775] End 1 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Summary of Physical Synthesis Optimizations
+============================================
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Optimization                                     |  Added Cells  |  Removed Cells  |  Optimized Cells/Nets  |  Dont Touch  |  Iterations  |  Elapsed   |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+|  LUT Combining                                    |            0  |             53  |                    53  |           0  |           1  |  00:00:00  |
+|  Retime                                           |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Very High Fanout                                 |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  DSP Register                                     |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register to Pipeline                       |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Shift Register                                   |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  BRAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  URAM Register                                    |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Dynamic/Static Region Interface Net Replication  |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Total                                            |            0  |             53  |                    53  |           0  |           9  |  00:00:00  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Phase 2.5.2 Physical Synthesis In Placer | Checksum: 2be01e2c3
+
+Time (s): cpu = 00:00:16 ; elapsed = 00:00:09 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 2.5 Global Place Phase2 | Checksum: 240f600a9
+
+Time (s): cpu = 00:00:17 ; elapsed = 00:00:10 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 2 Global Placement | Checksum: 240f600a9
+
+Time (s): cpu = 00:00:17 ; elapsed = 00:00:10 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3 Detail Placement
+
+Phase 3.1 Commit Multi Column Macros
+Phase 3.1 Commit Multi Column Macros | Checksum: 215631567
+
+Time (s): cpu = 00:00:18 ; elapsed = 00:00:10 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.2 Commit Most Macros & LUTRAMs
+Phase 3.2 Commit Most Macros & LUTRAMs | Checksum: 2dfd81701
+
+Time (s): cpu = 00:00:19 ; elapsed = 00:00:11 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.3 Area Swap Optimization
+Phase 3.3 Area Swap Optimization | Checksum: 1f261f9b4
+
+Time (s): cpu = 00:00:19 ; elapsed = 00:00:11 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.4 Pipeline Register Optimization
+Phase 3.4 Pipeline Register Optimization | Checksum: 27110d06d
+
+Time (s): cpu = 00:00:19 ; elapsed = 00:00:11 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.5 Fast Optimization
+Phase 3.5 Fast Optimization | Checksum: 2bf4f6920
+
+Time (s): cpu = 00:00:21 ; elapsed = 00:00:12 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.6 Small Shape Detail Placement
+Phase 3.6 Small Shape Detail Placement | Checksum: 28f95e9b4
+
+Time (s): cpu = 00:00:24 ; elapsed = 00:00:15 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.7 Re-assign LUT pins
+Phase 3.7 Re-assign LUT pins | Checksum: 2e4fc41dd
+
+Time (s): cpu = 00:00:24 ; elapsed = 00:00:15 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.8 Pipeline Register Optimization
+Phase 3.8 Pipeline Register Optimization | Checksum: 1f7df9ccb
+
+Time (s): cpu = 00:00:24 ; elapsed = 00:00:15 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3.9 Fast Optimization
+Phase 3.9 Fast Optimization | Checksum: 1f2e1db59
+
+Time (s): cpu = 00:00:27 ; elapsed = 00:00:17 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 3 Detail Placement | Checksum: 1f2e1db59
+
+Time (s): cpu = 00:00:27 ; elapsed = 00:00:17 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4 Post Placement Optimization and Clean-Up
+
+Phase 4.1 Post Commit Optimization
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+
+Phase 4.1.1 Post Placement Optimization
+Post Placement Optimization Initialization | Checksum: 1c940dd12
+
+Phase 4.1.1.1 BUFG Insertion
+
+Starting Physical Synthesis Task
+
+Phase 1 Physical Synthesis Initialization
+INFO: [Physopt 32-721] Multithreading enabled for phys_opt_design using a maximum of 2 CPUs
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.656 | TNS=-8.280 |
+Phase 1 Physical Synthesis Initialization | Checksum: e3a0bba3
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.129 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Place 46-56] BUFG insertion identified 0 candidate nets. Inserted BUFG: 0, Replicated BUFG Driver: 0, Skipped due to Placement/Routing Conflicts: 0, Skipped due to Timing Degradation: 0, Skipped due to netlist editing failed: 0.
+Ending Physical Synthesis Task | Checksum: 1d753b7b1
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.145 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 4.1.1.1 BUFG Insertion | Checksum: 1c940dd12
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:18 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4.1.1.2 Post Placement Timing Optimization
+INFO: [Place 30-746] Post Placement Timing Summary WNS=-0.550. For the most accurate timing information please run report_timing.
+Phase 4.1.1.2 Post Placement Timing Optimization | Checksum: 15dd7fe09
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:26 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:26 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 4.1 Post Commit Optimization | Checksum: 15dd7fe09
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:26 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4.2 Post Placement Cleanup
+Phase 4.2 Post Placement Cleanup | Checksum: 15dd7fe09
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:27 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4.3 Placer Reporting
+
+Phase 4.3.1 Print Estimated Congestion
+INFO: [Place 30-612] Post-Placement Estimated Congestion 
+ ____________________________________________________
+|           | Global Congestion | Short Congestion  |
+| Direction | Region Size       | Region Size       |
+|___________|___________________|___________________|
+|      North|                1x1|                1x1|
+|___________|___________________|___________________|
+|      South|                1x1|                1x1|
+|___________|___________________|___________________|
+|       East|                1x1|                1x1|
+|___________|___________________|___________________|
+|       West|                1x1|                1x1|
+|___________|___________________|___________________|
+
+Phase 4.3.1 Print Estimated Congestion | Checksum: 15dd7fe09
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:27 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 4.3 Placer Reporting | Checksum: 15dd7fe09
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:27 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4.4 Final Placement Cleanup
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:27 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 4 Post Placement Optimization and Clean-Up | Checksum: 11b1cc52a
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:27 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Ending Placer Task | Checksum: 118cfb1b0
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:27 . Memory (MB): peak = 2421.211 ; gain = 0.000
+37 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+place_design completed successfully
+place_design: Time (s): cpu = 00:00:40 ; elapsed = 00:00:29 . Memory (MB): peak = 2421.211 ; gain = 0.000
+# phys_opt_design
+Command: phys_opt_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+
+Starting Initial Update Timing Task
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:00.974 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Vivado_Tcl 4-1435] PhysOpt_Tcl_Interface Runtime Before Starting Physical Synthesis Task | CPU: 2.00s |  WALL: 1.00s
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Starting Physical Synthesis Task
+
+Phase 1 Physical Synthesis Initialization
+INFO: [Physopt 32-721] Multithreading enabled for phys_opt_design using a maximum of 2 CPUs
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.550 | TNS=-5.994 |
+Phase 1 Physical Synthesis Initialization | Checksum: b91069a5
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.599 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.550 | TNS=-5.994 |
+
+Phase 2 DSP Register Optimization
+INFO: [Physopt 32-456] No candidate cells for DSP register optimization found in the design.
+INFO: [Physopt 32-775] End 2 Pass. Optimized 0 net or cell. Created 0 new cell, deleted 0 existing cell and moved 0 existing cell
+Phase 2 DSP Register Optimization | Checksum: b91069a5
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.623 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3 Critical Path Optimization
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.550 | TNS=-5.994 |
+INFO: [Physopt 32-702] Processed net u_ft601_core/ft_data_TRI[8]. Optimizations did not improve timing on the net.
+INFO: [Physopt 32-702] Processed net ft_clk0_raw. Optimizations did not improve timing on the net.
+INFO: [Physopt 32-710] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0. Critical path length was reduced through logic transformation on cell u_ft601_core/ft_data_oe_r[31]_i_1_comp.
+INFO: [Physopt 32-735] Processed net u_ft601_core/FSM_sequential_state[2]_i_3_n_0. Optimization improves timing on the net.
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.202 | TNS=-0.656 |
+INFO: [Physopt 32-81] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0. Replicated 1 times.
+INFO: [Physopt 32-735] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0. Optimization improves timing on the net.
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.025 | TNS=-0.044 |
+INFO: [Physopt 32-702] Processed net u_ft601_core/ft_data_TRI[9]. Optimizations did not improve timing on the net.
+INFO: [Physopt 32-81] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0_repN. Replicated 1 times.
+INFO: [Physopt 32-735] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0_repN. Optimization improves timing on the net.
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.016 | TNS=-0.021 |
+INFO: [Physopt 32-601] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0_repN_1. Net driver u_ft601_core/ft_data_oe_r[31]_i_1_comp_replica_1 was replaced.
+INFO: [Physopt 32-735] Processed net u_ft601_core/ft_data_oe_r[31]_i_1_n_0_repN_1. Optimization improves timing on the net.
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=0.006 | TNS=0.000 |
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=0.006 | TNS=0.000 |
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.010 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 3 Critical Path Optimization | Checksum: b91069a5
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4 Critical Path Optimization
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=0.006 | TNS=0.000 |
+INFO: [Physopt 32-619] Estimated Timing Summary | WNS=0.006 | TNS=0.000 |
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 4 Critical Path Optimization | Checksum: b91069a5
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Physopt 32-603] Post Physical Optimization Timing Summary | WNS=0.006 | TNS=0.000 |
+
+Summary of Physical Synthesis Optimizations
+============================================
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+|  Optimization   |  WNS Gain (ns)  |  TNS Gain (ns)  |  Added Cells  |  Removed Cells  |  Optimized Cells/Nets  |  Dont Touch  |  Iterations  |  Elapsed   |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+|  DSP Register   |          0.000  |          0.000  |            0  |              0  |                     0  |           0  |           1  |  00:00:00  |
+|  Critical Path  |          0.555  |          5.994  |            2  |              0  |                     4  |           0  |           2  |  00:00:01  |
+|  Total          |          0.555  |          5.994  |            2  |              0  |                     4  |           0  |           3  |  00:00:01  |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Ending Physical Synthesis Task | Checksum: 16bea126c
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Common 17-83] Releasing license: Implementation
+28 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+phys_opt_design completed successfully
+# route_design
+Command: route_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+
+
+Starting Routing Task
+INFO: [Route 35-254] Multithreading enabled for route_design using a maximum of 2 CPUs
+
+Phase 1 Build RT Design
+Checksum: PlaceDB: 63e743ee ConstDB: 0 ShapeSum: aeab72 RouteDB: a0815c57
+Post Restoration Checksum: NetGraph: 228fc2de | NumContArr: 7d1f2e03 | Constraints: c2a8fa9d | Timing: c2a8fa9d
+Phase 1 Build RT Design | Checksum: 22500e61b
+
+Time (s): cpu = 00:00:25 ; elapsed = 00:00:22 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2 Router Initialization
+
+Phase 2.1 Fix Topology Constraints
+Phase 2.1 Fix Topology Constraints | Checksum: 22500e61b
+
+Time (s): cpu = 00:00:25 ; elapsed = 00:00:22 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.2 Pre Route Cleanup
+Phase 2.2 Pre Route Cleanup | Checksum: 22500e61b
+
+Time (s): cpu = 00:00:25 ; elapsed = 00:00:22 . Memory (MB): peak = 2421.211 ; gain = 0.000
+ Number of Nodes with overlaps = 0
+
+Phase 2.3 Update Timing
+Phase 2.3 Update Timing | Checksum: 275243d0d
+
+Time (s): cpu = 00:00:28 ; elapsed = 00:00:23 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.200  | TNS=0.000  | WHS=-0.228 | THS=-230.496|
+
+
+Phase 2.4 Update Timing for Bus Skew
+
+Phase 2.4.1 Update Timing
+Phase 2.4.1 Update Timing | Checksum: 289715215
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:25 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.200  | TNS=-7.261 | WHS=-0.160 | THS=-2.818 |
+
+Phase 2.4 Update Timing for Bus Skew | Checksum: 1faa37c15
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:25 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 2.5 Soft Constraint Pins - Fast Budgeting
+Phase 2.5 Soft Constraint Pins - Fast Budgeting | Checksum: 1faa37c15
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:25 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Router Utilization Summary
+  Global Vertical Routing Utilization    = 0 %
+  Global Horizontal Routing Utilization  = 0 %
+  Routable Net Status*
+  *Does not include unroutable nets such as driverless and loadless.
+  Run report_route_status for detailed report.
+  Number of Failed Nets               = 4955
+    (Failed Nets is the sum of unrouted and partially routed nets)
+  Number of Unrouted Nets             = 4955
+  Number of Partially Routed Nets     = 0
+  Number of Node Overlaps             = 0
+
+Phase 2 Router Initialization | Checksum: 1cf173940
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:25 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 3 Global Routing
+Phase 3 Global Routing | Checksum: 1cf173940
+
+Time (s): cpu = 00:00:30 ; elapsed = 00:00:25 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 4 Initial Routing
+
+Phase 4.1 Initial Net Routing Pass
+Phase 4.1 Initial Net Routing Pass | Checksum: 33665e67c
+
+Time (s): cpu = 00:00:32 ; elapsed = 00:00:26 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 4 Initial Routing | Checksum: 33665e67c
+
+Time (s): cpu = 00:00:32 ; elapsed = 00:00:26 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 5 Rip-up And Reroute
+
+Phase 5.1 Global Iteration 0
+ Number of Nodes with overlaps = 468
+ Number of Nodes with overlaps = 44
+ Number of Nodes with overlaps = 14
+ Number of Nodes with overlaps = 2
+ Number of Nodes with overlaps = 1
+ Number of Nodes with overlaps = 0
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.418  | TNS=0.000  | WHS=N/A    | THS=N/A    |
+
+Phase 5.1 Global Iteration 0 | Checksum: 2591b8f46
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:29 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 5 Rip-up And Reroute | Checksum: 2591b8f46
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:29 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 6 Delay and Skew Optimization
+
+Phase 6.1 Delay CleanUp
+Phase 6.1 Delay CleanUp | Checksum: 2591b8f46
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:29 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 6.2 Clock Skew Optimization
+Phase 6.2 Clock Skew Optimization | Checksum: 2591b8f46
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:29 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 6 Delay and Skew Optimization | Checksum: 2591b8f46
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:29 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 7 Post Hold Fix
+
+Phase 7.1 Hold Fix Iter
+INFO: [Route 35-416] Intermediate Timing Summary | WNS=0.418  | TNS=0.000  | WHS=0.047  | THS=0.000  |
+
+Phase 7.1 Hold Fix Iter | Checksum: 2b3bdd87b
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Phase 7 Post Hold Fix | Checksum: 2b3bdd87b
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 8 Route finalize
+
+Router Utilization Summary
+  Global Vertical Routing Utilization    = 1.59332 %
+  Global Horizontal Routing Utilization  = 1.94677 %
+  Routable Net Status*
+  *Does not include unroutable nets such as driverless and loadless.
+  Run report_route_status for detailed report.
+  Number of Failed Nets               = 0
+    (Failed Nets is the sum of unrouted and partially routed nets)
+  Number of Unrouted Nets             = 0
+  Number of Partially Routed Nets     = 0
+  Number of Node Overlaps             = 0
+
+Phase 8 Route finalize | Checksum: 2b3bdd87b
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 9 Verifying routed nets
+
+ Verification completed successfully
+Phase 9 Verifying routed nets | Checksum: 2b3bdd87b
+
+Time (s): cpu = 00:00:37 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 10 Depositing Routes
+Phase 10 Depositing Routes | Checksum: 250dbc5a3
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 11 Post Process Routing
+Phase 11 Post Process Routing | Checksum: 250dbc5a3
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Phase 12 Post Router Timing
+INFO: [Route 35-57] Estimated Timing Summary | WNS=0.418  | TNS=0.000  | WHS=0.047  | THS=0.000  |
+
+INFO: [Route 35-327] The final timing numbers are based on the router estimated timing analysis. For a complete and accurate timing signoff, please run report_timing_summary.
+Phase 12 Post Router Timing | Checksum: 250dbc5a3
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Total Elapsed time in route_design: 30.473 secs
+
+Phase 13 Post-Route Event Processing
+Phase 13 Post-Route Event Processing | Checksum: 10fb3f68a
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:30 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Route 35-16] Router Completed Successfully
+Ending Routing Task | Checksum: 10fb3f68a
+
+Time (s): cpu = 00:00:38 ; elapsed = 00:00:31 . Memory (MB): peak = 2421.211 ; gain = 0.000
+
+Routing Is Done.
+INFO: [Common 17-83] Releasing license: Implementation
+13 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+route_design completed successfully
+route_design: Time (s): cpu = 00:00:39 ; elapsed = 00:00:31 . Memory (MB): peak = 2421.211 ; gain = 0.000
+# report_timing_summary -check_timing_verbose -file [file join $out timing.rpt]
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -2, Delay Type: min_max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+WARNING: [Timing 38-436] There are set_bus_skew constraint(s) in this design. Please run report_bus_skew to ensure that bus skew requirements are met.
+# report_drc -file [file join $out drc.rpt]
+Command: report_drc -file C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/drc.rpt
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/Vivado/2025.2/Vivado/data/ip'.
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/drc.rpt.
+report_drc completed successfully
+# report_route_status -file [file join $out routing.rpt]
+# report_utilization -file [file join $out utilization.rpt]
+# set setup [get_timing_paths -delay_type max -max_paths 1]
+# set hold [get_timing_paths -delay_type min -max_paths 1]
+# if {[llength $setup] == 0 || [llength $hold] == 0} {error "No timing paths returned"}
+# set wns [get_property SLACK $setup]
+# set whs [get_property SLACK $hold]
+# set failures [get_drc_violations -quiet -filter {SEVERITY == Error || SEVERITY == {Critical Warning}}]
+# set fh [open [file join $out checks.json] w]
+# puts $fh "{\"setup_slack_ns\": $wns, \"hold_slack_ns\": $whs, \"drc_failures\": [llength $failures]}"
+# close $fh
+# if {$wns < 0 || $whs < 0 || [llength $failures] != 0} {error "Build failed timing/DRC gates"}
+# write_checkpoint -force [file join $out routed.dcp]
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Writing XDEF routing.
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.012 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.069 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Wrote PlaceStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.234 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.007 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.007 . Memory (MB): peak = 2421.211 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.327 . Memory (MB): peak = 2421.211 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/routed.dcp' has been generated.
+# write_bitstream -force -bin_file [file join $out alchitry_top.bit]
+Command: write_bitstream -force -bin_file C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/alchitry_top.bit
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+Running DRC as a precondition to command write_bitstream
+INFO: [IP_Flow 19-1839] IP Catalog is up to date.
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado 12-3199] DRC finished with 0 Errors
+INFO: [Vivado 12-3200] Please refer to the DRC report (report_drc) for more information.
+Integrating Hard IP ELF/MEM with the PDI.
+INFO: [Designutils 20-2272] Running write_bitstream with 2 threads.
+Loading data files...
+Loading site data...
+Loading route data...
+Processing options...
+Creating bitmap...
+Creating bitstream...
+Bitstream compression saved 10241056 bits.
+Writing bitstream C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/alchitry_top.bit...
+Writing bitstream C:/Users/Adam/usb3-tester/bench_runs/builds/20261124T175857Z-f91795/alchitry_top.bin...
+INFO: [Vivado 12-1842] Bitgen Completed Successfully.
+INFO: [Common 17-83] Releasing license: Implementation
+8 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+write_bitstream completed successfully
+write_bitstream: Time (s): cpu = 00:00:20 ; elapsed = 00:00:16 . Memory (MB): peak = 2421.211 ; gain = 0.000
+# puts "BENCH_BUILD_PASS"
+BENCH_BUILD_PASS
+# exit
+INFO: [Common 17-206] Exiting Vivado at Tue Nov 24 10:02:47 2026...

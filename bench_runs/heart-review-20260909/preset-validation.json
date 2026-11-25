@@ -1,0 +1,24 @@
+{
+  "source": "simulation; no hardware opened",
+  "presets": [
+    {
+      "preset": "heart-recording-baseline",
+      "restored_operational_fields": true,
+      "armed": false
+    },
+    {
+      "preset": "heart-review-start",
+      "restored_operational_fields": true,
+      "armed": false
+    },
+    {
+      "preset": "heart-tgc-next-test",
+      "restored_operational_fields": true,
+      "armed": false
+    }
+  ],
+  "tgc_comparison_changed_fields": [
+    "acquisition.tgc_min",
+    "acquisition.tgc_max"
+  ]
+}

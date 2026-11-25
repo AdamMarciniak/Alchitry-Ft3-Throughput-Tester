@@ -1,0 +1,7 @@
+Running: xsim.dir/capture_ready_test/xsimk.exe -runall -simmode gui -testplusarg METHOD3 -wdb capture_ready_test.wdb -simrunnum 0 -socket 49468
+Design successfully loaded
+Design Loading Memory Usage: 7800 KB (Peak: 7800 KB)
+Design Loading CPU Usage: 15 ms
+Simulation completed
+Simulation Memory Usage: 8344 KB (Peak: 8344 KB)
+Simulation CPU Usage: 4608 ms

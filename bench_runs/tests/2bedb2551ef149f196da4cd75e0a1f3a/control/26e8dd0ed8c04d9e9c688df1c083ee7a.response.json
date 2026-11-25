@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "result": null,
+  "error": "Bench output must stay inside this project's bench_runs folder",
+  "finished_unix": 1795544025.1093545
+}

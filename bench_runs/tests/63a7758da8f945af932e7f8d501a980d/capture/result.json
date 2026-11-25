@@ -1,0 +1,8 @@
+{
+  "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\tests\\63a7758da8f945af932e7f8d501a980d\\capture\\capture.rf.npz",
+  "report": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\tests\\63a7758da8f945af932e7f8d501a980d\\capture\\capture.report.json",
+  "frames": 4,
+  "accepted": true,
+  "termination": "frame count reached",
+  "source": "simulation"
+}

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\Users\Adam\usb3-tester\tmp\phantom_pulse_viewer.py", line 60, in cycle
+    raise RuntimeError('Live method switch timed out')
+RuntimeError: Live method switch timed out

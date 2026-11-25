@@ -1,0 +1,304 @@
+{
+  "trials": [
+    {
+      "source": "verified-live",
+      "angle": 17,
+      "apod": 0.2,
+      "wx": 0.6267154319928221,
+      "wz": 0.8766357027567366,
+      "contrast": 31.20770263671875,
+      "outer_arc99_relative_db": -28.389875411987305,
+      "gel_median_gray": 29.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 17,
+      "apod": 0.45,
+      "wx": 0.6860710336611795,
+      "wz": 0.8693548028285711,
+      "contrast": 31.74908447265625,
+      "outer_arc99_relative_db": -33.0726203918457,
+      "gel_median_gray": 32.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 17,
+      "apod": 0.7,
+      "wx": 0.7718919630234047,
+      "wz": 0.8608106730075988,
+      "contrast": 32.62938690185547,
+      "outer_arc99_relative_db": -36.24715042114258,
+      "gel_median_gray": 34.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 20,
+      "apod": 0.2,
+      "wx": 0.5882141085771391,
+      "wz": 0.8601373755014876,
+      "contrast": 30.975746154785156,
+      "outer_arc99_relative_db": -25.171730041503906,
+      "gel_median_gray": 30.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 20,
+      "apod": 0.45,
+      "wx": 0.6216510969858877,
+      "wz": 0.8627441061230812,
+      "contrast": 31.435749053955078,
+      "outer_arc99_relative_db": -30.451948165893555,
+      "gel_median_gray": 32.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 20,
+      "apod": 0.7,
+      "wx": 0.6889063701606688,
+      "wz": 0.8633178890897675,
+      "contrast": 31.778244018554688,
+      "outer_arc99_relative_db": -35.75989532470703,
+      "gel_median_gray": 35.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 25,
+      "apod": 0.2,
+      "wx": 0.6331387345607438,
+      "wz": 0.8274837503066408,
+      "contrast": 30.61249542236328,
+      "outer_arc99_relative_db": -21.74046516418457,
+      "gel_median_gray": 31.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 25,
+      "apod": 0.45,
+      "wx": 0.5949307127067653,
+      "wz": 0.8420273111416741,
+      "contrast": 31.715023040771484,
+      "outer_arc99_relative_db": -25.9404296875,
+      "gel_median_gray": 34.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 25,
+      "apod": 0.7,
+      "wx": 0.6358616693805017,
+      "wz": 0.8475717260287361,
+      "contrast": 31.563533782958984,
+      "outer_arc99_relative_db": -32.48979949951172,
+      "gel_median_gray": 35.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 30,
+      "apod": 0.2,
+      "wx": 0.739313063713219,
+      "wz": 0.8119117594682272,
+      "contrast": 30.050661087036133,
+      "outer_arc99_relative_db": -20.5162353515625,
+      "gel_median_gray": 32.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 30,
+      "apod": 0.45,
+      "wx": 0.6259133792840499,
+      "wz": 0.8265618498508758,
+      "contrast": 31.333810806274414,
+      "outer_arc99_relative_db": -22.97684097290039,
+      "gel_median_gray": 34.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 30,
+      "apod": 0.7,
+      "wx": 0.6359889278045052,
+      "wz": 0.8311646809944762,
+      "contrast": 31.241254806518555,
+      "outer_arc99_relative_db": -28.749042510986328,
+      "gel_median_gray": 36.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 35,
+      "apod": 0.2,
+      "wx": 0.760131721313182,
+      "wz": 0.8200840972937087,
+      "contrast": 30.128143310546875,
+      "outer_arc99_relative_db": -20.82533836364746,
+      "gel_median_gray": 32.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 35,
+      "apod": 0.45,
+      "wx": 0.6453532140988558,
+      "wz": 0.8293986916542053,
+      "contrast": 31.13518714904785,
+      "outer_arc99_relative_db": -21.861888885498047,
+      "gel_median_gray": 34.0
+    },
+    {
+      "source": "verified-live",
+      "angle": 35,
+      "apod": 0.7,
+      "wx": 0.6447738738587261,
+      "wz": 0.8294733625191917,
+      "contrast": 31.097984313964844,
+      "outer_arc99_relative_db": -25.33646583557129,
+      "gel_median_gray": 36.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 17,
+      "apod": 0.2,
+      "wx": 0.7095737961622373,
+      "wz": 0.7794485470423318,
+      "contrast": 24.886838912963867,
+      "outer_arc99_relative_db": -22.384353637695312,
+      "gel_median_gray": 34.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 17,
+      "apod": 0.45,
+      "wx": 0.7934044129573374,
+      "wz": 0.7778739287303047,
+      "contrast": 23.73642921447754,
+      "outer_arc99_relative_db": -21.6192626953125,
+      "gel_median_gray": 36.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 17,
+      "apod": 0.7,
+      "wx": 0.8839717667836409,
+      "wz": 0.7841232017828865,
+      "contrast": 21.930091857910156,
+      "outer_arc99_relative_db": -20.7161865234375,
+      "gel_median_gray": 39.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 20,
+      "apod": 0.2,
+      "wx": 0.6654265110309296,
+      "wz": 0.7634507761551781,
+      "contrast": 25.630388259887695,
+      "outer_arc99_relative_db": -22.96880340576172,
+      "gel_median_gray": 35.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 20,
+      "apod": 0.45,
+      "wx": 0.7497707101014939,
+      "wz": 0.7687388647061155,
+      "contrast": 24.172306060791016,
+      "outer_arc99_relative_db": -22.457761764526367,
+      "gel_median_gray": 37.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 20,
+      "apod": 0.7,
+      "wx": 0.8138286975713873,
+      "wz": 0.7746005333386918,
+      "contrast": 22.54077911376953,
+      "outer_arc99_relative_db": -21.522579193115234,
+      "gel_median_gray": 39.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 25,
+      "apod": 0.2,
+      "wx": 0.6262344099008121,
+      "wz": 0.7644660100340843,
+      "contrast": 26.00957489013672,
+      "outer_arc99_relative_db": -23.452152252197266,
+      "gel_median_gray": 38.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 25,
+      "apod": 0.45,
+      "wx": 0.6820817022369452,
+      "wz": 0.7642335820083446,
+      "contrast": 24.822237014770508,
+      "outer_arc99_relative_db": -23.271106719970703,
+      "gel_median_gray": 39.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 25,
+      "apod": 0.7,
+      "wx": 0.7449032320426054,
+      "wz": 0.7628971567520715,
+      "contrast": 23.218069076538086,
+      "outer_arc99_relative_db": -22.581417083740234,
+      "gel_median_gray": 42.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 30,
+      "apod": 0.2,
+      "wx": 0.6443947599484368,
+      "wz": 0.7612568231729355,
+      "contrast": 25.31170654296875,
+      "outer_arc99_relative_db": -23.055065155029297,
+      "gel_median_gray": 38.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 30,
+      "apod": 0.45,
+      "wx": 0.6626721895658045,
+      "wz": 0.7561876796759108,
+      "contrast": 24.458553314208984,
+      "outer_arc99_relative_db": -23.207775115966797,
+      "gel_median_gray": 40.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 30,
+      "apod": 0.7,
+      "wx": 0.7018586076222926,
+      "wz": 0.7629581827383802,
+      "contrast": 23.339054107666016,
+      "outer_arc99_relative_db": -23.020360946655273,
+      "gel_median_gray": 42.5
+    },
+    {
+      "source": "flat-gain",
+      "angle": 35,
+      "apod": 0.2,
+      "wx": 0.7023975556859599,
+      "wz": 0.7865443183825569,
+      "contrast": 23.98043441772461,
+      "outer_arc99_relative_db": -21.51289176940918,
+      "gel_median_gray": 38.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 35,
+      "apod": 0.45,
+      "wx": 0.6957149780713587,
+      "wz": 0.7573984196552885,
+      "contrast": 23.65076446533203,
+      "outer_arc99_relative_db": -21.95862579345703,
+      "gel_median_gray": 40.0
+    },
+    {
+      "source": "flat-gain",
+      "angle": 35,
+      "apod": 0.7,
+      "wx": 0.6985419988632193,
+      "wz": 0.7601642929590682,
+      "contrast": 22.54592514038086,
+      "outer_arc99_relative_db": -22.18639373779297,
+      "gel_median_gray": 43.0
+    }
+  ]
+}

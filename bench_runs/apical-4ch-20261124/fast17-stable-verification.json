@@ -1,0 +1,27 @@
+{
+  "input": "51b0755cbf92f6fc32e5ba2d37a8ce00e291efa482845c7fd5db82f913f1c591",
+  "original_sweeps": 208,
+  "frames_verified": 208,
+  "shots_per_frame": 24,
+  "samples_per_shot": 9090,
+  "zero_padding_and_physical_rows_verified": true,
+  "parser_elapsed_seconds": 0.43977720000839327,
+  "replay_max_error_relative_to_masked_full_aperture": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "saved_rf_excerpt": "bench_runs\\apical-4ch-20261124\\fast17-stable-sample.rf.npz",
+  "timing_model": {
+    "receive_window_us": 227.25,
+    "post_receive_gap_us": 63.0,
+    "element_period_us": 318.71999999999997,
+    "aperture_ms_nominal": 7.649279999999999,
+    "fps_ceiling_nominal": 130.73125836680055,
+    "rf_link_MB_s_nominal": 57.05321285140563,
+    "note": "Nominal requested timing, not measured FPS; stalls, grid alignment and element trims add time."
+  },
+  "prior_recording_fps": 51.69216034948609,
+  "note": "Original sequentially acquired RF was reduced to the fixed live-element group and reordered into emulated USB packets. Host processing time excludes packet generation. Hardware acquisition timing is verified separately in RTL."
+}

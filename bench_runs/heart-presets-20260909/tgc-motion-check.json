@@ -1,0 +1,102 @@
+{
+  "clip": "tgc",
+  "pair_indices": [
+    0,
+    6,
+    12,
+    18,
+    24,
+    30,
+    36,
+    42,
+    48,
+    54,
+    60,
+    66,
+    72,
+    78,
+    84,
+    90,
+    96,
+    102,
+    108,
+    114,
+    120,
+    126,
+    132,
+    138,
+    144,
+    150,
+    156,
+    162,
+    168,
+    174,
+    180,
+    187
+  ],
+  "band_mhz": [
+    2,
+    4
+  ],
+  "max_lag_samples": 80,
+  "max_lag_us": 2,
+  "stats": [
+    {
+      "range_mm": [
+        20,
+        40
+      ],
+      "zero_lag_median": 0.829479207549024,
+      "best_shift_correlation_median": 0.8492689090632084,
+      "quiet_best_shift_correlation_median": 0.22450800099115514,
+      "best_shift_samples_quantiles": [
+        -1.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "range_mm": [
+        40,
+        60
+      ],
+      "zero_lag_median": 0.013698314417656472,
+      "best_shift_correlation_median": 0.3642715261222802,
+      "quiet_best_shift_correlation_median": 0.22172013726949996,
+      "best_shift_samples_quantiles": [
+        -40.900000000000006,
+        1.0,
+        41.0
+      ]
+    },
+    {
+      "range_mm": [
+        60,
+        80
+      ],
+      "zero_lag_median": 0.022793923094244547,
+      "best_shift_correlation_median": 0.2920404960109131,
+      "quiet_best_shift_correlation_median": 0.22617560184364882,
+      "best_shift_samples_quantiles": [
+        -57.0,
+        2.0,
+        52.0
+      ]
+    },
+    {
+      "range_mm": [
+        80,
+        120
+      ],
+      "zero_lag_median": 0.0447448348653966,
+      "best_shift_correlation_median": 0.1897598934546775,
+      "quiet_best_shift_correlation_median": 0.16000032528295047,
+      "best_shift_samples_quantiles": [
+        -62.0,
+        1.0,
+        62.0
+      ]
+    }
+  ],
+  "interpretation": "Maximum normalized RF correlation over +/-2us, with overlap attenuated by full-gate normalization. Lag search also increases random correlations; quiet controls are included. Does not identify which reflector moved, establish speed, or correct the sequential aperture."
+}

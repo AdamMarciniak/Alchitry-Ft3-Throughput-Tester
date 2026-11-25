@@ -1,0 +1,4720 @@
+{
+  "three-rx": {
+    "rf_sha256": "47c151331622c8d4271faaf0f203fe83d2c11b2e649318763653ea433a204076",
+    "path": "bench_runs\\three-position-rx\\three-rx.rf.npz",
+    "n_frames": 48,
+    "trials": [
+      {
+        "frame": 0,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9788797974586487,
+              0.9990067481994629
+            ],
+            "own_center_real_ncc_median": 0.4423661530017853,
+            "unrelated_pair_real_ncc_median": 0.011579463258385658,
+            "rms_gain_abs_difference_db_median": 0.035165730863809586
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9762703895568847,
+              0.9973201751708984
+            ],
+            "own_center_real_ncc_median": 0.3590511679649353,
+            "unrelated_pair_real_ncc_median": -0.011321165598928928,
+            "rms_gain_abs_difference_db_median": 0.04743902385234833
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7125965778071117,
+            "wire_axial_mm": 0.3056013928009911,
+            "wire_peak": 1667.0205078125,
+            "offaxis_p95_relative_db": -38.150152315887034,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7143807477102802,
+            "wire_axial_mm": 0.30537025974347287,
+            "wire_peak": 1665.90380859375,
+            "offaxis_p95_relative_db": -38.01456343516247,
+            "gel_envelope_correlation": 0.9992197228178816,
+            "gel_relative_rms_difference": 0.020242763683199883
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7108690648411304,
+            "wire_axial_mm": 0.3058233994704054,
+            "wire_peak": 1668.2396240234375,
+            "offaxis_p95_relative_db": -38.196973490576994,
+            "gel_envelope_correlation": 0.9991980645757569,
+            "gel_relative_rms_difference": 0.020464396104216576
+          }
+        }
+      },
+      {
+        "frame": 1,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9835668444633484,
+              0.9988733530044556
+            ],
+            "own_center_real_ncc_median": 0.4451066851615906,
+            "unrelated_pair_real_ncc_median": 0.013004030101001263,
+            "rms_gain_abs_difference_db_median": 0.051290929317474365
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9789042234420776,
+              0.997340738773346
+            ],
+            "own_center_real_ncc_median": 0.3535296618938446,
+            "unrelated_pair_real_ncc_median": -0.022447951138019562,
+            "rms_gain_abs_difference_db_median": 0.03504045680165291
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7005805393251063,
+            "wire_axial_mm": 0.3058214806593398,
+            "wire_peak": 1673.81884765625,
+            "offaxis_p95_relative_db": -38.15534476632718,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7020440448362069,
+            "wire_axial_mm": 0.3057926228413237,
+            "wire_peak": 1672.8814697265625,
+            "offaxis_p95_relative_db": -38.07590337569494,
+            "gel_envelope_correlation": 0.999205919906456,
+            "gel_relative_rms_difference": 0.020291799679398537
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.6991392090343485,
+            "wire_axial_mm": 0.30583714521848293,
+            "wire_peak": 1674.8546142578125,
+            "offaxis_p95_relative_db": -38.13296614214232,
+            "gel_envelope_correlation": 0.999210265260596,
+            "gel_relative_rms_difference": 0.020236067473888397
+          }
+        }
+      },
+      {
+        "frame": 2,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9777600765228271,
+              0.999026894569397
+            ],
+            "own_center_real_ncc_median": 0.40040406584739685,
+            "unrelated_pair_real_ncc_median": 0.014174929820001125,
+            "rms_gain_abs_difference_db_median": 0.04290878027677536
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9764031410217285,
+              0.9974092245101929
+            ],
+            "own_center_real_ncc_median": 0.359589546918869,
+            "unrelated_pair_real_ncc_median": -0.014812779612839222,
+            "rms_gain_abs_difference_db_median": 0.04041125625371933
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7109989263117287,
+            "wire_axial_mm": 0.3056618044009589,
+            "wire_peak": 1675.37841796875,
+            "offaxis_p95_relative_db": -38.167025385714595,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7052341954639298,
+            "wire_axial_mm": 0.30579591485170354,
+            "wire_peak": 1678.70458984375,
+            "offaxis_p95_relative_db": -38.31070856623771,
+            "gel_envelope_correlation": 0.9989662441438485,
+            "gel_relative_rms_difference": 0.023272553458809853
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7156840554223582,
+            "wire_axial_mm": 0.3055352385227508,
+            "wire_peak": 1672.40869140625,
+            "offaxis_p95_relative_db": -37.86736557063231,
+            "gel_envelope_correlation": 0.999037761643736,
+            "gel_relative_rms_difference": 0.022526726126670837
+          }
+        }
+      },
+      {
+        "frame": 3,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9795122623443604,
+              0.9990030527114868
+            ],
+            "own_center_real_ncc_median": 0.39852452278137207,
+            "unrelated_pair_real_ncc_median": 0.01006387546658516,
+            "rms_gain_abs_difference_db_median": 0.04884177818894386
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9790919899940491,
+              0.9974530339241028
+            ],
+            "own_center_real_ncc_median": 0.3576188385486603,
+            "unrelated_pair_real_ncc_median": -0.010867977514863014,
+            "rms_gain_abs_difference_db_median": 0.04656349867582321
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7197101063166644,
+            "wire_axial_mm": 0.30556633609991835,
+            "wire_peak": 1666.149169921875,
+            "offaxis_p95_relative_db": -37.90175157281952,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7204870413988802,
+            "wire_axial_mm": 0.30574476031156905,
+            "wire_peak": 1666.6417236328125,
+            "offaxis_p95_relative_db": -37.82295949790615,
+            "gel_envelope_correlation": 0.9991188447026127,
+            "gel_relative_rms_difference": 0.02148604206740856
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7191076532292797,
+            "wire_axial_mm": 0.30537859522379307,
+            "wire_peak": 1665.5572509765625,
+            "offaxis_p95_relative_db": -37.73447740517051,
+            "gel_envelope_correlation": 0.9991393705991025,
+            "gel_relative_rms_difference": 0.02120809815824032
+          }
+        }
+      },
+      {
+        "frame": 4,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9807313084602356,
+              0.9990537762641907
+            ],
+            "own_center_real_ncc_median": 0.39138323068618774,
+            "unrelated_pair_real_ncc_median": 0.00809747539460659,
+            "rms_gain_abs_difference_db_median": 0.04536173865199089
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.977492892742157,
+              0.9974982738494873
+            ],
+            "own_center_real_ncc_median": 0.3583812713623047,
+            "unrelated_pair_real_ncc_median": -0.013956754468381405,
+            "rms_gain_abs_difference_db_median": 0.04673474282026291
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7166247104222931,
+            "wire_axial_mm": 0.30522968448125454,
+            "wire_peak": 1667.324462890625,
+            "offaxis_p95_relative_db": -38.15571306425693,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7162459352268595,
+            "wire_axial_mm": 0.30477168468328486,
+            "wire_peak": 1665.9024658203125,
+            "offaxis_p95_relative_db": -38.12673138806966,
+            "gel_envelope_correlation": 0.9991566747377933,
+            "gel_relative_rms_difference": 0.02100588008761406
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7177992315533042,
+            "wire_axial_mm": 0.3057177777473754,
+            "wire_peak": 1668.6129150390625,
+            "offaxis_p95_relative_db": -38.08525481614666,
+            "gel_envelope_correlation": 0.9990637205431239,
+            "gel_relative_rms_difference": 0.02212516777217388
+          }
+        }
+      },
+      {
+        "frame": 5,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9798562288284302,
+              0.9990589618682861
+            ],
+            "own_center_real_ncc_median": 0.4395747482776642,
+            "unrelated_pair_real_ncc_median": 0.011372631415724754,
+            "rms_gain_abs_difference_db_median": 0.046477094292640686
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9795959830284119,
+              0.9973729252815247
+            ],
+            "own_center_real_ncc_median": 0.3614327311515808,
+            "unrelated_pair_real_ncc_median": -0.01837831363081932,
+            "rms_gain_abs_difference_db_median": 0.04509516432881355
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7112544631728732,
+            "wire_axial_mm": 0.30524757733711994,
+            "wire_peak": 1665.910888671875,
+            "offaxis_p95_relative_db": -38.135688687386626,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7149147081833591,
+            "wire_axial_mm": 0.3052416948171768,
+            "wire_peak": 1664.8370361328125,
+            "offaxis_p95_relative_db": -38.053550435131356,
+            "gel_envelope_correlation": 0.9991738098824337,
+            "gel_relative_rms_difference": 0.020838364958763123
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.707698712555259,
+            "wire_axial_mm": 0.30524439078111243,
+            "wire_peak": 1666.9385986328125,
+            "offaxis_p95_relative_db": -38.028352763270135,
+            "gel_envelope_correlation": 0.9991803534301769,
+            "gel_relative_rms_difference": 0.02089209295809269
+          }
+        }
+      },
+      {
+        "frame": 6,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9823247909545898,
+              0.9990924000740051
+            ],
+            "own_center_real_ncc_median": 0.4409450888633728,
+            "unrelated_pair_real_ncc_median": 0.013485732488334179,
+            "rms_gain_abs_difference_db_median": 0.048594214022159576
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9801426649093627,
+              0.9974086284637451
+            ],
+            "own_center_real_ncc_median": 0.3635217249393463,
+            "unrelated_pair_real_ncc_median": -0.011468814685940742,
+            "rms_gain_abs_difference_db_median": 0.03741048648953438
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.71013628118313,
+            "wire_axial_mm": 0.30583852758774555,
+            "wire_peak": 1668.8370361328125,
+            "offaxis_p95_relative_db": -38.13154778100116,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.710789407961641,
+            "wire_axial_mm": 0.3055901206456717,
+            "wire_peak": 1668.4935302734375,
+            "offaxis_p95_relative_db": -37.96059941480967,
+            "gel_envelope_correlation": 0.9991965492926294,
+            "gel_relative_rms_difference": 0.02063388004899025
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7096501942723961,
+            "wire_axial_mm": 0.3060800822881582,
+            "wire_peak": 1669.18017578125,
+            "offaxis_p95_relative_db": -38.188014523128324,
+            "gel_envelope_correlation": 0.999192050243402,
+            "gel_relative_rms_difference": 0.020528635010123253
+          }
+        }
+      },
+      {
+        "frame": 7,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9782891869544983,
+              0.9989463090896606
+            ],
+            "own_center_real_ncc_median": 0.3878985047340393,
+            "unrelated_pair_real_ncc_median": 0.017834369093179703,
+            "rms_gain_abs_difference_db_median": 0.03970598429441452
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9774713397026062,
+              0.9972578883171082
+            ],
+            "own_center_real_ncc_median": 0.3571713864803314,
+            "unrelated_pair_real_ncc_median": -0.012136010453104973,
+            "rms_gain_abs_difference_db_median": 0.049470990896224976
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7135943392148358,
+            "wire_axial_mm": 0.30579629769691863,
+            "wire_peak": 1674.0992431640625,
+            "offaxis_p95_relative_db": -38.21542242489571,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7129443614528701,
+            "wire_axial_mm": 0.30588010411996436,
+            "wire_peak": 1675.103759765625,
+            "offaxis_p95_relative_db": -38.242614450457495,
+            "gel_envelope_correlation": 0.9989244002267698,
+            "gel_relative_rms_difference": 0.023790180683135986
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7142244786597187,
+            "wire_axial_mm": 0.3057030462301711,
+            "wire_peak": 1673.1007080078125,
+            "offaxis_p95_relative_db": -37.90087866793114,
+            "gel_envelope_correlation": 0.9989124930610579,
+            "gel_relative_rms_difference": 0.023943783715367317
+          }
+        }
+      },
+      {
+        "frame": 8,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9978259325027465,
+              0.9989826679229736
+            ],
+            "own_center_real_ncc_median": 0.44141608476638794,
+            "unrelated_pair_real_ncc_median": 0.01372027862817049,
+            "rms_gain_abs_difference_db_median": 0.03774026036262512
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9953349828720093,
+              0.997407078742981
+            ],
+            "own_center_real_ncc_median": 0.35917016863822937,
+            "unrelated_pair_real_ncc_median": -0.015375087037682533,
+            "rms_gain_abs_difference_db_median": 0.04911874234676361
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7138430964774785,
+            "wire_axial_mm": 0.3054978847503662,
+            "wire_peak": 1667.75537109375,
+            "offaxis_p95_relative_db": -38.1527769274307,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7167757356969184,
+            "wire_axial_mm": 0.30529348896100217,
+            "wire_peak": 1667.6156005859375,
+            "offaxis_p95_relative_db": -38.0833991629298,
+            "gel_envelope_correlation": 0.9992589965769475,
+            "gel_relative_rms_difference": 0.01965552754700184
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7111218820970762,
+            "wire_axial_mm": 0.3056976382549017,
+            "wire_peak": 1667.9041748046875,
+            "offaxis_p95_relative_db": -38.02905031556956,
+            "gel_envelope_correlation": 0.9992763696570272,
+            "gel_relative_rms_difference": 0.019378487020730972
+          }
+        }
+      },
+      {
+        "frame": 9,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9792066097259522,
+              0.9989709258079529
+            ],
+            "own_center_real_ncc_median": 0.4005074203014374,
+            "unrelated_pair_real_ncc_median": 0.013830000534653664,
+            "rms_gain_abs_difference_db_median": 0.03725358098745346
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9771998882293701,
+              0.9972134828567505
+            ],
+            "own_center_real_ncc_median": 0.3564748466014862,
+            "unrelated_pair_real_ncc_median": -0.01947109028697014,
+            "rms_gain_abs_difference_db_median": 0.054030608385801315
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7094544143630881,
+            "wire_axial_mm": 0.30573949676293566,
+            "wire_peak": 1677.0491943359375,
+            "offaxis_p95_relative_db": -38.29510908855476,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7079399334123475,
+            "wire_axial_mm": 0.30567771654862597,
+            "wire_peak": 1677.11279296875,
+            "offaxis_p95_relative_db": -38.293716511920735,
+            "gel_envelope_correlation": 0.9991243498210297,
+            "gel_relative_rms_difference": 0.0214399266988039
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.71002243659817,
+            "wire_axial_mm": 0.3058037161827123,
+            "wire_peak": 1677.4058837890625,
+            "offaxis_p95_relative_db": -38.162927132343604,
+            "gel_envelope_correlation": 0.9991912480051529,
+            "gel_relative_rms_difference": 0.020563239231705666
+          }
+        }
+      },
+      {
+        "frame": 10,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9818578720092773,
+              0.9989920854568481
+            ],
+            "own_center_real_ncc_median": 0.39580920338630676,
+            "unrelated_pair_real_ncc_median": 0.014968238770961761,
+            "rms_gain_abs_difference_db_median": 0.041364192962646484
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9806081533432007,
+              0.9972772002220154
+            ],
+            "own_center_real_ncc_median": 0.36264899373054504,
+            "unrelated_pair_real_ncc_median": -0.01119693648070097,
+            "rms_gain_abs_difference_db_median": 0.04471695050597191
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7108225126105976,
+            "wire_axial_mm": 0.3054407743307266,
+            "wire_peak": 1667.647216796875,
+            "offaxis_p95_relative_db": -38.04693243982132,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7146103780430071,
+            "wire_axial_mm": 0.30530132697179013,
+            "wire_peak": 1666.4267578125,
+            "offaxis_p95_relative_db": -38.11002418708859,
+            "gel_envelope_correlation": 0.999258961034703,
+            "gel_relative_rms_difference": 0.019716931506991386
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7071203566514503,
+            "wire_axial_mm": 0.30557140707969666,
+            "wire_peak": 1668.9853515625,
+            "offaxis_p95_relative_db": -37.930383654221295,
+            "gel_envelope_correlation": 0.9992577496928784,
+            "gel_relative_rms_difference": 0.0196783896535635
+          }
+        }
+      },
+      {
+        "frame": 11,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9877384185791016,
+              0.9990599751472473
+            ],
+            "own_center_real_ncc_median": 0.44633135199546814,
+            "unrelated_pair_real_ncc_median": 0.01216234639286995,
+            "rms_gain_abs_difference_db_median": 0.04430815204977989
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9843520522117615,
+              0.9972757697105408
+            ],
+            "own_center_real_ncc_median": 0.35708087682724,
+            "unrelated_pair_real_ncc_median": -0.01856384053826332,
+            "rms_gain_abs_difference_db_median": 0.037089280784130096
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7001747056268699,
+            "wire_axial_mm": 0.30578232499269475,
+            "wire_peak": 1674.619140625,
+            "offaxis_p95_relative_db": -38.187977095777924,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7011443026936943,
+            "wire_axial_mm": 0.3058075492198675,
+            "wire_peak": 1673.75244140625,
+            "offaxis_p95_relative_db": -38.10789128326911,
+            "gel_envelope_correlation": 0.9992299834426868,
+            "gel_relative_rms_difference": 0.020025767385959625
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.6992801700073914,
+            "wire_axial_mm": 0.3057391597674446,
+            "wire_peak": 1675.5291748046875,
+            "offaxis_p95_relative_db": -38.104127120662255,
+            "gel_envelope_correlation": 0.9992390222708171,
+            "gel_relative_rms_difference": 0.019925665110349655
+          }
+        }
+      },
+      {
+        "frame": 12,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9788151264190674,
+              0.9988927245140076
+            ],
+            "own_center_real_ncc_median": 0.3931928873062134,
+            "unrelated_pair_real_ncc_median": 0.014111684635281563,
+            "rms_gain_abs_difference_db_median": 0.027319494634866714
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9764252305030823,
+              0.9973554015159607
+            ],
+            "own_center_real_ncc_median": 0.358627587556839,
+            "unrelated_pair_real_ncc_median": -0.014123103581368923,
+            "rms_gain_abs_difference_db_median": 0.04664735496044159
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7066512643717777,
+            "wire_axial_mm": 0.3056109364216155,
+            "wire_peak": 1674.775390625,
+            "offaxis_p95_relative_db": -38.10593842436279,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7017481925968916,
+            "wire_axial_mm": 0.3054506526543541,
+            "wire_peak": 1675.70068359375,
+            "offaxis_p95_relative_db": -38.12878349057654,
+            "gel_envelope_correlation": 0.9990013870163877,
+            "gel_relative_rms_difference": 0.02281527779996395
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7107791356169233,
+            "wire_axial_mm": 0.30577817788491046,
+            "wire_peak": 1674.2374267578125,
+            "offaxis_p95_relative_db": -38.097237862405244,
+            "gel_envelope_correlation": 0.9990570165976442,
+            "gel_relative_rms_difference": 0.022193802520632744
+          }
+        }
+      },
+      {
+        "frame": 13,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9872013568878174,
+              0.99904465675354
+            ],
+            "own_center_real_ncc_median": 0.4427032172679901,
+            "unrelated_pair_real_ncc_median": 0.01569008268415928,
+            "rms_gain_abs_difference_db_median": 0.038575898855924606
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9805496096611023,
+              0.997270941734314
+            ],
+            "own_center_real_ncc_median": 0.3573319613933563,
+            "unrelated_pair_real_ncc_median": -0.019838513806462288,
+            "rms_gain_abs_difference_db_median": 0.03711891546845436
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7124424401957228,
+            "wire_axial_mm": 0.3051791466199454,
+            "wire_peak": 1674.4554443359375,
+            "offaxis_p95_relative_db": -38.18871319660689,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7149893549772381,
+            "wire_axial_mm": 0.3053212028283383,
+            "wire_peak": 1673.495361328125,
+            "offaxis_p95_relative_db": -38.20177441597845,
+            "gel_envelope_correlation": 0.9992746621640071,
+            "gel_relative_rms_difference": 0.019541369751095772
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7100062132454807,
+            "wire_axial_mm": 0.30503054994803236,
+            "wire_peak": 1675.42236328125,
+            "offaxis_p95_relative_db": -38.026865010781684,
+            "gel_envelope_correlation": 0.9992742927538467,
+            "gel_relative_rms_difference": 0.019550083205103874
+          }
+        }
+      },
+      {
+        "frame": 14,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9775624990463256,
+              0.9988948106765747
+            ],
+            "own_center_real_ncc_median": 0.4018024504184723,
+            "unrelated_pair_real_ncc_median": 0.011360818520188332,
+            "rms_gain_abs_difference_db_median": 0.0313640832901001
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9763897776603698,
+              0.9972164630889893
+            ],
+            "own_center_real_ncc_median": 0.3650866448879242,
+            "unrelated_pair_real_ncc_median": -0.016740500926971436,
+            "rms_gain_abs_difference_db_median": 0.05511070042848587
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7121100488763563,
+            "wire_axial_mm": 0.3054329867546386,
+            "wire_peak": 1667.638427734375,
+            "offaxis_p95_relative_db": -38.049027808225105,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7149691922733392,
+            "wire_axial_mm": 0.3053978452315711,
+            "wire_peak": 1666.0369873046875,
+            "offaxis_p95_relative_db": -38.181253952369104,
+            "gel_envelope_correlation": 0.9990709055654254,
+            "gel_relative_rms_difference": 0.022053780034184456
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7092449696591239,
+            "wire_axial_mm": 0.3054547768372764,
+            "wire_peak": 1669.2823486328125,
+            "offaxis_p95_relative_db": -37.88908146000989,
+            "gel_envelope_correlation": 0.9990800486038482,
+            "gel_relative_rms_difference": 0.022101689130067825
+          }
+        }
+      },
+      {
+        "frame": 15,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9800856590270997,
+              0.9990299344062805
+            ],
+            "own_center_real_ncc_median": 0.44164085388183594,
+            "unrelated_pair_real_ncc_median": 0.00900713074952364,
+            "rms_gain_abs_difference_db_median": 0.040191650390625
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.977823269367218,
+              0.9970356225967407
+            ],
+            "own_center_real_ncc_median": 0.3601992428302765,
+            "unrelated_pair_real_ncc_median": -0.020821938291192055,
+            "rms_gain_abs_difference_db_median": 0.04207064211368561
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.6992864720523329,
+            "wire_axial_mm": 0.3059617074636307,
+            "wire_peak": 1676.481689453125,
+            "offaxis_p95_relative_db": -38.12312459269838,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.6970560066401932,
+            "wire_axial_mm": 0.3059088541911201,
+            "wire_peak": 1677.3204345703125,
+            "offaxis_p95_relative_db": -38.052382871616274,
+            "gel_envelope_correlation": 0.9989202188959752,
+            "gel_relative_rms_difference": 0.023716896772384644
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7015117601706407,
+            "wire_axial_mm": 0.30600874469830686,
+            "wire_peak": 1675.6787109375,
+            "offaxis_p95_relative_db": -38.071396956098205,
+            "gel_envelope_correlation": 0.9989154978689918,
+            "gel_relative_rms_difference": 0.023829100653529167
+          }
+        }
+      },
+      {
+        "frame": 16,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.981615686416626,
+              0.9990442395210266
+            ],
+            "own_center_real_ncc_median": 0.39103251695632935,
+            "unrelated_pair_real_ncc_median": 0.0131904985755682,
+            "rms_gain_abs_difference_db_median": 0.035165730863809586
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9787729144096374,
+              0.9973781704902649
+            ],
+            "own_center_real_ncc_median": 0.3560514450073242,
+            "unrelated_pair_real_ncc_median": -0.015227843075990677,
+            "rms_gain_abs_difference_db_median": 0.04571720212697983
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.719783804451041,
+            "wire_axial_mm": 0.30548507433671546,
+            "wire_peak": 1665.509765625,
+            "offaxis_p95_relative_db": -38.01714996327364,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7213548818746409,
+            "wire_axial_mm": 0.30558275717955397,
+            "wire_peak": 1665.4461669921875,
+            "offaxis_p95_relative_db": -38.01012989152491,
+            "gel_envelope_correlation": 0.9991664451024765,
+            "gel_relative_rms_difference": 0.020925303921103477
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.718202131916766,
+            "wire_axial_mm": 0.3053842920523451,
+            "wire_peak": 1665.5660400390625,
+            "offaxis_p95_relative_db": -37.705668482667896,
+            "gel_envelope_correlation": 0.9991803760869528,
+            "gel_relative_rms_difference": 0.020779065787792206
+          }
+        }
+      },
+      {
+        "frame": 17,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9788779973983764,
+              0.9989750385284424
+            ],
+            "own_center_real_ncc_median": 0.44262412190437317,
+            "unrelated_pair_real_ncc_median": 0.013113841414451599,
+            "rms_gain_abs_difference_db_median": 0.03624962270259857
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.97694411277771,
+              0.9973907470703125
+            ],
+            "own_center_real_ncc_median": 0.3648120164871216,
+            "unrelated_pair_real_ncc_median": -0.02213306725025177,
+            "rms_gain_abs_difference_db_median": 0.035291530191898346
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7123522044947488,
+            "wire_axial_mm": 0.30571382779341505,
+            "wire_peak": 1666.2445068359375,
+            "offaxis_p95_relative_db": -38.144951860284905,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7109718818504052,
+            "wire_axial_mm": 0.3056515844968679,
+            "wire_peak": 1666.455322265625,
+            "offaxis_p95_relative_db": -37.969949775449464,
+            "gel_envelope_correlation": 0.999073562506167,
+            "gel_relative_rms_difference": 0.022032003849744797
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7138783911672897,
+            "wire_axial_mm": 0.3057754704585456,
+            "wire_peak": 1665.97412109375,
+            "offaxis_p95_relative_db": -38.2013508915773,
+            "gel_envelope_correlation": 0.9990692926985889,
+            "gel_relative_rms_difference": 0.022051149979233742
+          }
+        }
+      },
+      {
+        "frame": 18,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9788724184036255,
+              0.9989686012268066
+            ],
+            "own_center_real_ncc_median": 0.4425925314426422,
+            "unrelated_pair_real_ncc_median": 0.015425069257616997,
+            "rms_gain_abs_difference_db_median": 0.030564086511731148
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9779033899307251,
+              0.9972925186157227
+            ],
+            "own_center_real_ncc_median": 0.3614322543144226,
+            "unrelated_pair_real_ncc_median": -0.021783513948321342,
+            "rms_gain_abs_difference_db_median": 0.04931895062327385
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.701533227299266,
+            "wire_axial_mm": 0.30587804317474365,
+            "wire_peak": 1674.852783203125,
+            "offaxis_p95_relative_db": -38.024619683260795,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.6989372759484302,
+            "wire_axial_mm": 0.305808913249237,
+            "wire_peak": 1675.991455078125,
+            "offaxis_p95_relative_db": -38.04017036213725,
+            "gel_envelope_correlation": 0.999106119284496,
+            "gel_relative_rms_difference": 0.0215725377202034
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7041742916290548,
+            "wire_axial_mm": 0.3059496535704689,
+            "wire_peak": 1673.6895751953125,
+            "offaxis_p95_relative_db": -37.998443650428,
+            "gel_envelope_correlation": 0.9991212930824195,
+            "gel_relative_rms_difference": 0.02139068953692913
+          }
+        }
+      },
+      {
+        "frame": 19,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9779725670814514,
+              0.9989385008811951
+            ],
+            "own_center_real_ncc_median": 0.4433422088623047,
+            "unrelated_pair_real_ncc_median": 0.0157467070966959,
+            "rms_gain_abs_difference_db_median": 0.04246082529425621
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9770889759063721,
+              0.9974160194396973
+            ],
+            "own_center_real_ncc_median": 0.35859251022338867,
+            "unrelated_pair_real_ncc_median": -0.009995047934353352,
+            "rms_gain_abs_difference_db_median": 0.05051786080002785
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7193874882963962,
+            "wire_axial_mm": 0.30571490526199696,
+            "wire_peak": 1666.543212890625,
+            "offaxis_p95_relative_db": -38.08607116958758,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7164940335429606,
+            "wire_axial_mm": 0.30563027812884513,
+            "wire_peak": 1668.2490234375,
+            "offaxis_p95_relative_db": -37.995216601340886,
+            "gel_envelope_correlation": 0.9991015305997173,
+            "gel_relative_rms_difference": 0.021719742566347122
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7221820804362085,
+            "wire_axial_mm": 0.3057939914556691,
+            "wire_peak": 1664.8740234375,
+            "offaxis_p95_relative_db": -37.978205143127724,
+            "gel_envelope_correlation": 0.9990860228156411,
+            "gel_relative_rms_difference": 0.021912675350904465
+          }
+        }
+      },
+      {
+        "frame": 20,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9837546706199646,
+              0.9991032481193542
+            ],
+            "own_center_real_ncc_median": 0.3948984146118164,
+            "unrelated_pair_real_ncc_median": 0.016651278361678123,
+            "rms_gain_abs_difference_db_median": 0.02994103729724884
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9844443321228027,
+              0.9974545240402222
+            ],
+            "own_center_real_ncc_median": 0.3625394105911255,
+            "unrelated_pair_real_ncc_median": -0.01194025482982397,
+            "rms_gain_abs_difference_db_median": 0.03899037092924118
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7196487378902132,
+            "wire_axial_mm": 0.30558659938665755,
+            "wire_peak": 1665.6534423828125,
+            "offaxis_p95_relative_db": -37.915364097071866,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7204210034643201,
+            "wire_axial_mm": 0.3057599067688024,
+            "wire_peak": 1666.36328125,
+            "offaxis_p95_relative_db": -37.88577936078902,
+            "gel_envelope_correlation": 0.9992406636014696,
+            "gel_relative_rms_difference": 0.01999783329665661
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.719022871496583,
+            "wire_axial_mm": 0.3054068867976838,
+            "wire_peak": 1664.8602294921875,
+            "offaxis_p95_relative_db": -37.69375116536378,
+            "gel_envelope_correlation": 0.9992357958352219,
+            "gel_relative_rms_difference": 0.02003309316933155
+          }
+        }
+      },
+      {
+        "frame": 21,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9980397462844849,
+              0.9990851283073425
+            ],
+            "own_center_real_ncc_median": 0.3957628011703491,
+            "unrelated_pair_real_ncc_median": 0.010186594910919666,
+            "rms_gain_abs_difference_db_median": 0.03671351075172424
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9962316870689392,
+              0.9973669648170471
+            ],
+            "own_center_real_ncc_median": 0.361998975276947,
+            "unrelated_pair_real_ncc_median": -0.013922309502959251,
+            "rms_gain_abs_difference_db_median": 0.055262256413698196
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7128161726376159,
+            "wire_axial_mm": 0.30503949064474867,
+            "wire_peak": 1668.746337890625,
+            "offaxis_p95_relative_db": -38.28548061409512,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7126923771933267,
+            "wire_axial_mm": 0.30496107614957424,
+            "wire_peak": 1667.835693359375,
+            "offaxis_p95_relative_db": -38.27462982085355,
+            "gel_envelope_correlation": 0.9992166742307839,
+            "gel_relative_rms_difference": 0.02024528943002224
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7138524227417407,
+            "wire_axial_mm": 0.3051499082491951,
+            "wire_peak": 1669.368408203125,
+            "offaxis_p95_relative_db": -38.24028887903262,
+            "gel_envelope_correlation": 0.999119519085045,
+            "gel_relative_rms_difference": 0.021427419036626816
+          }
+        }
+      },
+      {
+        "frame": 22,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9788862347602845,
+              0.9989672303199768
+            ],
+            "own_center_real_ncc_median": 0.44329845905303955,
+            "unrelated_pair_real_ncc_median": 0.009295021183788776,
+            "rms_gain_abs_difference_db_median": 0.03701251372694969
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9774861693382263,
+              0.9974091649055481
+            ],
+            "own_center_real_ncc_median": 0.36249303817749023,
+            "unrelated_pair_real_ncc_median": -0.014686338603496552,
+            "rms_gain_abs_difference_db_median": 0.04743621498346329
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7222174160325727,
+            "wire_axial_mm": 0.3052806579149667,
+            "wire_peak": 1663.621337890625,
+            "offaxis_p95_relative_db": -38.065360955301244,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7252802716997924,
+            "wire_axial_mm": 0.30533913007149494,
+            "wire_peak": 1661.8741455078125,
+            "offaxis_p95_relative_db": -38.006148066367196,
+            "gel_envelope_correlation": 0.9990248421330867,
+            "gel_relative_rms_difference": 0.022651148959994316
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7200218685544426,
+            "wire_axial_mm": 0.3052535698964043,
+            "wire_peak": 1665.0633544921875,
+            "offaxis_p95_relative_db": -37.933441952169986,
+            "gel_envelope_correlation": 0.9989455999964458,
+            "gel_relative_rms_difference": 0.02350335381925106
+          }
+        }
+      },
+      {
+        "frame": 23,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9787870883941651,
+              0.9990724921226501
+            ],
+            "own_center_real_ncc_median": 0.3973289728164673,
+            "unrelated_pair_real_ncc_median": 0.008461580611765385,
+            "rms_gain_abs_difference_db_median": 0.041670072823762894
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9768777132034302,
+              0.997438907623291
+            ],
+            "own_center_real_ncc_median": 0.3622964024543762,
+            "unrelated_pair_real_ncc_median": -0.020389586687088013,
+            "rms_gain_abs_difference_db_median": 0.03589892387390137
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7223634344453966,
+            "wire_axial_mm": 0.3055863632605629,
+            "wire_peak": 1664.60009765625,
+            "offaxis_p95_relative_db": -38.031674697083474,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7244893292394938,
+            "wire_axial_mm": 0.3054919495032422,
+            "wire_peak": 1662.739990234375,
+            "offaxis_p95_relative_db": -37.91651465855638,
+            "gel_envelope_correlation": 0.9992170295701694,
+            "gel_relative_rms_difference": 0.020228074863553047
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7203010663853553,
+            "wire_axial_mm": 0.30567068090805805,
+            "wire_peak": 1666.5047607421875,
+            "offaxis_p95_relative_db": -37.94666424591399,
+            "gel_envelope_correlation": 0.9991940044778193,
+            "gel_relative_rms_difference": 0.020560769364237785
+          }
+        }
+      },
+      {
+        "frame": 24,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.986975634098053,
+              0.9990299940109253
+            ],
+            "own_center_real_ncc_median": 0.44146278500556946,
+            "unrelated_pair_real_ncc_median": 0.010099322535097599,
+            "rms_gain_abs_difference_db_median": 0.038124531507492065
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9814970016479492,
+              0.997445821762085
+            ],
+            "own_center_real_ncc_median": 0.359333872795105,
+            "unrelated_pair_real_ncc_median": -0.01449041161686182,
+            "rms_gain_abs_difference_db_median": 0.040829598903656006
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7139939705912857,
+            "wire_axial_mm": 0.30569177407484815,
+            "wire_peak": 1671.3848876953125,
+            "offaxis_p95_relative_db": -37.94373918568751,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7073632501638825,
+            "wire_axial_mm": 0.30580386748680866,
+            "wire_peak": 1673.923095703125,
+            "offaxis_p95_relative_db": -38.05644286718548,
+            "gel_envelope_correlation": 0.9990516534342224,
+            "gel_relative_rms_difference": 0.02228710800409317
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7197247368211901,
+            "wire_axial_mm": 0.3055821175758666,
+            "wire_peak": 1669.1583251953125,
+            "offaxis_p95_relative_db": -37.88486937930316,
+            "gel_envelope_correlation": 0.9991408909798527,
+            "gel_relative_rms_difference": 0.02126489393413067
+          }
+        }
+      },
+      {
+        "frame": 25,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9785684466361999,
+              0.9990946650505066
+            ],
+            "own_center_real_ncc_median": 0.4402036666870117,
+            "unrelated_pair_real_ncc_median": 0.009916157461702824,
+            "rms_gain_abs_difference_db_median": 0.04190104454755783
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9768182754516601,
+              0.9972515106201172
+            ],
+            "own_center_real_ncc_median": 0.3579367697238922,
+            "unrelated_pair_real_ncc_median": -0.018898768350481987,
+            "rms_gain_abs_difference_db_median": 0.03802802786231041
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7035686196042914,
+            "wire_axial_mm": 0.3058785773240622,
+            "wire_peak": 1672.4102783203125,
+            "offaxis_p95_relative_db": -38.21981506704846,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7004536318664338,
+            "wire_axial_mm": 0.3061202604037092,
+            "wire_peak": 1673.7628173828125,
+            "offaxis_p95_relative_db": -38.173849619151326,
+            "gel_envelope_correlation": 0.9992566672775272,
+            "gel_relative_rms_difference": 0.0196303091943264
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7065906796890931,
+            "wire_axial_mm": 0.3056233043854064,
+            "wire_peak": 1671.1151123046875,
+            "offaxis_p95_relative_db": -38.17684994165702,
+            "gel_envelope_correlation": 0.9992570033654371,
+            "gel_relative_rms_difference": 0.019717054441571236
+          }
+        }
+      },
+      {
+        "frame": 26,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9794891834259033,
+              0.9990824460983276
+            ],
+            "own_center_real_ncc_median": 0.44012248516082764,
+            "unrelated_pair_real_ncc_median": 0.0118936812505126,
+            "rms_gain_abs_difference_db_median": 0.030290672555565834
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9775322198867797,
+              0.997382402420044
+            ],
+            "own_center_real_ncc_median": 0.3581259250640869,
+            "unrelated_pair_real_ncc_median": -0.017526479437947273,
+            "rms_gain_abs_difference_db_median": 0.038536250591278076
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7039761526080248,
+            "wire_axial_mm": 0.30576387735513677,
+            "wire_peak": 1672.118896484375,
+            "offaxis_p95_relative_db": -38.24006230124255,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7039754585577864,
+            "wire_axial_mm": 0.3058078953853034,
+            "wire_peak": 1671.7291259765625,
+            "offaxis_p95_relative_db": -38.14830889257729,
+            "gel_envelope_correlation": 0.9993148902539395,
+            "gel_relative_rms_difference": 0.01885666511952877
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.704004071079765,
+            "wire_axial_mm": 0.3057025923178749,
+            "wire_peak": 1672.6044921875,
+            "offaxis_p95_relative_db": -38.20797904770548,
+            "gel_envelope_correlation": 0.9993161773412279,
+            "gel_relative_rms_difference": 0.01881263218820095
+          }
+        }
+      },
+      {
+        "frame": 27,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9793800354003906,
+              0.9991070628166199
+            ],
+            "own_center_real_ncc_median": 0.44205132126808167,
+            "unrelated_pair_real_ncc_median": 0.011875530704855919,
+            "rms_gain_abs_difference_db_median": 0.04678991436958313
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9771759986877442,
+              0.9974355697631836
+            ],
+            "own_center_real_ncc_median": 0.3594333231449127,
+            "unrelated_pair_real_ncc_median": -0.02318991720676422,
+            "rms_gain_abs_difference_db_median": 0.05353357642889023
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7014983984140224,
+            "wire_axial_mm": 0.3059639059580306,
+            "wire_peak": 1673.145751953125,
+            "offaxis_p95_relative_db": -38.19553018142952,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.6984163261949989,
+            "wire_axial_mm": 0.3061845944477959,
+            "wire_peak": 1674.298583984375,
+            "offaxis_p95_relative_db": -38.172896499341036,
+            "gel_envelope_correlation": 0.9992974413732635,
+            "gel_relative_rms_difference": 0.01912551373243332
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7045040978835153,
+            "wire_axial_mm": 0.30573008381403355,
+            "wire_peak": 1672.0341796875,
+            "offaxis_p95_relative_db": -38.18484230691132,
+            "gel_envelope_correlation": 0.9993062385170752,
+            "gel_relative_rms_difference": 0.019071023911237717
+          }
+        }
+      },
+      {
+        "frame": 28,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9784705638885498,
+              0.9990372061729431
+            ],
+            "own_center_real_ncc_median": 0.44042113423347473,
+            "unrelated_pair_real_ncc_median": 0.014371886849403381,
+            "rms_gain_abs_difference_db_median": 0.03306903317570686
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9748035669326782,
+              0.9975081086158752
+            ],
+            "own_center_real_ncc_median": 0.36171674728393555,
+            "unrelated_pair_real_ncc_median": -0.014302784577012062,
+            "rms_gain_abs_difference_db_median": 0.037615470588207245
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7053178120404453,
+            "wire_axial_mm": 0.30594450464615264,
+            "wire_peak": 1672.2537841796875,
+            "offaxis_p95_relative_db": -38.1635655154252,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7095271721482248,
+            "wire_axial_mm": 0.3056565454373015,
+            "wire_peak": 1669.4786376953125,
+            "offaxis_p95_relative_db": -38.05153477327651,
+            "gel_envelope_correlation": 0.9991030047678233,
+            "gel_relative_rms_difference": 0.021638263016939163
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7012139352468318,
+            "wire_axial_mm": 0.3062177025354842,
+            "wire_peak": 1675.1031494140625,
+            "offaxis_p95_relative_db": -38.1748500485884,
+            "gel_envelope_correlation": 0.9990924016776176,
+            "gel_relative_rms_difference": 0.021713746711611748
+          }
+        }
+      },
+      {
+        "frame": 29,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9773001432418823,
+              0.9990445375442505
+            ],
+            "own_center_real_ncc_median": 0.4445172846317291,
+            "unrelated_pair_real_ncc_median": 0.012890251353383064,
+            "rms_gain_abs_difference_db_median": 0.04318036884069443
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9767371773719787,
+              0.9974107146263123
+            ],
+            "own_center_real_ncc_median": 0.3633257746696472,
+            "unrelated_pair_real_ncc_median": -0.016480043530464172,
+            "rms_gain_abs_difference_db_median": 0.04606330767273903
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7080499554196202,
+            "wire_axial_mm": 0.30544759906255337,
+            "wire_peak": 1668.9598388671875,
+            "offaxis_p95_relative_db": -38.04492218834331,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7114581286620607,
+            "wire_axial_mm": 0.305550144268917,
+            "wire_peak": 1667.6246337890625,
+            "offaxis_p95_relative_db": -38.075528075502575,
+            "gel_envelope_correlation": 0.999197645842389,
+            "gel_relative_rms_difference": 0.0204194113612175
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7045622904999871,
+            "wire_axial_mm": 0.30533403158187866,
+            "wire_peak": 1670.3521728515625,
+            "offaxis_p95_relative_db": -37.97856087810649,
+            "gel_envelope_correlation": 0.999201868271026,
+            "gel_relative_rms_difference": 0.02044692263007164
+          }
+        }
+      },
+      {
+        "frame": 30,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786840081214905,
+              0.9990454316139221
+            ],
+            "own_center_real_ncc_median": 0.4427133798599243,
+            "unrelated_pair_real_ncc_median": 0.01467015128582716,
+            "rms_gain_abs_difference_db_median": 0.03780058026313782
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9774468541145325,
+              0.9972261190414429
+            ],
+            "own_center_real_ncc_median": 0.36373966932296753,
+            "unrelated_pair_real_ncc_median": -0.016520792618393898,
+            "rms_gain_abs_difference_db_median": 0.038505326956510544
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7096243148239734,
+            "wire_axial_mm": 0.3060967188615109,
+            "wire_peak": 1669.6407470703125,
+            "offaxis_p95_relative_db": -38.08257527617912,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7097702378836934,
+            "wire_axial_mm": 0.306022948943653,
+            "wire_peak": 1668.997314453125,
+            "offaxis_p95_relative_db": -37.978404481114,
+            "gel_envelope_correlation": 0.9991208238685952,
+            "gel_relative_rms_difference": 0.02146097458899021
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7096094967654092,
+            "wire_axial_mm": 0.30616743518756095,
+            "wire_peak": 1670.2550048828125,
+            "offaxis_p95_relative_db": -38.07041873556089,
+            "gel_envelope_correlation": 0.9991180173165517,
+            "gel_relative_rms_difference": 0.021433811634778976
+          }
+        }
+      },
+      {
+        "frame": 31,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.978037703037262,
+              0.999014675617218
+            ],
+            "own_center_real_ncc_median": 0.43966084718704224,
+            "unrelated_pair_real_ncc_median": 0.012536871246993542,
+            "rms_gain_abs_difference_db_median": 0.03228692710399628
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9775413870811462,
+              0.9973852038383484
+            ],
+            "own_center_real_ncc_median": 0.3583855926990509,
+            "unrelated_pair_real_ncc_median": -0.018737755715847015,
+            "rms_gain_abs_difference_db_median": 0.033754862844944
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.702112679871226,
+            "wire_axial_mm": 0.30588893936230477,
+            "wire_peak": 1672.672119140625,
+            "offaxis_p95_relative_db": -38.24541719489138,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.6999627681305747,
+            "wire_axial_mm": 0.30606716412764357,
+            "wire_peak": 1673.357421875,
+            "offaxis_p95_relative_db": -38.16240860338947,
+            "gel_envelope_correlation": 0.9991730393071104,
+            "gel_relative_rms_difference": 0.020681582391262054
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7042025789045343,
+            "wire_axial_mm": 0.30569656307880777,
+            "wire_peak": 1672.016845703125,
+            "offaxis_p95_relative_db": -38.23029007251736,
+            "gel_envelope_correlation": 0.9991878073439269,
+            "gel_relative_rms_difference": 0.020487230271100998
+          }
+        }
+      },
+      {
+        "frame": 32,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9830015182495118,
+              0.9990459680557251
+            ],
+            "own_center_real_ncc_median": 0.4399341344833374,
+            "unrelated_pair_real_ncc_median": 0.005718850065022707,
+            "rms_gain_abs_difference_db_median": 0.044293731451034546
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9815864443778992,
+              0.9973680377006531
+            ],
+            "own_center_real_ncc_median": 0.35918092727661133,
+            "unrelated_pair_real_ncc_median": -0.0241183340549469,
+            "rms_gain_abs_difference_db_median": 0.03802105039358139
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7032332139519515,
+            "wire_axial_mm": 0.3062755878155059,
+            "wire_peak": 1674.0350341796875,
+            "offaxis_p95_relative_db": -38.23251462832752,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7049831319600315,
+            "wire_axial_mm": 0.30618120844547647,
+            "wire_peak": 1672.6917724609375,
+            "offaxis_p95_relative_db": -38.161494705997704,
+            "gel_envelope_correlation": 0.999049981921087,
+            "gel_relative_rms_difference": 0.022275114431977272
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7015580271299044,
+            "wire_axial_mm": 0.3063624226129953,
+            "wire_peak": 1675.2784423828125,
+            "offaxis_p95_relative_db": -38.25832637903511,
+            "gel_envelope_correlation": 0.9990799445060263,
+            "gel_relative_rms_difference": 0.02188398502767086
+          }
+        }
+      },
+      {
+        "frame": 33,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9870872378349305,
+              0.9989890456199646
+            ],
+            "own_center_real_ncc_median": 0.446735143661499,
+            "unrelated_pair_real_ncc_median": 0.014482134021818638,
+            "rms_gain_abs_difference_db_median": 0.04285883158445358
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9846451878547668,
+              0.9972918629646301
+            ],
+            "own_center_real_ncc_median": 0.35479211807250977,
+            "unrelated_pair_real_ncc_median": -0.014885341748595238,
+            "rms_gain_abs_difference_db_median": 0.0397491492331028
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7034412066523819,
+            "wire_axial_mm": 0.30564735485957684,
+            "wire_peak": 1672.3397216796875,
+            "offaxis_p95_relative_db": -38.13667493960216,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7084069011303069,
+            "wire_axial_mm": 0.3055023413438107,
+            "wire_peak": 1669.0142822265625,
+            "offaxis_p95_relative_db": -38.156493541142645,
+            "gel_envelope_correlation": 0.9992628964890483,
+            "gel_relative_rms_difference": 0.019585875794291496
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.698510994131746,
+            "wire_axial_mm": 0.30577038572385007,
+            "wire_peak": 1675.70849609375,
+            "offaxis_p95_relative_db": -38.13685053165405,
+            "gel_envelope_correlation": 0.9992529688250004,
+            "gel_relative_rms_difference": 0.01969114877283573
+          }
+        }
+      },
+      {
+        "frame": 34,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9795351505279541,
+              0.9990215301513672
+            ],
+            "own_center_real_ncc_median": 0.39590689539909363,
+            "unrelated_pair_real_ncc_median": 0.01204101275652647,
+            "rms_gain_abs_difference_db_median": 0.03382912278175354
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9765858292579651,
+              0.9973944425582886
+            ],
+            "own_center_real_ncc_median": 0.35991916060447693,
+            "unrelated_pair_real_ncc_median": -0.015123507007956505,
+            "rms_gain_abs_difference_db_median": 0.0390746146440506
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7076338827609989,
+            "wire_axial_mm": 0.30571289933644863,
+            "wire_peak": 1674.3564453125,
+            "offaxis_p95_relative_db": -38.07939463890619,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7027509218225085,
+            "wire_axial_mm": 0.30558490982422626,
+            "wire_peak": 1675.2484130859375,
+            "offaxis_p95_relative_db": -38.10383578642614,
+            "gel_envelope_correlation": 0.9989629126429832,
+            "gel_relative_rms_difference": 0.02333146333694458
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7117523069565088,
+            "wire_axial_mm": 0.30585092306137085,
+            "wire_peak": 1673.8763427734375,
+            "offaxis_p95_relative_db": -38.0635211978792,
+            "gel_envelope_correlation": 0.9990235553638265,
+            "gel_relative_rms_difference": 0.022757383063435555
+          }
+        }
+      },
+      {
+        "frame": 35,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9797520279884339,
+              0.9989739060401917
+            ],
+            "own_center_real_ncc_median": 0.44407546520233154,
+            "unrelated_pair_real_ncc_median": 0.012134688906371593,
+            "rms_gain_abs_difference_db_median": 0.043838053941726685
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9768532633781433,
+              0.9974455237388611
+            ],
+            "own_center_real_ncc_median": 0.35985124111175537,
+            "unrelated_pair_real_ncc_median": -0.016807304695248604,
+            "rms_gain_abs_difference_db_median": 0.04063275456428528
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7148991078138325,
+            "wire_axial_mm": 0.3054424478457527,
+            "wire_peak": 1671.567626953125,
+            "offaxis_p95_relative_db": -38.129789830485066,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7145537473261327,
+            "wire_axial_mm": 0.3055101220424348,
+            "wire_peak": 1672.614501953125,
+            "offaxis_p95_relative_db": -38.185725185345376,
+            "gel_envelope_correlation": 0.999117744315511,
+            "gel_relative_rms_difference": 0.02152482606470585
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7152518873604419,
+            "wire_axial_mm": 0.3053695674125976,
+            "wire_peak": 1670.49951171875,
+            "offaxis_p95_relative_db": -37.99428545060597,
+            "gel_envelope_correlation": 0.9991219809223497,
+            "gel_relative_rms_difference": 0.021477261558175087
+          }
+        }
+      },
+      {
+        "frame": 36,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.980169701576233,
+              0.9990293979644775
+            ],
+            "own_center_real_ncc_median": 0.3981689512729645,
+            "unrelated_pair_real_ncc_median": 0.012917342595756054,
+            "rms_gain_abs_difference_db_median": 0.03316153958439827
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786853432655335,
+              0.9974221587181091
+            ],
+            "own_center_real_ncc_median": 0.36083200573921204,
+            "unrelated_pair_real_ncc_median": -0.010576030239462852,
+            "rms_gain_abs_difference_db_median": 0.034193724393844604
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7194935510364835,
+            "wire_axial_mm": 0.30548796974695946,
+            "wire_peak": 1665.427001953125,
+            "offaxis_p95_relative_db": -37.88902499789971,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7202767188159294,
+            "wire_axial_mm": 0.305631596308487,
+            "wire_peak": 1666.3223876953125,
+            "offaxis_p95_relative_db": -37.81245662307803,
+            "gel_envelope_correlation": 0.9991213628321919,
+            "gel_relative_rms_difference": 0.021503347903490067
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7188548308152389,
+            "wire_axial_mm": 0.3053433230290068,
+            "wire_peak": 1664.443115234375,
+            "offaxis_p95_relative_db": -37.681441967993095,
+            "gel_envelope_correlation": 0.9991344306110598,
+            "gel_relative_rms_difference": 0.021265793591737747
+          }
+        }
+      },
+      {
+        "frame": 37,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9763668656349183,
+              0.9989944696426392
+            ],
+            "own_center_real_ncc_median": 0.39110228419303894,
+            "unrelated_pair_real_ncc_median": 0.01188652403652668,
+            "rms_gain_abs_difference_db_median": 0.03218559920787811
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.976806390285492,
+              0.9973621964454651
+            ],
+            "own_center_real_ncc_median": 0.3594018220901489,
+            "unrelated_pair_real_ncc_median": -0.012389123439788818,
+            "rms_gain_abs_difference_db_median": 0.03502032533288002
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7148010898381445,
+            "wire_axial_mm": 0.3054724679543419,
+            "wire_peak": 1669.360107421875,
+            "offaxis_p95_relative_db": -38.05817309632458,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7164036576062984,
+            "wire_axial_mm": 0.30538516319715114,
+            "wire_peak": 1668.2347412109375,
+            "offaxis_p95_relative_db": -38.14839451811622,
+            "gel_envelope_correlation": 0.9991131781016545,
+            "gel_relative_rms_difference": 0.021549368277192116
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7131535287659876,
+            "wire_axial_mm": 0.30554612324788266,
+            "wire_peak": 1670.5347900390625,
+            "offaxis_p95_relative_db": -38.001106354682534,
+            "gel_envelope_correlation": 0.9991309593311096,
+            "gel_relative_rms_difference": 0.02146318554878235
+          }
+        }
+      },
+      {
+        "frame": 38,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9872998714447021,
+              0.999050498008728
+            ],
+            "own_center_real_ncc_median": 0.4424434304237366,
+            "unrelated_pair_real_ncc_median": 0.010547978803515434,
+            "rms_gain_abs_difference_db_median": 0.041973359882831573
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9846130013465881,
+              0.997322142124176
+            ],
+            "own_center_real_ncc_median": 0.3532451391220093,
+            "unrelated_pair_real_ncc_median": -0.01938408613204956,
+            "rms_gain_abs_difference_db_median": 0.050926536321640015
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7045794908816971,
+            "wire_axial_mm": 0.3057180115809821,
+            "wire_peak": 1671.263916015625,
+            "offaxis_p95_relative_db": -38.16126821048162,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7099259702058913,
+            "wire_axial_mm": 0.3055554857620848,
+            "wire_peak": 1667.67919921875,
+            "offaxis_p95_relative_db": -38.14371903052607,
+            "gel_envelope_correlation": 0.9992349026792056,
+            "gel_relative_rms_difference": 0.020090196281671524
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.6992303012655305,
+            "wire_axial_mm": 0.30585042559183506,
+            "wire_peak": 1674.90771484375,
+            "offaxis_p95_relative_db": -38.172541892049125,
+            "gel_envelope_correlation": 0.9992295098798215,
+            "gel_relative_rms_difference": 0.0201053936034441
+          }
+        }
+      },
+      {
+        "frame": 39,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9785074591636658,
+              0.999028742313385
+            ],
+            "own_center_real_ncc_median": 0.3926774263381958,
+            "unrelated_pair_real_ncc_median": 0.012473697774112225,
+            "rms_gain_abs_difference_db_median": 0.040525685995817184
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.976612675189972,
+              0.9972890615463257
+            ],
+            "own_center_real_ncc_median": 0.3603311777114868,
+            "unrelated_pair_real_ncc_median": -0.013581146486103535,
+            "rms_gain_abs_difference_db_median": 0.05735865235328674
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7090513061445467,
+            "wire_axial_mm": 0.3056007944620589,
+            "wire_peak": 1676.88037109375,
+            "offaxis_p95_relative_db": -38.166931060926046,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.706128353109724,
+            "wire_axial_mm": 0.3058366637963559,
+            "wire_peak": 1678.1112060546875,
+            "offaxis_p95_relative_db": -38.25012924447212,
+            "gel_envelope_correlation": 0.9990391415986021,
+            "gel_relative_rms_difference": 0.02245541848242283
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7109207513813764,
+            "wire_axial_mm": 0.30536778844320267,
+            "wire_peak": 1676.0255126953125,
+            "offaxis_p95_relative_db": -37.83758852625176,
+            "gel_envelope_correlation": 0.9991258430234726,
+            "gel_relative_rms_difference": 0.021481987088918686
+          }
+        }
+      },
+      {
+        "frame": 40,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9801307201385498,
+              0.9989655613899231
+            ],
+            "own_center_real_ncc_median": 0.44180330634117126,
+            "unrelated_pair_real_ncc_median": 0.009275398217141628,
+            "rms_gain_abs_difference_db_median": 0.03422311693429947
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9770441293716431,
+              0.9973716139793396
+            ],
+            "own_center_real_ncc_median": 0.36066120862960815,
+            "unrelated_pair_real_ncc_median": -0.007626269478350878,
+            "rms_gain_abs_difference_db_median": 0.03331277146935463
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7138219945705826,
+            "wire_axial_mm": 0.30525237092605195,
+            "wire_peak": 1668.1258544921875,
+            "offaxis_p95_relative_db": -38.269268823001184,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7173421712448937,
+            "wire_axial_mm": 0.3052474902226372,
+            "wire_peak": 1665.914306640625,
+            "offaxis_p95_relative_db": -38.24351775928979,
+            "gel_envelope_correlation": 0.9991176766579147,
+            "gel_relative_rms_difference": 0.021525677293539047
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7110072014710049,
+            "wire_axial_mm": 0.30528699663969405,
+            "wire_peak": 1670.1800537109375,
+            "offaxis_p95_relative_db": -38.15223153927848,
+            "gel_envelope_correlation": 0.9990101385075184,
+            "gel_relative_rms_difference": 0.022736281156539917
+          }
+        }
+      },
+      {
+        "frame": 41,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9792335987091064,
+              0.999011218547821
+            ],
+            "own_center_real_ncc_median": 0.44061151146888733,
+            "unrelated_pair_real_ncc_median": 0.008260278962552547,
+            "rms_gain_abs_difference_db_median": 0.038670025765895844
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9776852488517761,
+              0.9970971345901489
+            ],
+            "own_center_real_ncc_median": 0.3615758419036865,
+            "unrelated_pair_real_ncc_median": -0.014870383776724339,
+            "rms_gain_abs_difference_db_median": 0.03797648102045059
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7126426802804811,
+            "wire_axial_mm": 0.3057889938354492,
+            "wire_peak": 1666.73095703125,
+            "offaxis_p95_relative_db": -38.147195837377225,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7113883134264183,
+            "wire_axial_mm": 0.30568949763591746,
+            "wire_peak": 1667.109619140625,
+            "offaxis_p95_relative_db": -38.00389523016875,
+            "gel_envelope_correlation": 0.9990517963580668,
+            "gel_relative_rms_difference": 0.02229488454759121
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7140251489785974,
+            "wire_axial_mm": 0.3058844392116278,
+            "wire_peak": 1666.2862548828125,
+            "offaxis_p95_relative_db": -38.21723732419586,
+            "gel_envelope_correlation": 0.9990475524423147,
+            "gel_relative_rms_difference": 0.022250376641750336
+          }
+        }
+      },
+      {
+        "frame": 42,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.981276023387909,
+              0.9990574717521667
+            ],
+            "own_center_real_ncc_median": 0.4427119493484497,
+            "unrelated_pair_real_ncc_median": 0.016318293288350105,
+            "rms_gain_abs_difference_db_median": 0.03368853032588959
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9771177530288696,
+              0.997268557548523
+            ],
+            "own_center_real_ncc_median": 0.3593679964542389,
+            "unrelated_pair_real_ncc_median": -0.022686144337058067,
+            "rms_gain_abs_difference_db_median": 0.03602369502186775
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7062853901432085,
+            "wire_axial_mm": 0.3058229845303764,
+            "wire_peak": 1673.080810546875,
+            "offaxis_p95_relative_db": -37.97252817463165,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7036307402528224,
+            "wire_axial_mm": 0.3057915224478833,
+            "wire_peak": 1673.4669189453125,
+            "offaxis_p95_relative_db": -37.923042907078035,
+            "gel_envelope_correlation": 0.999088388725577,
+            "gel_relative_rms_difference": 0.021803246811032295
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7088862376717395,
+            "wire_axial_mm": 0.30585380471669765,
+            "wire_peak": 1672.75732421875,
+            "offaxis_p95_relative_db": -37.98788697133828,
+            "gel_envelope_correlation": 0.9991014156124606,
+            "gel_relative_rms_difference": 0.021698597818613052
+          }
+        }
+      },
+      {
+        "frame": 43,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9763867735862732,
+              0.9988507628440857
+            ],
+            "own_center_real_ncc_median": 0.39453187584877014,
+            "unrelated_pair_real_ncc_median": 0.011773424223065376,
+            "rms_gain_abs_difference_db_median": 0.033646952360868454
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9764013886451721,
+              0.9972695708274841
+            ],
+            "own_center_real_ncc_median": 0.3598615229129791,
+            "unrelated_pair_real_ncc_median": -0.008052744902670383,
+            "rms_gain_abs_difference_db_median": 0.04600553959608078
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7142538749254639,
+            "wire_axial_mm": 0.3051102551130178,
+            "wire_peak": 1665.7752685546875,
+            "offaxis_p95_relative_db": -38.15409999566481,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7150212735510761,
+            "wire_axial_mm": 0.3050690339161797,
+            "wire_peak": 1664.7291259765625,
+            "offaxis_p95_relative_db": -38.078471927262335,
+            "gel_envelope_correlation": 0.999226403640511,
+            "gel_relative_rms_difference": 0.020101528614759445
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7134164081743102,
+            "wire_axial_mm": 0.30514389964250554,
+            "wire_peak": 1666.86279296875,
+            "offaxis_p95_relative_db": -38.08242996882779,
+            "gel_envelope_correlation": 0.9992337984423455,
+            "gel_relative_rms_difference": 0.020097268745303154
+          }
+        }
+      },
+      {
+        "frame": 44,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9793224453926086,
+              0.9989506602287292
+            ],
+            "own_center_real_ncc_median": 0.3940674662590027,
+            "unrelated_pair_real_ncc_median": 0.014391345903277397,
+            "rms_gain_abs_difference_db_median": 0.03694785758852959
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9769640803337097,
+              0.997465193271637
+            ],
+            "own_center_real_ncc_median": 0.3562120199203491,
+            "unrelated_pair_real_ncc_median": -0.01586058735847473,
+            "rms_gain_abs_difference_db_median": 0.03974433243274689
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7130787957173099,
+            "wire_axial_mm": 0.30566984415054677,
+            "wire_peak": 1674.291748046875,
+            "offaxis_p95_relative_db": -38.147320665004884,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7126371814654395,
+            "wire_axial_mm": 0.3056257642232474,
+            "wire_peak": 1674.9422607421875,
+            "offaxis_p95_relative_db": -38.1677885371235,
+            "gel_envelope_correlation": 0.9990855711508062,
+            "gel_relative_rms_difference": 0.02196289412677288
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.713617785045731,
+            "wire_axial_mm": 0.30570455927115603,
+            "wire_peak": 1673.536376953125,
+            "offaxis_p95_relative_db": -37.90292066583441,
+            "gel_envelope_correlation": 0.9991057539756109,
+            "gel_relative_rms_difference": 0.021665431559085846
+          }
+        }
+      },
+      {
+        "frame": 45,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9857259273529053,
+              0.9989862442016602
+            ],
+            "own_center_real_ncc_median": 0.4438990652561188,
+            "unrelated_pair_real_ncc_median": 0.010598104447126389,
+            "rms_gain_abs_difference_db_median": 0.034759409725666046
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9819716930389404,
+              0.9973151683807373
+            ],
+            "own_center_real_ncc_median": 0.36033228039741516,
+            "unrelated_pair_real_ncc_median": -0.015118780545890331,
+            "rms_gain_abs_difference_db_median": 0.04931848496198654
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7105078367659652,
+            "wire_axial_mm": 0.3058117009126242,
+            "wire_peak": 1667.732666015625,
+            "offaxis_p95_relative_db": -38.1614933967581,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7084712583858204,
+            "wire_axial_mm": 0.3058497470158805,
+            "wire_peak": 1667.46630859375,
+            "offaxis_p95_relative_db": -38.08172227893395,
+            "gel_envelope_correlation": 0.9992649376901638,
+            "gel_relative_rms_difference": 0.019539648666977882
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7126304031564614,
+            "wire_axial_mm": 0.3057517546873818,
+            "wire_peak": 1668.0389404296875,
+            "offaxis_p95_relative_db": -38.23337926386158,
+            "gel_envelope_correlation": 0.9992597924466629,
+            "gel_relative_rms_difference": 0.019614262506365776
+          }
+        }
+      },
+      {
+        "frame": 46,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9794764041900634,
+              0.9989868402481079
+            ],
+            "own_center_real_ncc_median": 0.3909436762332916,
+            "unrelated_pair_real_ncc_median": 0.012824260629713535,
+            "rms_gain_abs_difference_db_median": 0.03726346045732498
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.978265380859375,
+              0.9973697662353516
+            ],
+            "own_center_real_ncc_median": 0.3536379337310791,
+            "unrelated_pair_real_ncc_median": -0.0123450243845582,
+            "rms_gain_abs_difference_db_median": 0.03400755673646927
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7150705509747421,
+            "wire_axial_mm": 0.3053801013873212,
+            "wire_peak": 1669.33740234375,
+            "offaxis_p95_relative_db": -37.99091487754089,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7123693926976249,
+            "wire_axial_mm": 0.30531413967792886,
+            "wire_peak": 1671.0670166015625,
+            "offaxis_p95_relative_db": -38.02243742543161,
+            "gel_envelope_correlation": 0.999187851893361,
+            "gel_relative_rms_difference": 0.02066989801824093
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7178189525237424,
+            "wire_axial_mm": 0.3054404877699355,
+            "wire_peak": 1667.658935546875,
+            "offaxis_p95_relative_db": -37.86491625557374,
+            "gel_envelope_correlation": 0.99918375765446,
+            "gel_relative_rms_difference": 0.02068137936294079
+          }
+        }
+      },
+      {
+        "frame": 47,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786195874214172,
+              0.9989607334136963
+            ],
+            "own_center_real_ncc_median": 0.44318756461143494,
+            "unrelated_pair_real_ncc_median": 0.014907918870449066,
+            "rms_gain_abs_difference_db_median": 0.03663070872426033
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9770573139190674,
+              0.9973023533821106
+            ],
+            "own_center_real_ncc_median": 0.35888832807540894,
+            "unrelated_pair_real_ncc_median": -0.017386730760335922,
+            "rms_gain_abs_difference_db_median": 0.04634147137403488
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7066747766847767,
+            "wire_axial_mm": 0.30566915640464387,
+            "wire_peak": 1670.72802734375,
+            "offaxis_p95_relative_db": -38.0733984405896,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7078063594034056,
+            "wire_axial_mm": 0.30555359446085717,
+            "wire_peak": 1668.941162109375,
+            "offaxis_p95_relative_db": -38.018327610141995,
+            "gel_envelope_correlation": 0.999076724803974,
+            "gel_relative_rms_difference": 0.021942682564258575
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7056173905730221,
+            "wire_axial_mm": 0.30578738680252826,
+            "wire_peak": 1672.4779052734375,
+            "offaxis_p95_relative_db": -37.98874812931797,
+            "gel_envelope_correlation": 0.9990895969453116,
+            "gel_relative_rms_difference": 0.021884199231863022
+          }
+        }
+      }
+    ]
+  },
+  "three-rx-repeat": {
+    "rf_sha256": "847a22041b5036a0351401ad877bd81106f63778f57b3bd6a6f6b214deddfbab",
+    "path": "bench_runs\\three-position-rx\\three-rx-repeat.rf.npz",
+    "n_frames": 48,
+    "trials": [
+      {
+        "frame": 0,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9782068729400635,
+              0.998967170715332
+            ],
+            "own_center_real_ncc_median": 0.39685848355293274,
+            "unrelated_pair_real_ncc_median": 0.013485130853950977,
+            "rms_gain_abs_difference_db_median": 0.03380024433135986
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9763337254524231,
+              0.9973143935203552
+            ],
+            "own_center_real_ncc_median": 0.35999369621276855,
+            "unrelated_pair_real_ncc_median": -0.011264070868492126,
+            "rms_gain_abs_difference_db_median": 0.046028368175029755
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7164671413886976,
+            "wire_axial_mm": 0.3058913350105321,
+            "wire_peak": 1667.126953125,
+            "offaxis_p95_relative_db": -37.952025262403595,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7173925287161853,
+            "wire_axial_mm": 0.30585019175822836,
+            "wire_peak": 1667.8558349609375,
+            "offaxis_p95_relative_db": -38.11228714725747,
+            "gel_envelope_correlation": 0.9991089468613219,
+            "gel_relative_rms_difference": 0.021567674353718758
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7157340187292804,
+            "wire_axial_mm": 0.30592044729452894,
+            "wire_peak": 1666.328369140625,
+            "offaxis_p95_relative_db": -37.68210973043747,
+            "gel_envelope_correlation": 0.9991360280682234,
+            "gel_relative_rms_difference": 0.021372834220528603
+          }
+        }
+      },
+      {
+        "frame": 1,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9825555920600891,
+              0.9989732503890991
+            ],
+            "own_center_real_ncc_median": 0.44384822249412537,
+            "unrelated_pair_real_ncc_median": 0.004498681984841824,
+            "rms_gain_abs_difference_db_median": 0.03785483166575432
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9812788486480712,
+              0.9974817037582397
+            ],
+            "own_center_real_ncc_median": 0.35767993330955505,
+            "unrelated_pair_real_ncc_median": -0.014126257039606571,
+            "rms_gain_abs_difference_db_median": 0.03677836433053017
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7106090173698363,
+            "wire_axial_mm": 0.30566216661379997,
+            "wire_peak": 1668.7061767578125,
+            "offaxis_p95_relative_db": -38.20211048807845,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.712283259400952,
+            "wire_axial_mm": 0.30543819299111163,
+            "wire_peak": 1667.5830078125,
+            "offaxis_p95_relative_db": -38.02380844043326,
+            "gel_envelope_correlation": 0.9991844927326591,
+            "gel_relative_rms_difference": 0.020730936899781227
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7090114999849035,
+            "wire_axial_mm": 0.30587636736722956,
+            "wire_peak": 1669.907470703125,
+            "offaxis_p95_relative_db": -38.23351919770399,
+            "gel_envelope_correlation": 0.9991733342159255,
+            "gel_relative_rms_difference": 0.02075488306581974
+          }
+        }
+      },
+      {
+        "frame": 2,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9788963317871093,
+              0.9989771246910095
+            ],
+            "own_center_real_ncc_median": 0.44149354100227356,
+            "unrelated_pair_real_ncc_median": 0.011492324061691761,
+            "rms_gain_abs_difference_db_median": 0.04403942823410034
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9766054749488831,
+              0.9973889589309692
+            ],
+            "own_center_real_ncc_median": 0.35729852318763733,
+            "unrelated_pair_real_ncc_median": -0.015583643689751625,
+            "rms_gain_abs_difference_db_median": 0.04941629618406296
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7096951701320107,
+            "wire_axial_mm": 0.30599731665391516,
+            "wire_peak": 1669.8653564453125,
+            "offaxis_p95_relative_db": -38.088625852192095,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7130144820190367,
+            "wire_axial_mm": 0.3058022925486945,
+            "wire_peak": 1667.9552001953125,
+            "offaxis_p95_relative_db": -38.006362836396505,
+            "gel_envelope_correlation": 0.9992116421462339,
+            "gel_relative_rms_difference": 0.02029336802661419
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7065129685573825,
+            "wire_axial_mm": 0.3061781892409705,
+            "wire_peak": 1671.849365234375,
+            "offaxis_p95_relative_db": -38.1276859760192,
+            "gel_envelope_correlation": 0.9992044770306908,
+            "gel_relative_rms_difference": 0.020320380106568336
+          }
+        }
+      },
+      {
+        "frame": 3,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9781683564186097,
+              0.9990280866622925
+            ],
+            "own_center_real_ncc_median": 0.4407093822956085,
+            "unrelated_pair_real_ncc_median": 0.01270655170083046,
+            "rms_gain_abs_difference_db_median": 0.03719810023903847
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9764926791191101,
+              0.9974009394645691
+            ],
+            "own_center_real_ncc_median": 0.3596210479736328,
+            "unrelated_pair_real_ncc_median": -0.015962878242135048,
+            "rms_gain_abs_difference_db_median": 0.0518292598426342
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7114497042046117,
+            "wire_axial_mm": 0.3058653817727013,
+            "wire_peak": 1668.3900146484375,
+            "offaxis_p95_relative_db": -38.062970382209606,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7148358704378943,
+            "wire_axial_mm": 0.30566057333579266,
+            "wire_peak": 1666.377685546875,
+            "offaxis_p95_relative_db": -37.96306818636094,
+            "gel_envelope_correlation": 0.9992331029946716,
+            "gel_relative_rms_difference": 0.020046096295118332
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7081684096214835,
+            "wire_axial_mm": 0.3060536934779279,
+            "wire_peak": 1670.5006103515625,
+            "offaxis_p95_relative_db": -38.075296032719116,
+            "gel_envelope_correlation": 0.9992299145898519,
+            "gel_relative_rms_difference": 0.020022140815854073
+          }
+        }
+      },
+      {
+        "frame": 4,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9806901216506958,
+              0.9990728497505188
+            ],
+            "own_center_real_ncc_median": 0.44249430298805237,
+            "unrelated_pair_real_ncc_median": 0.013435836881399155,
+            "rms_gain_abs_difference_db_median": 0.03579837828874588
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9780905961990356,
+              0.9974583983421326
+            ],
+            "own_center_real_ncc_median": 0.36153602600097656,
+            "unrelated_pair_real_ncc_median": -0.024135686457157135,
+            "rms_gain_abs_difference_db_median": 0.0487082302570343
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7077414880578308,
+            "wire_axial_mm": 0.3053348041497763,
+            "wire_peak": 1668.1092529296875,
+            "offaxis_p95_relative_db": -38.02712025696372,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7092960673885824,
+            "wire_axial_mm": 0.3052918612957036,
+            "wire_peak": 1667.8377685546875,
+            "offaxis_p95_relative_db": -38.00183449967663,
+            "gel_envelope_correlation": 0.9992529233465386,
+            "gel_relative_rms_difference": 0.019755421206355095
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7062229187442677,
+            "wire_axial_mm": 0.3053679328698422,
+            "wire_peak": 1668.316162109375,
+            "offaxis_p95_relative_db": -38.003253047423875,
+            "gel_envelope_correlation": 0.9992637950089275,
+            "gel_relative_rms_difference": 0.019675856456160545
+          }
+        }
+      },
+      {
+        "frame": 5,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9783353805541992,
+              0.9989780783653259
+            ],
+            "own_center_real_ncc_median": 0.39676713943481445,
+            "unrelated_pair_real_ncc_median": 0.008120854385197163,
+            "rms_gain_abs_difference_db_median": 0.03128926455974579
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9754611253738403,
+              0.997419536113739
+            ],
+            "own_center_real_ncc_median": 0.35617130994796753,
+            "unrelated_pair_real_ncc_median": -0.015077166259288788,
+            "rms_gain_abs_difference_db_median": 0.04473669454455376
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7171288449317188,
+            "wire_axial_mm": 0.3055726381448629,
+            "wire_peak": 1666.545654296875,
+            "offaxis_p95_relative_db": -38.02918054872944,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7179764853073971,
+            "wire_axial_mm": 0.3051608090217286,
+            "wire_peak": 1664.971435546875,
+            "offaxis_p95_relative_db": -38.19100135163605,
+            "gel_envelope_correlation": 0.9990995767200752,
+            "gel_relative_rms_difference": 0.021706070750951767
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7170706220830836,
+            "wire_axial_mm": 0.30601288263614634,
+            "wire_peak": 1667.97509765625,
+            "offaxis_p95_relative_db": -37.765731741167045,
+            "gel_envelope_correlation": 0.9989855428274986,
+            "gel_relative_rms_difference": 0.023013245314359665
+          }
+        }
+      },
+      {
+        "frame": 6,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9979218244552612,
+              0.9991536736488342
+            ],
+            "own_center_real_ncc_median": 0.4057638645172119,
+            "unrelated_pair_real_ncc_median": 0.010594846680760384,
+            "rms_gain_abs_difference_db_median": 0.042898766696453094
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.995810616016388,
+              0.997479259967804
+            ],
+            "own_center_real_ncc_median": 0.3608456552028656,
+            "unrelated_pair_real_ncc_median": -0.014954019337892532,
+            "rms_gain_abs_difference_db_median": 0.04236353933811188
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7190875777831416,
+            "wire_axial_mm": 0.3052680217302779,
+            "wire_peak": 1668.118896484375,
+            "offaxis_p95_relative_db": -37.93608735257501,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7179012155303561,
+            "wire_axial_mm": 0.30518771822636026,
+            "wire_peak": 1668.837646484375,
+            "offaxis_p95_relative_db": -38.05130918788973,
+            "gel_envelope_correlation": 0.9991664847854627,
+            "gel_relative_rms_difference": 0.020928649231791496
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7202627561413297,
+            "wire_axial_mm": 0.3053489602529105,
+            "wire_peak": 1667.4453125,
+            "offaxis_p95_relative_db": -37.70906747001473,
+            "gel_envelope_correlation": 0.9991399579482632,
+            "gel_relative_rms_difference": 0.021339766681194305
+          }
+        }
+      },
+      {
+        "frame": 7,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9829952001571656,
+              0.9990192651748657
+            ],
+            "own_center_real_ncc_median": 0.4408046305179596,
+            "unrelated_pair_real_ncc_median": 0.014362551271915436,
+            "rms_gain_abs_difference_db_median": 0.0437631756067276
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9783678889274597,
+              0.9973446130752563
+            ],
+            "own_center_real_ncc_median": 0.3533148765563965,
+            "unrelated_pair_real_ncc_median": -0.015423910692334175,
+            "rms_gain_abs_difference_db_median": 0.04208270087838173
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7020667564983527,
+            "wire_axial_mm": 0.30575583760555247,
+            "wire_peak": 1674.376708984375,
+            "offaxis_p95_relative_db": -38.204771901688886,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7020957432687256,
+            "wire_axial_mm": 0.3056301543345832,
+            "wire_peak": 1673.596435546875,
+            "offaxis_p95_relative_db": -38.197632129358524,
+            "gel_envelope_correlation": 0.9989629947626072,
+            "gel_relative_rms_difference": 0.023280730471014977
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7020621422964768,
+            "wire_axial_mm": 0.30586087245207594,
+            "wire_peak": 1675.141357421875,
+            "offaxis_p95_relative_db": -38.14212255715968,
+            "gel_envelope_correlation": 0.9989845569460934,
+            "gel_relative_rms_difference": 0.023025084286928177
+          }
+        }
+      },
+      {
+        "frame": 8,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9777758479118347,
+              0.9989977478981018
+            ],
+            "own_center_real_ncc_median": 0.44208332896232605,
+            "unrelated_pair_real_ncc_median": 0.011331071145832539,
+            "rms_gain_abs_difference_db_median": 0.029288560152053833
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9766221642494202,
+              0.9973740577697754
+            ],
+            "own_center_real_ncc_median": 0.3600943684577942,
+            "unrelated_pair_real_ncc_median": -0.022838976234197617,
+            "rms_gain_abs_difference_db_median": 0.04958553612232208
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7023851670897896,
+            "wire_axial_mm": 0.3064779960192183,
+            "wire_peak": 1673.575439453125,
+            "offaxis_p95_relative_db": -38.16443968529316,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7023561947907366,
+            "wire_axial_mm": 0.30640133986106477,
+            "wire_peak": 1673.73291015625,
+            "offaxis_p95_relative_db": -38.06009648070464,
+            "gel_envelope_correlation": 0.9990894255515307,
+            "gel_relative_rms_difference": 0.02178674191236496
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7023893869840154,
+            "wire_axial_mm": 0.30654377203721594,
+            "wire_peak": 1673.4696044921875,
+            "offaxis_p95_relative_db": -38.27486658724948,
+            "gel_envelope_correlation": 0.999097140336327,
+            "gel_relative_rms_difference": 0.021657096222043037
+          }
+        }
+      },
+      {
+        "frame": 9,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9817291021347045,
+              0.9990288615226746
+            ],
+            "own_center_real_ncc_median": 0.4397648870944977,
+            "unrelated_pair_real_ncc_median": 0.01008113007992506,
+            "rms_gain_abs_difference_db_median": 0.043825045228004456
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9796782374382019,
+              0.997384250164032
+            ],
+            "own_center_real_ncc_median": 0.3622048795223236,
+            "unrelated_pair_real_ncc_median": -0.018712317571043968,
+            "rms_gain_abs_difference_db_median": 0.037315454334020615
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.712131715164732,
+            "wire_axial_mm": 0.30570140710243976,
+            "wire_peak": 1668.140869140625,
+            "offaxis_p95_relative_db": -37.934677817655334,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7144300708403926,
+            "wire_axial_mm": 0.3057013497902794,
+            "wire_peak": 1667.2701416015625,
+            "offaxis_p95_relative_db": -37.91070867934018,
+            "gel_envelope_correlation": 0.9992693514480642,
+            "gel_relative_rms_difference": 0.0195233803242445
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7096500774988732,
+            "wire_axial_mm": 0.3056942109878271,
+            "wire_peak": 1669.1004638671875,
+            "offaxis_p95_relative_db": -37.901796681642175,
+            "gel_envelope_correlation": 0.9992864530198905,
+            "gel_relative_rms_difference": 0.019421912729740143
+          }
+        }
+      },
+      {
+        "frame": 10,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.979631769657135,
+              0.9991093277931213
+            ],
+            "own_center_real_ncc_median": 0.38652023673057556,
+            "unrelated_pair_real_ncc_median": 0.004420115612447262,
+            "rms_gain_abs_difference_db_median": 0.04542887583374977
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9791119694709778,
+              0.9973635673522949
+            ],
+            "own_center_real_ncc_median": 0.3589446246623993,
+            "unrelated_pair_real_ncc_median": -0.014590016566216946,
+            "rms_gain_abs_difference_db_median": 0.044699255377054214
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.71780422559151,
+            "wire_axial_mm": 0.30535875146205527,
+            "wire_peak": 1666.413330078125,
+            "offaxis_p95_relative_db": -37.98307132256141,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7188484485332753,
+            "wire_axial_mm": 0.30527709997617336,
+            "wire_peak": 1664.9248046875,
+            "offaxis_p95_relative_db": -37.975401435927225,
+            "gel_envelope_correlation": 0.9990830741280633,
+            "gel_relative_rms_difference": 0.02196875959634781
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7175840830716922,
+            "wire_axial_mm": 0.3054711887469672,
+            "wire_peak": 1667.605224609375,
+            "offaxis_p95_relative_db": -37.96912633478877,
+            "gel_envelope_correlation": 0.9989945720228501,
+            "gel_relative_rms_difference": 0.022947577759623528
+          }
+        }
+      },
+      {
+        "frame": 11,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9785558104515075,
+              0.9991068243980408
+            ],
+            "own_center_real_ncc_median": 0.39864426851272583,
+            "unrelated_pair_real_ncc_median": 0.009608553722500801,
+            "rms_gain_abs_difference_db_median": 0.030916206538677216
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9773463249206543,
+              0.9972704648971558
+            ],
+            "own_center_real_ncc_median": 0.35834041237831116,
+            "unrelated_pair_real_ncc_median": -0.015310421586036682,
+            "rms_gain_abs_difference_db_median": 0.03328419104218483
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7182676471196661,
+            "wire_axial_mm": 0.3054701983928716,
+            "wire_peak": 1665.933837890625,
+            "offaxis_p95_relative_db": -38.095373151080935,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7149054405207791,
+            "wire_axial_mm": 0.30543105189617137,
+            "wire_peak": 1668.528076171875,
+            "offaxis_p95_relative_db": -38.1192769532026,
+            "gel_envelope_correlation": 0.9991114748950097,
+            "gel_relative_rms_difference": 0.02154681831598282
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7217102896135559,
+            "wire_axial_mm": 0.30550499145801524,
+            "wire_peak": 1663.2789306640625,
+            "offaxis_p95_relative_db": -37.86972062675246,
+            "gel_envelope_correlation": 0.9991342045964092,
+            "gel_relative_rms_difference": 0.021288489922881126
+          }
+        }
+      },
+      {
+        "frame": 12,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9870725989341735,
+              0.9990676045417786
+            ],
+            "own_center_real_ncc_median": 0.44129204750061035,
+            "unrelated_pair_real_ncc_median": 0.015168407000601292,
+            "rms_gain_abs_difference_db_median": 0.036875586956739426
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9819364666938781,
+              0.9975355267524719
+            ],
+            "own_center_real_ncc_median": 0.3586736023426056,
+            "unrelated_pair_real_ncc_median": -0.015739865601062775,
+            "rms_gain_abs_difference_db_median": 0.052758120000362396
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.713180472644473,
+            "wire_axial_mm": 0.3057669080220755,
+            "wire_peak": 1672.21044921875,
+            "offaxis_p95_relative_db": -37.95517685077974,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7068413673685119,
+            "wire_axial_mm": 0.30589164220369724,
+            "wire_peak": 1674.8577880859375,
+            "offaxis_p95_relative_db": -38.060562996323725,
+            "gel_envelope_correlation": 0.9991429549832566,
+            "gel_relative_rms_difference": 0.021220557391643524
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7184957546683433,
+            "wire_axial_mm": 0.3056506675023307,
+            "wire_peak": 1669.928466796875,
+            "offaxis_p95_relative_db": -37.83889787080443,
+            "gel_envelope_correlation": 0.99921653472629,
+            "gel_relative_rms_difference": 0.020309114828705788
+          }
+        }
+      },
+      {
+        "frame": 13,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9809071540832519,
+              0.9989883899688721
+            ],
+            "own_center_real_ncc_median": 0.4439321756362915,
+            "unrelated_pair_real_ncc_median": 0.01698422245681286,
+            "rms_gain_abs_difference_db_median": 0.04888264462351799
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.978990375995636,
+              0.9973843097686768
+            ],
+            "own_center_real_ncc_median": 0.3573090732097626,
+            "unrelated_pair_real_ncc_median": -0.013581948354840279,
+            "rms_gain_abs_difference_db_median": 0.045445382595062256
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7029686077282953,
+            "wire_axial_mm": 0.30588554189755257,
+            "wire_peak": 1673.2540283203125,
+            "offaxis_p95_relative_db": -38.01740492412176,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7002997438494949,
+            "wire_axial_mm": 0.30584315611766044,
+            "wire_peak": 1674.5638427734375,
+            "offaxis_p95_relative_db": -37.99872440386095,
+            "gel_envelope_correlation": 0.9992131075682651,
+            "gel_relative_rms_difference": 0.020301014184951782
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7056850292361672,
+            "wire_axial_mm": 0.3059297226942519,
+            "wire_peak": 1671.9180908203125,
+            "offaxis_p95_relative_db": -38.002607055629774,
+            "gel_envelope_correlation": 0.9992084517263734,
+            "gel_relative_rms_difference": 0.020356932654976845
+          }
+        }
+      },
+      {
+        "frame": 14,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.979396402835846,
+              0.9990411400794983
+            ],
+            "own_center_real_ncc_median": 0.44161173701286316,
+            "unrelated_pair_real_ncc_median": 0.01377248577773571,
+            "rms_gain_abs_difference_db_median": 0.040005095303058624
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.97776939868927,
+              0.9973373413085938
+            ],
+            "own_center_real_ncc_median": 0.35939493775367737,
+            "unrelated_pair_real_ncc_median": -0.01781289279460907,
+            "rms_gain_abs_difference_db_median": 0.038894157856702805
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7149422759046893,
+            "wire_axial_mm": 0.30532939846699136,
+            "wire_peak": 1672.0279541015625,
+            "offaxis_p95_relative_db": -38.14637437255587,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7148488966318247,
+            "wire_axial_mm": 0.3054302724508169,
+            "wire_peak": 1672.8555908203125,
+            "offaxis_p95_relative_db": -38.17509984613009,
+            "gel_envelope_correlation": 0.9990953288600394,
+            "gel_relative_rms_difference": 0.021824894472956657
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7150255474620115,
+            "wire_axial_mm": 0.3052212320841292,
+            "wire_peak": 1671.18798828125,
+            "offaxis_p95_relative_db": -37.97348838520451,
+            "gel_envelope_correlation": 0.9990982761940085,
+            "gel_relative_rms_difference": 0.02186260186135769
+          }
+        }
+      },
+      {
+        "frame": 15,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9782981991767883,
+              0.9990144371986389
+            ],
+            "own_center_real_ncc_median": 0.40477678179740906,
+            "unrelated_pair_real_ncc_median": 0.014487769454717636,
+            "rms_gain_abs_difference_db_median": 0.034078724682331085
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9772046566009521,
+              0.9973295331001282
+            ],
+            "own_center_real_ncc_median": 0.3575088083744049,
+            "unrelated_pair_real_ncc_median": -0.01382952369749546,
+            "rms_gain_abs_difference_db_median": 0.05308591574430466
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7188335270262656,
+            "wire_axial_mm": 0.30542253301693734,
+            "wire_peak": 1665.36962890625,
+            "offaxis_p95_relative_db": -38.180887194218954,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7165470719337437,
+            "wire_axial_mm": 0.30552753347616957,
+            "wire_peak": 1666.9095458984375,
+            "offaxis_p95_relative_db": -38.12220830241773,
+            "gel_envelope_correlation": 0.9991329002829324,
+            "gel_relative_rms_difference": 0.02138121984899044
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7218334528689174,
+            "wire_axial_mm": 0.3053503449146575,
+            "wire_peak": 1663.633544921875,
+            "offaxis_p95_relative_db": -37.991339176775,
+            "gel_envelope_correlation": 0.9990402519618186,
+            "gel_relative_rms_difference": 0.022448666393756866
+          }
+        }
+      },
+      {
+        "frame": 16,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9827413082122802,
+              0.9989860653877258
+            ],
+            "own_center_real_ncc_median": 0.443672239780426,
+            "unrelated_pair_real_ncc_median": 0.009674612432718277,
+            "rms_gain_abs_difference_db_median": 0.030808618292212486
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9827172875404357,
+              0.9973806142807007
+            ],
+            "own_center_real_ncc_median": 0.35960257053375244,
+            "unrelated_pair_real_ncc_median": -0.01861657202243805,
+            "rms_gain_abs_difference_db_median": 0.03684445470571518
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7094910222177293,
+            "wire_axial_mm": 0.30517514393880063,
+            "wire_peak": 1665.7232666015625,
+            "offaxis_p95_relative_db": -38.117648491381104,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7118362827369771,
+            "wire_axial_mm": 0.30507681232232287,
+            "wire_peak": 1664.7672119140625,
+            "offaxis_p95_relative_db": -38.123414619363125,
+            "gel_envelope_correlation": 0.9993867773303107,
+            "gel_relative_rms_difference": 0.017925120890140533
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7072002232934391,
+            "wire_axial_mm": 0.3052539848364333,
+            "wire_peak": 1666.8602294921875,
+            "offaxis_p95_relative_db": -38.008001436458244,
+            "gel_envelope_correlation": 0.9993941690371898,
+            "gel_relative_rms_difference": 0.017857100814580917
+          }
+        }
+      },
+      {
+        "frame": 17,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9876546621322632,
+              0.999092161655426
+            ],
+            "own_center_real_ncc_median": 0.439399778842926,
+            "unrelated_pair_real_ncc_median": 0.00293775019235909,
+            "rms_gain_abs_difference_db_median": 0.03416253998875618
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9855427265167236,
+              0.997342586517334
+            ],
+            "own_center_real_ncc_median": 0.36226704716682434,
+            "unrelated_pair_real_ncc_median": -0.02025623247027397,
+            "rms_gain_abs_difference_db_median": 0.03985358402132988
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7120599349100976,
+            "wire_axial_mm": 0.3058067858219147,
+            "wire_peak": 1669.255859375,
+            "offaxis_p95_relative_db": -38.04075394962942,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7157007139713403,
+            "wire_axial_mm": 0.3058095505604399,
+            "wire_peak": 1668.3056640625,
+            "offaxis_p95_relative_db": -38.04779301100179,
+            "gel_envelope_correlation": 0.9991306712293981,
+            "gel_relative_rms_difference": 0.021242152899503708
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7085090772463696,
+            "wire_axial_mm": 0.30579809959118265,
+            "wire_peak": 1670.1553955078125,
+            "offaxis_p95_relative_db": -37.94789752326183,
+            "gel_envelope_correlation": 0.9991402284939324,
+            "gel_relative_rms_difference": 0.021130511537194252
+          }
+        }
+      },
+      {
+        "frame": 18,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9836541652679444,
+              0.9990584254264832
+            ],
+            "own_center_real_ncc_median": 0.4009788930416107,
+            "unrelated_pair_real_ncc_median": 0.007575090043246746,
+            "rms_gain_abs_difference_db_median": 0.04732190817594528
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9833888292312623,
+              0.9974427223205566
+            ],
+            "own_center_real_ncc_median": 0.35801175236701965,
+            "unrelated_pair_real_ncc_median": -0.01709449663758278,
+            "rms_gain_abs_difference_db_median": 0.038653384894132614
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7136405619004569,
+            "wire_axial_mm": 0.30524536738029084,
+            "wire_peak": 1668.7921142578125,
+            "offaxis_p95_relative_db": -38.27214582080698,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7101410624499476,
+            "wire_axial_mm": 0.3052071722654226,
+            "wire_peak": 1670.4805908203125,
+            "offaxis_p95_relative_db": -38.34244565399226,
+            "gel_envelope_correlation": 0.9992396440478283,
+            "gel_relative_rms_difference": 0.019957302138209343
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7180853021832585,
+            "wire_axial_mm": 0.3053121864795685,
+            "wire_peak": 1666.7906494140625,
+            "offaxis_p95_relative_db": -38.07202929501492,
+            "gel_envelope_correlation": 0.999156650176948,
+            "gel_relative_rms_difference": 0.021000783890485764
+          }
+        }
+      },
+      {
+        "frame": 19,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.980586850643158,
+              0.999143123626709
+            ],
+            "own_center_real_ncc_median": 0.39569687843322754,
+            "unrelated_pair_real_ncc_median": 0.01707744412124157,
+            "rms_gain_abs_difference_db_median": 0.041307494044303894
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.977267587184906,
+              0.9975146055221558
+            ],
+            "own_center_real_ncc_median": 0.36257272958755493,
+            "unrelated_pair_real_ncc_median": -0.016387170180678368,
+            "rms_gain_abs_difference_db_median": 0.049374084919691086
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7194551865641861,
+            "wire_axial_mm": 0.30548514769627744,
+            "wire_peak": 1664.9132080078125,
+            "offaxis_p95_relative_db": -38.0780394601807,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7174345876734964,
+            "wire_axial_mm": 0.3055297961601866,
+            "wire_peak": 1666.455322265625,
+            "offaxis_p95_relative_db": -38.175400137198146,
+            "gel_envelope_correlation": 0.9990292443161632,
+            "gel_relative_rms_difference": 0.022606754675507545
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7214827500283691,
+            "wire_axial_mm": 0.305429146840023,
+            "wire_peak": 1663.3890380859375,
+            "offaxis_p95_relative_db": -37.894261675253006,
+            "gel_envelope_correlation": 0.9990199436646079,
+            "gel_relative_rms_difference": 0.02272471785545349
+          }
+        }
+      },
+      {
+        "frame": 20,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9815734267234802,
+              0.999034583568573
+            ],
+            "own_center_real_ncc_median": 0.3954024314880371,
+            "unrelated_pair_real_ncc_median": 0.013116646558046341,
+            "rms_gain_abs_difference_db_median": 0.05188934504985809
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9761964201927185,
+              0.9973617792129517
+            ],
+            "own_center_real_ncc_median": 0.3557991087436676,
+            "unrelated_pair_real_ncc_median": -0.014869769103825092,
+            "rms_gain_abs_difference_db_median": 0.047020506113767624
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7035885014786145,
+            "wire_axial_mm": 0.30584278244239016,
+            "wire_peak": 1673.0654296875,
+            "offaxis_p95_relative_db": -38.296387530868316,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7035797696847155,
+            "wire_axial_mm": 0.3057282062677231,
+            "wire_peak": 1672.30126953125,
+            "offaxis_p95_relative_db": -38.24813026160945,
+            "gel_envelope_correlation": 0.9989849215085288,
+            "gel_relative_rms_difference": 0.023003283888101578
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7035752638028192,
+            "wire_axial_mm": 0.3059449723133696,
+            "wire_peak": 1673.8603515625,
+            "offaxis_p95_relative_db": -38.24200987412861,
+            "gel_envelope_correlation": 0.9989988132356015,
+            "gel_relative_rms_difference": 0.02279997617006302
+          }
+        }
+      },
+      {
+        "frame": 21,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9982228994369506,
+              0.9991022944450378
+            ],
+            "own_center_real_ncc_median": 0.4397589862346649,
+            "unrelated_pair_real_ncc_median": 0.010547727346420288,
+            "rms_gain_abs_difference_db_median": 0.03264704346656799
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9963382959365845,
+              0.9975711107254028
+            ],
+            "own_center_real_ncc_median": 0.36425527930259705,
+            "unrelated_pair_real_ncc_median": -0.019592193886637688,
+            "rms_gain_abs_difference_db_median": 0.046939827501773834
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7120972602413225,
+            "wire_axial_mm": 0.30571816976253885,
+            "wire_peak": 1668.96337890625,
+            "offaxis_p95_relative_db": -38.1078314289724,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7142614071758868,
+            "wire_axial_mm": 0.30570465555558,
+            "wire_peak": 1667.70751953125,
+            "offaxis_p95_relative_db": -38.00693322449922,
+            "gel_envelope_correlation": 0.9992334163180118,
+            "gel_relative_rms_difference": 0.019966553896665573
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7100833362111649,
+            "wire_axial_mm": 0.3057238046939581,
+            "wire_peak": 1670.160400390625,
+            "offaxis_p95_relative_db": -38.10055049886136,
+            "gel_envelope_correlation": 0.9992317192374076,
+            "gel_relative_rms_difference": 0.02010464295744896
+          }
+        }
+      },
+      {
+        "frame": 22,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9832983136177063,
+              0.999153196811676
+            ],
+            "own_center_real_ncc_median": 0.43979015946388245,
+            "unrelated_pair_real_ncc_median": 0.0091840336099267,
+            "rms_gain_abs_difference_db_median": 0.04344688728451729
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9816551327705383,
+              0.9975798726081848
+            ],
+            "own_center_real_ncc_median": 0.36405977606773376,
+            "unrelated_pair_real_ncc_median": -0.018935687839984894,
+            "rms_gain_abs_difference_db_median": 0.04608152434229851
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.719676310554717,
+            "wire_axial_mm": 0.30523159641485975,
+            "wire_peak": 1665.3250732421875,
+            "offaxis_p95_relative_db": -38.16543903143089,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.720248977152198,
+            "wire_axial_mm": 0.3051742521616134,
+            "wire_peak": 1664.4200439453125,
+            "offaxis_p95_relative_db": -38.079767512248374,
+            "gel_envelope_correlation": 0.9993694961744518,
+            "gel_relative_rms_difference": 0.018201790750026703
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7192387718420736,
+            "wire_axial_mm": 0.30527678132057545,
+            "wire_peak": 1666.160400390625,
+            "offaxis_p95_relative_db": -38.05898173278757,
+            "gel_envelope_correlation": 0.9993898867153248,
+            "gel_relative_rms_difference": 0.017881233245134354
+          }
+        }
+      },
+      {
+        "frame": 23,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9824936270713807,
+              0.9990719556808472
+            ],
+            "own_center_real_ncc_median": 0.39948055148124695,
+            "unrelated_pair_real_ncc_median": 0.012848485261201859,
+            "rms_gain_abs_difference_db_median": 0.04120060056447983
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9799887418746949,
+              0.9973134994506836
+            ],
+            "own_center_real_ncc_median": 0.3602835237979889,
+            "unrelated_pair_real_ncc_median": -0.02046305499970913,
+            "rms_gain_abs_difference_db_median": 0.05076595023274422
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7026823890896916,
+            "wire_axial_mm": 0.3059001748378485,
+            "wire_peak": 1674.109619140625,
+            "offaxis_p95_relative_db": -38.22938088088885,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.701135508429543,
+            "wire_axial_mm": 0.3058427984897918,
+            "wire_peak": 1674.5052490234375,
+            "offaxis_p95_relative_db": -38.21439228417883,
+            "gel_envelope_correlation": 0.9990880941125999,
+            "gel_relative_rms_difference": 0.021912651136517525
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7042478225552093,
+            "wire_axial_mm": 0.30594195081637565,
+            "wire_peak": 1673.7589111328125,
+            "offaxis_p95_relative_db": -38.21561937747396,
+            "gel_envelope_correlation": 0.999097392417783,
+            "gel_relative_rms_difference": 0.02175801806151867
+          }
+        }
+      },
+      {
+        "frame": 24,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9986649751663208,
+              0.9991471171379089
+            ],
+            "own_center_real_ncc_median": 0.44066351652145386,
+            "unrelated_pair_real_ncc_median": 0.016305947676301003,
+            "rms_gain_abs_difference_db_median": 0.0376243069767952
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9967767119407653,
+              0.997505784034729
+            ],
+            "own_center_real_ncc_median": 0.3605720102787018,
+            "unrelated_pair_real_ncc_median": -0.021169990301132202,
+            "rms_gain_abs_difference_db_median": 0.04119029641151428
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7140120316583349,
+            "wire_axial_mm": 0.30551564922699725,
+            "wire_peak": 1666.6326904296875,
+            "offaxis_p95_relative_db": -37.91913835597618,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7151978374817021,
+            "wire_axial_mm": 0.3055066672655258,
+            "wire_peak": 1667.2791748046875,
+            "offaxis_p95_relative_db": -37.93047735717848,
+            "gel_envelope_correlation": 0.9993447548509364,
+            "gel_relative_rms_difference": 0.018487460911273956
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7127462863348968,
+            "wire_axial_mm": 0.30552164178628516,
+            "wire_peak": 1666.0615234375,
+            "offaxis_p95_relative_db": -37.90880537164146,
+            "gel_envelope_correlation": 0.9993464992504478,
+            "gel_relative_rms_difference": 0.018573550507426262
+          }
+        }
+      },
+      {
+        "frame": 25,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9983353972434997,
+              0.9991455078125
+            ],
+            "own_center_real_ncc_median": 0.3947494626045227,
+            "unrelated_pair_real_ncc_median": 0.014487299136817455,
+            "rms_gain_abs_difference_db_median": 0.03946191072463989
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.996664035320282,
+              0.9975420236587524
+            ],
+            "own_center_real_ncc_median": 0.3570803105831146,
+            "unrelated_pair_real_ncc_median": -0.014762806706130505,
+            "rms_gain_abs_difference_db_median": 0.03539260849356651
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7143846839093215,
+            "wire_axial_mm": 0.3052284121513402,
+            "wire_peak": 1671.846923828125,
+            "offaxis_p95_relative_db": -37.97949162665115,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7161784793894994,
+            "wire_axial_mm": 0.3051934792445259,
+            "wire_peak": 1670.9881591796875,
+            "offaxis_p95_relative_db": -38.15511777698022,
+            "gel_envelope_correlation": 0.9993547967015063,
+            "gel_relative_rms_difference": 0.018405884504318237
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7126453768175356,
+            "wire_axial_mm": 0.30524900784859454,
+            "wire_peak": 1672.720947265625,
+            "offaxis_p95_relative_db": -37.79627038813175,
+            "gel_envelope_correlation": 0.9993426302216374,
+            "gel_relative_rms_difference": 0.01860153302550316
+          }
+        }
+      },
+      {
+        "frame": 26,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9779982447624207,
+              0.9989591240882874
+            ],
+            "own_center_real_ncc_median": 0.43891751766204834,
+            "unrelated_pair_real_ncc_median": 0.013385024853050709,
+            "rms_gain_abs_difference_db_median": 0.03829915449023247
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9769418716430665,
+              0.9973961114883423
+            ],
+            "own_center_real_ncc_median": 0.35945776104927063,
+            "unrelated_pair_real_ncc_median": -0.012631697580218315,
+            "rms_gain_abs_difference_db_median": 0.048138514161109924
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7068476579510221,
+            "wire_axial_mm": 0.3055056562790526,
+            "wire_peak": 1673.40478515625,
+            "offaxis_p95_relative_db": -37.85503047497995,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.6991130182376246,
+            "wire_axial_mm": 0.3056526459180411,
+            "wire_peak": 1676.8046875,
+            "offaxis_p95_relative_db": -37.98257816918139,
+            "gel_envelope_correlation": 0.999074817646915,
+            "gel_relative_rms_difference": 0.021936530247330666
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7136002263197505,
+            "wire_axial_mm": 0.3053658673396491,
+            "wire_peak": 1670.3487548828125,
+            "offaxis_p95_relative_db": -37.74960292202506,
+            "gel_envelope_correlation": 0.9991578747347869,
+            "gel_relative_rms_difference": 0.020959818735718727
+          }
+        }
+      },
+      {
+        "frame": 27,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9801979899406433,
+              0.9989995956420898
+            ],
+            "own_center_real_ncc_median": 0.44182273745536804,
+            "unrelated_pair_real_ncc_median": 0.01118286419659853,
+            "rms_gain_abs_difference_db_median": 0.0330570787191391
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9766839742660522,
+              0.9973997473716736
+            ],
+            "own_center_real_ncc_median": 0.35497939586639404,
+            "unrelated_pair_real_ncc_median": -0.016196358948946,
+            "rms_gain_abs_difference_db_median": 0.04976736754179001
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7015462239774346,
+            "wire_axial_mm": 0.30587914815316,
+            "wire_peak": 1674.7911376953125,
+            "offaxis_p95_relative_db": -38.2060246138503,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7001986211309039,
+            "wire_axial_mm": 0.3058586762501676,
+            "wire_peak": 1674.6812744140625,
+            "offaxis_p95_relative_db": -38.13405388323903,
+            "gel_envelope_correlation": 0.9989412183246965,
+            "gel_relative_rms_difference": 0.023531733080744743
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7028580001340434,
+            "wire_axial_mm": 0.3058815460938682,
+            "wire_peak": 1674.9581298828125,
+            "offaxis_p95_relative_db": -38.158386472519965,
+            "gel_envelope_correlation": 0.9989311736792645,
+            "gel_relative_rms_difference": 0.023610824719071388
+          }
+        }
+      },
+      {
+        "frame": 28,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9767989158630371,
+              0.9991026520729065
+            ],
+            "own_center_real_ncc_median": 0.4410572946071625,
+            "unrelated_pair_real_ncc_median": 0.01332007348537445,
+            "rms_gain_abs_difference_db_median": 0.038405850529670715
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9755274295806885,
+              0.9972475171089172
+            ],
+            "own_center_real_ncc_median": 0.3569214344024658,
+            "unrelated_pair_real_ncc_median": -0.018195999786257744,
+            "rms_gain_abs_difference_db_median": 0.04267105832695961
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7073099363881781,
+            "wire_axial_mm": 0.3060149665062255,
+            "wire_peak": 1671.967041015625,
+            "offaxis_p95_relative_db": -38.219483581279604,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.710286438178555,
+            "wire_axial_mm": 0.30587235551614,
+            "wire_peak": 1670.012939453125,
+            "offaxis_p95_relative_db": -38.14146288911474,
+            "gel_envelope_correlation": 0.9990365925110812,
+            "gel_relative_rms_difference": 0.02249780297279358
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7041736781023988,
+            "wire_axial_mm": 0.3061438157008247,
+            "wire_peak": 1673.9796142578125,
+            "offaxis_p95_relative_db": -38.320831767529604,
+            "gel_envelope_correlation": 0.9990383991164237,
+            "gel_relative_rms_difference": 0.022427024319767952
+          }
+        }
+      },
+      {
+        "frame": 29,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786752700805664,
+              0.9991298913955688
+            ],
+            "own_center_real_ncc_median": 0.4400733709335327,
+            "unrelated_pair_real_ncc_median": 0.009039397351443768,
+            "rms_gain_abs_difference_db_median": 0.040852274745702744
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9773149013519287,
+              0.9975767135620117
+            ],
+            "own_center_real_ncc_median": 0.35421186685562134,
+            "unrelated_pair_real_ncc_median": -0.016186490654945374,
+            "rms_gain_abs_difference_db_median": 0.04507044330239296
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7140652014372415,
+            "wire_axial_mm": 0.30562013846177294,
+            "wire_peak": 1668.52783203125,
+            "offaxis_p95_relative_db": -38.10162638634956,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7173819705270776,
+            "wire_axial_mm": 0.3052712816458474,
+            "wire_peak": 1666.3409423828125,
+            "offaxis_p95_relative_db": -38.22760236026697,
+            "gel_envelope_correlation": 0.9992560728311292,
+            "gel_relative_rms_difference": 0.01972024142742157
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7107948156503503,
+            "wire_axial_mm": 0.305960916555847,
+            "wire_peak": 1670.8167724609375,
+            "offaxis_p95_relative_db": -38.01195837363886,
+            "gel_envelope_correlation": 0.9992646231847687,
+            "gel_relative_rms_difference": 0.019680656492710114
+          }
+        }
+      },
+      {
+        "frame": 30,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9777276396751404,
+              0.9990188479423523
+            ],
+            "own_center_real_ncc_median": 0.3893600404262543,
+            "unrelated_pair_real_ncc_median": 0.013660240918397903,
+            "rms_gain_abs_difference_db_median": 0.03840326890349388
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9770915508270264,
+              0.9973929524421692
+            ],
+            "own_center_real_ncc_median": 0.3591921627521515,
+            "unrelated_pair_real_ncc_median": -0.019277162849903107,
+            "rms_gain_abs_difference_db_median": 0.04545385390520096
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7120228406901514,
+            "wire_axial_mm": 0.3052600713876572,
+            "wire_peak": 1673.051025390625,
+            "offaxis_p95_relative_db": -38.158012171998706,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7121074758470032,
+            "wire_axial_mm": 0.30522774274532694,
+            "wire_peak": 1672.6363525390625,
+            "offaxis_p95_relative_db": -38.19179485957551,
+            "gel_envelope_correlation": 0.9990324460391429,
+            "gel_relative_rms_difference": 0.02257850207388401
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7119216428926332,
+            "wire_axial_mm": 0.3052941950467911,
+            "wire_peak": 1673.4930419921875,
+            "offaxis_p95_relative_db": -37.90160481193298,
+            "gel_envelope_correlation": 0.9990199189715706,
+            "gel_relative_rms_difference": 0.022769629955291748
+          }
+        }
+      },
+      {
+        "frame": 31,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9809207916259766,
+              0.9990645051002502
+            ],
+            "own_center_real_ncc_median": 0.44067251682281494,
+            "unrelated_pair_real_ncc_median": 0.012466385960578918,
+            "rms_gain_abs_difference_db_median": 0.03733934462070465
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9757314205169678,
+              0.9973984360694885
+            ],
+            "own_center_real_ncc_median": 0.3568360507488251,
+            "unrelated_pair_real_ncc_median": -0.02107064239680767,
+            "rms_gain_abs_difference_db_median": 0.041311901062726974
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7002336592055258,
+            "wire_axial_mm": 0.3060055879446182,
+            "wire_peak": 1674.36328125,
+            "offaxis_p95_relative_db": -38.3111214728878,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7025954683239615,
+            "wire_axial_mm": 0.30598749793492885,
+            "wire_peak": 1672.44775390625,
+            "offaxis_p95_relative_db": -38.19411273826261,
+            "gel_envelope_correlation": 0.9991083869873542,
+            "gel_relative_rms_difference": 0.02162453532218933
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.6979684557479133,
+            "wire_axial_mm": 0.30600857276182936,
+            "wire_peak": 1676.3380126953125,
+            "offaxis_p95_relative_db": -38.27429623657587,
+            "gel_envelope_correlation": 0.9991193998880813,
+            "gel_relative_rms_difference": 0.021478721871972084
+          }
+        }
+      },
+      {
+        "frame": 32,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.980365765094757,
+              0.9990583658218384
+            ],
+            "own_center_real_ncc_median": 0.44106045365333557,
+            "unrelated_pair_real_ncc_median": 0.011666741222143173,
+            "rms_gain_abs_difference_db_median": 0.03858421742916107
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9775288224220275,
+              0.9975453019142151
+            ],
+            "own_center_real_ncc_median": 0.36051908135414124,
+            "unrelated_pair_real_ncc_median": -0.01488552801311016,
+            "rms_gain_abs_difference_db_median": 0.04603260010480881
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7109836135059571,
+            "wire_axial_mm": 0.3057902776277963,
+            "wire_peak": 1669.5750732421875,
+            "offaxis_p95_relative_db": -38.069660852346615,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7145456270529644,
+            "wire_axial_mm": 0.3056826545641975,
+            "wire_peak": 1667.5606689453125,
+            "offaxis_p95_relative_db": -37.93781163323348,
+            "gel_envelope_correlation": 0.9990656809793391,
+            "gel_relative_rms_difference": 0.02213948965072632
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7073942043890145,
+            "wire_axial_mm": 0.3058871168356667,
+            "wire_peak": 1671.637451171875,
+            "offaxis_p95_relative_db": -38.03338709821699,
+            "gel_envelope_correlation": 0.9990792281028208,
+            "gel_relative_rms_difference": 0.02216949500143528
+          }
+        }
+      },
+      {
+        "frame": 33,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9983290553092956,
+              0.9991132616996765
+            ],
+            "own_center_real_ncc_median": 0.3967404067516327,
+            "unrelated_pair_real_ncc_median": 0.010205118916928768,
+            "rms_gain_abs_difference_db_median": 0.03755894675850868
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9960742950439453,
+              0.9974614381790161
+            ],
+            "own_center_real_ncc_median": 0.36154264211654663,
+            "unrelated_pair_real_ncc_median": -0.020960045978426933,
+            "rms_gain_abs_difference_db_median": 0.04625276103615761
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7153004023891201,
+            "wire_axial_mm": 0.30537303365193935,
+            "wire_peak": 1671.5562744140625,
+            "offaxis_p95_relative_db": -38.18626808526617,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7105473211178388,
+            "wire_axial_mm": 0.3052161771517561,
+            "wire_peak": 1674.548583984375,
+            "offaxis_p95_relative_db": -38.24614760341882,
+            "gel_envelope_correlation": 0.999259231183856,
+            "gel_relative_rms_difference": 0.019748765975236893
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7202891595661614,
+            "wire_axial_mm": 0.30552169909844196,
+            "wire_peak": 1668.4884033203125,
+            "offaxis_p95_relative_db": -37.981022578790814,
+            "gel_envelope_correlation": 0.9992572284900434,
+            "gel_relative_rms_difference": 0.019790226593613625
+          }
+        }
+      },
+      {
+        "frame": 34,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9871331691741944,
+              0.9990620613098145
+            ],
+            "own_center_real_ncc_median": 0.441733181476593,
+            "unrelated_pair_real_ncc_median": 0.013491920195519924,
+            "rms_gain_abs_difference_db_median": 0.03158023953437805
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9811666131019592,
+              0.9974673390388489
+            ],
+            "own_center_real_ncc_median": 0.36241254210472107,
+            "unrelated_pair_real_ncc_median": -0.019131910055875778,
+            "rms_gain_abs_difference_db_median": 0.04604821652173996
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.716487707426912,
+            "wire_axial_mm": 0.3053528093374709,
+            "wire_peak": 1669.6363525390625,
+            "offaxis_p95_relative_db": -38.00361880935344,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7151477233721633,
+            "wire_axial_mm": 0.30544815384424595,
+            "wire_peak": 1669.802490234375,
+            "offaxis_p95_relative_db": -38.035458555028185,
+            "gel_envelope_correlation": 0.9992604569916912,
+            "gel_relative_rms_difference": 0.01972225494682789
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7168510916571178,
+            "wire_axial_mm": 0.3052629255331496,
+            "wire_peak": 1669.8958740234375,
+            "offaxis_p95_relative_db": -37.93625957387946,
+            "gel_envelope_correlation": 0.9993110725341,
+            "gel_relative_rms_difference": 0.019139954820275307
+          }
+        }
+      },
+      {
+        "frame": 35,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9827627897262573,
+              0.9991152286529541
+            ],
+            "own_center_real_ncc_median": 0.44175493717193604,
+            "unrelated_pair_real_ncc_median": 0.009534531272947788,
+            "rms_gain_abs_difference_db_median": 0.03810529038310051
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786099672317505,
+              0.9974217414855957
+            ],
+            "own_center_real_ncc_median": 0.3519020080566406,
+            "unrelated_pair_real_ncc_median": -0.01747722364962101,
+            "rms_gain_abs_difference_db_median": 0.03468075394630432
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7021987314980735,
+            "wire_axial_mm": 0.3058304832531853,
+            "wire_peak": 1673.822021484375,
+            "offaxis_p95_relative_db": -38.22534872727525,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7022795212956547,
+            "wire_axial_mm": 0.3057456727211303,
+            "wire_peak": 1672.7366943359375,
+            "offaxis_p95_relative_db": -38.182181742478946,
+            "gel_envelope_correlation": 0.9989314877523124,
+            "gel_relative_rms_difference": 0.02361980639398098
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.702116686277662,
+            "wire_axial_mm": 0.3058980749203606,
+            "wire_peak": 1674.9058837890625,
+            "offaxis_p95_relative_db": -38.161131399577364,
+            "gel_envelope_correlation": 0.9989484061892367,
+            "gel_relative_rms_difference": 0.02341170608997345
+          }
+        }
+      },
+      {
+        "frame": 36,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9780857801437378,
+              0.9991427063941956
+            ],
+            "own_center_real_ncc_median": 0.43922296166419983,
+            "unrelated_pair_real_ncc_median": 0.015527060255408287,
+            "rms_gain_abs_difference_db_median": 0.03247608244419098
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9778350114822387,
+              0.9974745512008667
+            ],
+            "own_center_real_ncc_median": 0.3581388592720032,
+            "unrelated_pair_real_ncc_median": -0.022204309701919556,
+            "rms_gain_abs_difference_db_median": 0.0367949977517128
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7023191257165,
+            "wire_axial_mm": 0.3065129541433791,
+            "wire_peak": 1673.7906494140625,
+            "offaxis_p95_relative_db": -38.17627615473898,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7022707285359475,
+            "wire_axial_mm": 0.30644481227948006,
+            "wire_peak": 1673.90185546875,
+            "offaxis_p95_relative_db": -38.09243850351196,
+            "gel_envelope_correlation": 0.9990840392544839,
+            "gel_relative_rms_difference": 0.021871138364076614
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7023520584289817,
+            "wire_axial_mm": 0.3065722309626082,
+            "wire_peak": 1673.693115234375,
+            "offaxis_p95_relative_db": -38.2373048674458,
+            "gel_envelope_correlation": 0.9990859652242966,
+            "gel_relative_rms_difference": 0.02180108241736889
+          }
+        }
+      },
+      {
+        "frame": 37,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9807490468025207,
+              0.9990172386169434
+            ],
+            "own_center_real_ncc_median": 0.44206660985946655,
+            "unrelated_pair_real_ncc_median": 0.010869952850043774,
+            "rms_gain_abs_difference_db_median": 0.03338044881820679
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.977916955947876,
+              0.9973950386047363
+            ],
+            "own_center_real_ncc_median": 0.3585347533226013,
+            "unrelated_pair_real_ncc_median": -0.021353932097554207,
+            "rms_gain_abs_difference_db_median": 0.041127510368824005
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7119211391187603,
+            "wire_axial_mm": 0.305800639666046,
+            "wire_peak": 1668.55126953125,
+            "offaxis_p95_relative_db": -37.92899097773314,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7141664486664967,
+            "wire_axial_mm": 0.30572590461144245,
+            "wire_peak": 1667.7291259765625,
+            "offaxis_p95_relative_db": -37.91807974318202,
+            "gel_envelope_correlation": 0.999203615473874,
+            "gel_relative_rms_difference": 0.020375343039631844
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7094938861062865,
+            "wire_axial_mm": 0.30586663805521397,
+            "wire_peak": 1669.4818115234375,
+            "offaxis_p95_relative_db": -37.91350875592102,
+            "gel_envelope_correlation": 0.9992108330292426,
+            "gel_relative_rms_difference": 0.020399998873472214
+          }
+        }
+      },
+      {
+        "frame": 38,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9797683477401733,
+              0.9990692138671875
+            ],
+            "own_center_real_ncc_median": 0.4400787651538849,
+            "unrelated_pair_real_ncc_median": 0.009073031134903431,
+            "rms_gain_abs_difference_db_median": 0.036478422582149506
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9794221878051758,
+              0.9973329901695251
+            ],
+            "own_center_real_ncc_median": 0.36090901494026184,
+            "unrelated_pair_real_ncc_median": -0.010922770015895367,
+            "rms_gain_abs_difference_db_median": 0.05124872550368309
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7139323483077926,
+            "wire_axial_mm": 0.30575473950459653,
+            "wire_peak": 1667.659423828125,
+            "offaxis_p95_relative_db": -37.986034038618286,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7171850938063373,
+            "wire_axial_mm": 0.30574761445706145,
+            "wire_peak": 1666.853515625,
+            "offaxis_p95_relative_db": -37.981055919109224,
+            "gel_envelope_correlation": 0.9991524952396467,
+            "gel_relative_rms_difference": 0.02103624865412712
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7108370974803173,
+            "wire_axial_mm": 0.30575443001893987,
+            "wire_peak": 1668.3760986328125,
+            "offaxis_p95_relative_db": -37.87057331324056,
+            "gel_envelope_correlation": 0.999167113722489,
+            "gel_relative_rms_difference": 0.020969748497009277
+          }
+        }
+      },
+      {
+        "frame": 39,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9782267928123474,
+              0.9988897442817688
+            ],
+            "own_center_real_ncc_median": 0.442232221364975,
+            "unrelated_pair_real_ncc_median": 0.007640921976417303,
+            "rms_gain_abs_difference_db_median": 0.03371191769838333
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9767488837242126,
+              0.9973146319389343
+            ],
+            "own_center_real_ncc_median": 0.36067435145378113,
+            "unrelated_pair_real_ncc_median": -0.01458689197897911,
+            "rms_gain_abs_difference_db_median": 0.050297558307647705
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7079998108629968,
+            "wire_axial_mm": 0.30559003811616137,
+            "wire_peak": 1668.5269775390625,
+            "offaxis_p95_relative_db": -38.06142038925718,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7079512723363337,
+            "wire_axial_mm": 0.30558379567586513,
+            "wire_peak": 1668.6036376953125,
+            "offaxis_p95_relative_db": -38.02221645971135,
+            "gel_envelope_correlation": 0.9992484895198674,
+            "gel_relative_rms_difference": 0.01981770247220993
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7080441656020946,
+            "wire_axial_mm": 0.30558495796643825,
+            "wire_peak": 1668.489013671875,
+            "offaxis_p95_relative_db": -38.078128285995064,
+            "gel_envelope_correlation": 0.9992460866768426,
+            "gel_relative_rms_difference": 0.019958579912781715
+          }
+        }
+      },
+      {
+        "frame": 40,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9782320618629455,
+              0.9989875555038452
+            ],
+            "own_center_real_ncc_median": 0.44383642077445984,
+            "unrelated_pair_real_ncc_median": 0.010591261088848114,
+            "rms_gain_abs_difference_db_median": 0.03061670809984207
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9767300367355347,
+              0.9975355863571167
+            ],
+            "own_center_real_ncc_median": 0.3610692024230957,
+            "unrelated_pair_real_ncc_median": -0.015178141184151173,
+            "rms_gain_abs_difference_db_median": 0.05943307280540466
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7092850798597674,
+            "wire_axial_mm": 0.30573713779449463,
+            "wire_peak": 1669.46630859375,
+            "offaxis_p95_relative_db": -38.05990625822617,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7127392630164413,
+            "wire_axial_mm": 0.30549402649586455,
+            "wire_peak": 1667.422607421875,
+            "offaxis_p95_relative_db": -37.96151736529844,
+            "gel_envelope_correlation": 0.999224917500415,
+            "gel_relative_rms_difference": 0.020161157473921776
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7059187874771056,
+            "wire_axial_mm": 0.30596638413576116,
+            "wire_peak": 1671.5986328125,
+            "offaxis_p95_relative_db": -38.14476499725279,
+            "gel_envelope_correlation": 0.9992139973061789,
+            "gel_relative_rms_difference": 0.020195281133055687
+          }
+        }
+      },
+      {
+        "frame": 41,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786667346954345,
+              0.9991068243980408
+            ],
+            "own_center_real_ncc_median": 0.4426812529563904,
+            "unrelated_pair_real_ncc_median": 0.016987048089504242,
+            "rms_gain_abs_difference_db_median": 0.03349597007036209
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9772407174110412,
+              0.9973644614219666
+            ],
+            "own_center_real_ncc_median": 0.3593563437461853,
+            "unrelated_pair_real_ncc_median": -0.018138261511921883,
+            "rms_gain_abs_difference_db_median": 0.03799869120121002
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7091598871808757,
+            "wire_axial_mm": 0.3054806750554313,
+            "wire_peak": 1667.19677734375,
+            "offaxis_p95_relative_db": -38.08578238714401,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7097789819997065,
+            "wire_axial_mm": 0.30543935069671235,
+            "wire_peak": 1667.3740234375,
+            "offaxis_p95_relative_db": -38.06194716167952,
+            "gel_envelope_correlation": 0.9991729715542061,
+            "gel_relative_rms_difference": 0.020788345485925674
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.708636017659533,
+            "wire_axial_mm": 0.30551122014339427,
+            "wire_peak": 1666.9693603515625,
+            "offaxis_p95_relative_db": -38.09682525241393,
+            "gel_envelope_correlation": 0.9991893104749747,
+            "gel_relative_rms_difference": 0.020678604021668434
+          }
+        }
+      },
+      {
+        "frame": 42,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.977135705947876,
+              0.9989638924598694
+            ],
+            "own_center_real_ncc_median": 0.44111737608909607,
+            "unrelated_pair_real_ncc_median": 0.010274252854287624,
+            "rms_gain_abs_difference_db_median": 0.025260502472519875
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9771984577178955,
+              0.997365415096283
+            ],
+            "own_center_real_ncc_median": 0.3613230586051941,
+            "unrelated_pair_real_ncc_median": -0.01387510821223259,
+            "rms_gain_abs_difference_db_median": 0.04298681765794754
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7157275835768506,
+            "wire_axial_mm": 0.30554647629077536,
+            "wire_peak": 1665.6993408203125,
+            "offaxis_p95_relative_db": -38.113248611918266,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7188382415244186,
+            "wire_axial_mm": 0.305464969231533,
+            "wire_peak": 1664.4251708984375,
+            "offaxis_p95_relative_db": -38.175083454995054,
+            "gel_envelope_correlation": 0.9990120565459906,
+            "gel_relative_rms_difference": 0.022779852151870728
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7125760950148077,
+            "wire_axial_mm": 0.30562347402939594,
+            "wire_peak": 1667.0457763671875,
+            "offaxis_p95_relative_db": -37.930189239745474,
+            "gel_envelope_correlation": 0.999023232749545,
+            "gel_relative_rms_difference": 0.022764453664422035
+          }
+        }
+      },
+      {
+        "frame": 43,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9803193807601929,
+              0.9990009665489197
+            ],
+            "own_center_real_ncc_median": 0.3954017460346222,
+            "unrelated_pair_real_ncc_median": 0.008863848634064198,
+            "rms_gain_abs_difference_db_median": 0.038681983947753906
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9770221710205078,
+              0.9973918795585632
+            ],
+            "own_center_real_ncc_median": 0.35745465755462646,
+            "unrelated_pair_real_ncc_median": -0.01596044935286045,
+            "rms_gain_abs_difference_db_median": 0.048509351909160614
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7172003059576308,
+            "wire_axial_mm": 0.30537490890576535,
+            "wire_peak": 1667.419677734375,
+            "offaxis_p95_relative_db": -38.114607342293795,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7158098632756307,
+            "wire_axial_mm": 0.3052890094426992,
+            "wire_peak": 1668.61279296875,
+            "offaxis_p95_relative_db": -38.29428282163977,
+            "gel_envelope_correlation": 0.9990695396798236,
+            "gel_relative_rms_difference": 0.022188588976860046
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7195177071083025,
+            "wire_axial_mm": 0.3054884786789245,
+            "wire_peak": 1665.945068359375,
+            "offaxis_p95_relative_db": -37.82183574057459,
+            "gel_envelope_correlation": 0.9989799494504077,
+            "gel_relative_rms_difference": 0.023157896474003792
+          }
+        }
+      },
+      {
+        "frame": 44,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9824728965759277,
+              0.9990747570991516
+            ],
+            "own_center_real_ncc_median": 0.3940330445766449,
+            "unrelated_pair_real_ncc_median": 0.011125346645712852,
+            "rms_gain_abs_difference_db_median": 0.034278810024261475
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9829429745674133,
+              0.9974478483200073
+            ],
+            "own_center_real_ncc_median": 0.35725849866867065,
+            "unrelated_pair_real_ncc_median": -0.014838077127933502,
+            "rms_gain_abs_difference_db_median": 0.03940589725971222
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7179782533874852,
+            "wire_axial_mm": 0.3055008122554206,
+            "wire_peak": 1666.278076171875,
+            "offaxis_p95_relative_db": -38.098255500903974,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7144480175696861,
+            "wire_axial_mm": 0.30553650856018066,
+            "wire_peak": 1668.83740234375,
+            "offaxis_p95_relative_db": -38.20728671982555,
+            "gel_envelope_correlation": 0.9992000777255817,
+            "gel_relative_rms_difference": 0.0205129012465477
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7215790722805693,
+            "wire_axial_mm": 0.3054555700375481,
+            "wire_peak": 1663.6600341796875,
+            "offaxis_p95_relative_db": -37.863410057840255,
+            "gel_envelope_correlation": 0.9991976734178011,
+            "gel_relative_rms_difference": 0.02050740085542202
+          }
+        }
+      },
+      {
+        "frame": 45,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9866742849349975,
+              0.9990681409835815
+            ],
+            "own_center_real_ncc_median": 0.43993040919303894,
+            "unrelated_pair_real_ncc_median": 0.013795473612844944,
+            "rms_gain_abs_difference_db_median": 0.03821771219372749
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9842755317687988,
+              0.997491180896759
+            ],
+            "own_center_real_ncc_median": 0.35845068097114563,
+            "unrelated_pair_real_ncc_median": -0.015560030937194824,
+            "rms_gain_abs_difference_db_median": 0.03935284912586212
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7036159869569973,
+            "wire_axial_mm": 0.30607422269307705,
+            "wire_peak": 1673.40283203125,
+            "offaxis_p95_relative_db": -38.05683674699571,
+            "gel_envelope_correlation": 1.0,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.6979533213262348,
+            "wire_axial_mm": 0.306083500385288,
+            "wire_peak": 1675.93505859375,
+            "offaxis_p95_relative_db": -38.01480094134138,
+            "gel_envelope_correlation": 0.999047335656542,
+            "gel_relative_rms_difference": 0.02230866812169552
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7085228161169905,
+            "wire_axial_mm": 0.3060578268307914,
+            "wire_peak": 1671.3153076171875,
+            "offaxis_p95_relative_db": -38.04837194168866,
+            "gel_envelope_correlation": 0.9991118213893792,
+            "gel_relative_rms_difference": 0.021574558690190315
+          }
+        }
+      },
+      {
+        "frame": 46,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9767991185188294,
+              0.9990807771682739
+            ],
+            "own_center_real_ncc_median": 0.439689964056015,
+            "unrelated_pair_real_ncc_median": 0.014736785553395748,
+            "rms_gain_abs_difference_db_median": 0.041297607123851776
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9757457971572876,
+              0.9972749352455139
+            ],
+            "own_center_real_ncc_median": 0.35599303245544434,
+            "unrelated_pair_real_ncc_median": -0.01646190695464611,
+            "rms_gain_abs_difference_db_median": 0.04863276332616806
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.7041490802971191,
+            "wire_axial_mm": 0.3061547508606566,
+            "wire_peak": 1673.8765869140625,
+            "offaxis_p95_relative_db": -38.20849306445821,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.7040683747484107,
+            "wire_axial_mm": 0.30610567331314087,
+            "wire_peak": 1674.2603759765625,
+            "offaxis_p95_relative_db": -38.14727164870681,
+            "gel_envelope_correlation": 0.9990909607694956,
+            "gel_relative_rms_difference": 0.021837076172232628
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7042045229329488,
+            "wire_axial_mm": 0.3061889272469749,
+            "wire_peak": 1673.5379638671875,
+            "offaxis_p95_relative_db": -38.2357426000708,
+            "gel_envelope_correlation": 0.9990946459550226,
+            "gel_relative_rms_difference": 0.0217062309384346
+          }
+        }
+      },
+      {
+        "frame": 47,
+        "paired_RF": {
+          "16.8-22 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9786303400993347,
+              0.9989813566207886
+            ],
+            "own_center_real_ncc_median": 0.44066470861434937,
+            "unrelated_pair_real_ncc_median": 0.013025575317442417,
+            "rms_gain_abs_difference_db_median": 0.03928264230489731
+          },
+          "23-40 nominal range mm": {
+            "real_ncc_p10_median": [
+              0.9777649879455567,
+              0.9973950386047363
+            ],
+            "own_center_real_ncc_median": 0.3567454218864441,
+            "unrelated_pair_real_ncc_median": -0.01894811913371086,
+            "rms_gain_abs_difference_db_median": 0.0442267544567585
+          }
+        },
+        "images": {
+          "original": {
+            "wire_lateral_mm": 0.720082597377206,
+            "wire_axial_mm": 0.3055107616461257,
+            "wire_peak": 1662.353759765625,
+            "offaxis_p95_relative_db": -38.04152674694481,
+            "gel_envelope_correlation": 0.9999999999999999,
+            "gel_relative_rms_difference": 0.0
+          },
+          "lower_TX": {
+            "wire_lateral_mm": 0.724449184508275,
+            "wire_axial_mm": 0.30550552560733024,
+            "wire_peak": 1660.370361328125,
+            "offaxis_p95_relative_db": -38.01970184065719,
+            "gel_envelope_correlation": 0.9991219735104002,
+            "gel_relative_rms_difference": 0.021423745900392532
+          },
+          "upper_TX": {
+            "wire_lateral_mm": 0.7156450599431965,
+            "wire_axial_mm": 0.3055113439376562,
+            "wire_peak": 1664.403564453125,
+            "offaxis_p95_relative_db": -37.905900022900866,
+            "gel_envelope_correlation": 0.9991274512659936,
+            "gel_relative_rms_difference": 0.021404802799224854
+          }
+        }
+      }
+    ]
+  }
+}

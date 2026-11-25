@@ -1,0 +1,1 @@
+{"op":"render", "session":"C:/Users/Adam/usb3-tester/bench_runs/wire-21c-1mm/baseline/capture.rf.npz", "frame":0, "output":"C:/Users/Adam/usb3-tester/bench_runs/wire-21c-1mm/baseline-image", "box_mm":[-50,50,0,120], "search_mm":[-20,20,35,65], "settings":{"display":{"debug_view":1,"auto_gain":false,"dyn_db":60,"gain_db":15,"curve":1}}}

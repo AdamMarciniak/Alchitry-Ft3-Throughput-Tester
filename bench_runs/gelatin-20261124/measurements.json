@@ -1,0 +1,92 @@
+{
+  "validation": [
+    {
+      "peak_position_mm": [
+        -4.346153846153845,
+        18.57692307692308
+      ],
+      "lateral_width_6db_mm": 0.6061325508814583,
+      "axial_width_6db_mm": 0.7781518967105789,
+      "start_frame": 0,
+      "peak_vs_same_depth_p95_db": 16.986724853515625,
+      "central_gel_median_gray": 62.0
+    },
+    {
+      "peak_position_mm": [
+        -4.346153846153845,
+        18.57692307692308
+      ],
+      "lateral_width_6db_mm": 0.6040867612912102,
+      "axial_width_6db_mm": 0.7774744280255739,
+      "start_frame": 16,
+      "peak_vs_same_depth_p95_db": 16.988161087036133,
+      "central_gel_median_gray": 62.0
+    },
+    {
+      "peak_position_mm": [
+        -4.346153846153845,
+        18.57692307692308
+      ],
+      "lateral_width_6db_mm": 0.6055973951633158,
+      "axial_width_6db_mm": 0.7774688853667335,
+      "start_frame": 40,
+      "peak_vs_same_depth_p95_db": 17.053979873657227,
+      "central_gel_median_gray": 63.0
+    }
+  ],
+  "central_23_36mm_split_repeatability": 0.999735885968632,
+  "central_23_36mm_mean_over_halfdifference_db": 41.01636505126953,
+  "lateral_strip_profile_peaks_mm": [
+    [
+      -8,
+      -4,
+      25.88
+    ],
+    [
+      -4,
+      0,
+      26.73
+    ],
+    [
+      0,
+      4,
+      27.04
+    ],
+    [
+      4,
+      8,
+      26.35
+    ]
+  ],
+  "baseline": {
+    "valid_frames": 48,
+    "clipped_samples": 0,
+    "central_gel_median_gray": 0.0,
+    "wire_peak": [
+      -4.423076923076923,
+      18.884615384615387
+    ]
+  },
+  "near-gain": {
+    "valid_frames": 48,
+    "clipped_samples": 0
+  },
+  "flat-gain": {
+    "valid_frames": 48,
+    "clipped_samples": 0
+  },
+  "verified_live": {
+    "wire_position_mm": [
+      2.5000000000000018,
+      18.5
+    ],
+    "width_mm": [
+      0.5517877248617302,
+      0.817146535103138
+    ],
+    "wire_peak_vs_local_p95_db": 12.579652786254883,
+    "clipped_samples_active_elements": 0,
+    "valid_frames": 48,
+    "central_gel_median_gray": 55.0
+  }
+}

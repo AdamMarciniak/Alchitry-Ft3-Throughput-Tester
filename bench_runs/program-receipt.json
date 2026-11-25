@@ -1,0 +1,21 @@
+{
+  "state": "programmed",
+  "build_dir": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\builds\\20261124T181356Z-f8acf0",
+  "bitstream_sha256": "1208a15c1dc1bef8dd10fdc0239c0751da23098dadc83c89d051bc5ffc9dedab",
+  "programmed_utc": "2026-11-24T18:19:44.517023+00:00",
+  "capabilities": [
+    "boot_disarmed",
+    "tx_lease_v1",
+    "runtime_info_v1",
+    "capture_ready_interlock_v1",
+    "tagged_pulse_methods_v1",
+    "multi_rx_v1",
+    "pulser_status_v1"
+  ],
+  "board": "AuV2-35T",
+  "storage": "flash",
+  "device_index": 0,
+  "manifest_sha256": "45e9424057429952b1e26989489e13438507595da3a927e9f364b1ac0428611f",
+  "runtime_build_id": "bba752df",
+  "provenance_note": "Uploader operation and file hashes; host verifies runtime build tag before each capture"
+}

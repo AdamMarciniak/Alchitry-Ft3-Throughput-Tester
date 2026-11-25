@@ -1,0 +1,288 @@
+{
+  "final-live": {
+    "raw_plane": {
+      "center_mm": 44.456549986731545,
+      "slope_deg": 3.5652099078447526,
+      "p95_abs_range_residual_mm": 0.12190666895716973
+    },
+    "displayed_floor": {
+      "center_mm": 44.51314383005451,
+      "slope_deg": 4.5268045742884775,
+      "slope": 0.07917244997488146,
+      "central_p95_abs_mm": 0.09020106989525373,
+      "central_rms_mm": 0.050974915339348434
+    },
+    "wire": {
+      "point_mm": [
+        1.725000000000001,
+        17.525
+      ],
+      "lat_mm": 0.40426877625286606,
+      "ax_mm": 0.2879374265670762,
+      "far_contrast_db": 54.99088668823242
+    },
+    "regions": {
+      "upper_wing_to_floor_db": -41.19795227050781,
+      "gel_rms_to_wire_db": -56.4138069152832
+    },
+    "ideal_floor": {
+      "center_mm": 44.50751600807029,
+      "slope_deg": 3.476941414386057,
+      "slope": 0.06075867632687291,
+      "central_p95_abs_mm": 0.7006128602354023,
+      "central_rms_mm": 0.2781626943717256
+    },
+    "stronger_taper": {
+      "wire": {
+        "point_mm": [
+          1.725000000000001,
+          17.525
+        ],
+        "lat_mm": 0.4192156948149206,
+        "ax_mm": 0.2881803452968583,
+        "far_contrast_db": 61.51708221435547
+      },
+      "floor": {
+        "center_mm": 44.5163129460881,
+        "slope_deg": 4.5841044326872025,
+        "slope": 0.08017886990986481,
+        "central_p95_abs_mm": 0.11247241002006227,
+        "central_rms_mm": 0.0530676218726532
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -41.71354675292969,
+        "gel_rms_to_wire_db": -57.20698928833008
+      }
+    },
+    "documented_geometry": {
+      "wire": {
+        "point_mm": [
+          1.6750000000000003,
+          17.525
+        ],
+        "lat_mm": 0.4060347795486454,
+        "ax_mm": 0.27169831991195537,
+        "far_contrast_db": 53.50489807128906
+      },
+      "floor": {
+        "center_mm": 44.47639705523511,
+        "slope_deg": 3.7589411730841866,
+        "slope": 0.06570018772363773,
+        "central_p95_abs_mm": 0.29742210476148,
+        "central_rms_mm": 0.1237266474289436
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -41.03997039794922,
+        "gel_rms_to_wire_db": -52.649383544921875
+      }
+    },
+    "frequency_compounding": {
+      "wire": {
+        "point_mm": [
+          1.725000000000001,
+          17.474999999999998
+        ],
+        "lat_mm": 0.41528846397995967,
+        "ax_mm": 0.43963930159807063,
+        "far_contrast_db": 53.26564407348633
+      },
+      "floor": {
+        "center_mm": 44.50648466632735,
+        "slope_deg": 4.4196124681579905,
+        "slope": 0.07729014436392087,
+        "central_p95_abs_mm": 0.11936798746950784,
+        "central_rms_mm": 0.06882588370222198
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -39.84701156616211,
+        "gel_rms_to_wire_db": -54.7148323059082
+      }
+    }
+  },
+  "three-rx-repeat": {
+    "raw_plane": {
+      "center_mm": 44.47676088453567,
+      "slope_deg": 3.5984402210943887,
+      "p95_abs_range_residual_mm": 0.12198032492681854
+    },
+    "displayed_floor": {
+      "center_mm": 44.52983580835675,
+      "slope_deg": 4.489816116710494,
+      "slope": 0.07852286610200875,
+      "central_p95_abs_mm": 0.09216291806505265,
+      "central_rms_mm": 0.05283635810358555
+    },
+    "wire": {
+      "point_mm": [
+        1.775,
+        17.525
+      ],
+      "lat_mm": 0.4002908453345304,
+      "ax_mm": 0.28972128480672765,
+      "far_contrast_db": 55.292327880859375
+    },
+    "regions": {
+      "upper_wing_to_floor_db": -40.958221435546875,
+      "gel_rms_to_wire_db": -56.66695022583008
+    },
+    "stronger_taper": {
+      "wire": {
+        "point_mm": [
+          1.725000000000001,
+          17.525
+        ],
+        "lat_mm": 0.4195781022310263,
+        "ax_mm": 0.28657487630843903,
+        "far_contrast_db": 61.722442626953125
+      },
+      "floor": {
+        "center_mm": 44.537688472174054,
+        "slope_deg": 4.672102649746187,
+        "slope": 0.08172479361863695,
+        "central_p95_abs_mm": 0.10126812458070159,
+        "central_rms_mm": 0.05786625143698009
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -41.478912353515625,
+        "gel_rms_to_wire_db": -57.32351303100586
+      }
+    },
+    "documented_geometry": {
+      "wire": {
+        "point_mm": [
+          1.6250000000000013,
+          17.575
+        ],
+        "lat_mm": 0.3860780924558642,
+        "ax_mm": 0.2683466389775262,
+        "far_contrast_db": 54.0205192565918
+      },
+      "floor": {
+        "center_mm": 44.49192843941131,
+        "slope_deg": 3.831383937400948,
+        "slope": 0.06697011629763704,
+        "central_p95_abs_mm": 0.28038914568895684,
+        "central_rms_mm": 0.1265949764227
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -41.116477966308594,
+        "gel_rms_to_wire_db": -53.071956634521484
+      }
+    },
+    "frequency_compounding": {
+      "wire": {
+        "point_mm": [
+          1.775,
+          17.474999999999998
+        ],
+        "lat_mm": 0.41072189584374486,
+        "ax_mm": 0.442780077457428,
+        "far_contrast_db": 53.439029693603516
+      },
+      "floor": {
+        "center_mm": 44.53385925685802,
+        "slope_deg": 4.400872366894804,
+        "slope": 0.07696112232216851,
+        "central_p95_abs_mm": 0.11506298778631527,
+        "central_rms_mm": 0.06735884265646476
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -39.793479919433594,
+        "gel_rms_to_wire_db": -54.92462921142578
+      }
+    }
+  },
+  "broad-matched-repeat": {
+    "raw_plane": {
+      "center_mm": 44.47692909309478,
+      "slope_deg": 3.5914345407885517,
+      "p95_abs_range_residual_mm": 0.12215838078571473
+    },
+    "displayed_floor": {
+      "center_mm": 44.53428064890421,
+      "slope_deg": 4.5335549563588815,
+      "slope": 0.0792910059799607,
+      "central_p95_abs_mm": 0.09549334711021652,
+      "central_rms_mm": 0.052454307166561846
+    },
+    "wire": {
+      "point_mm": [
+        1.775,
+        17.525
+      ],
+      "lat_mm": 0.4014676153659824,
+      "ax_mm": 0.2859860897064195,
+      "far_contrast_db": 35.40977096557617
+    },
+    "regions": {
+      "upper_wing_to_floor_db": -40.816078186035156,
+      "gel_rms_to_wire_db": -54.33977508544922
+    },
+    "stronger_taper": {
+      "wire": {
+        "point_mm": [
+          1.775,
+          17.525
+        ],
+        "lat_mm": 0.4201548188924795,
+        "ax_mm": 0.28734014630317617,
+        "far_contrast_db": 38.563018798828125
+      },
+      "floor": {
+        "center_mm": 44.53662561082863,
+        "slope_deg": 4.676016246923408,
+        "slope": 0.08179355536509678,
+        "central_p95_abs_mm": 0.0902492118316459,
+        "central_rms_mm": 0.054514846058175304
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -40.92312240600586,
+        "gel_rms_to_wire_db": -55.235172271728516
+      }
+    },
+    "documented_geometry": {
+      "wire": {
+        "point_mm": [
+          1.6250000000000013,
+          17.575
+        ],
+        "lat_mm": 0.37733539938926697,
+        "ax_mm": 0.2677768550813191,
+        "far_contrast_db": 34.00905227661133
+      },
+      "floor": {
+        "center_mm": 44.49249230521738,
+        "slope_deg": 3.8182681854836584,
+        "slope": 0.06674018008954366,
+        "central_p95_abs_mm": 0.27963694103074577,
+        "central_rms_mm": 0.12687121234805784
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -39.85829162597656,
+        "gel_rms_to_wire_db": -51.766807556152344
+      }
+    },
+    "frequency_compounding": {
+      "wire": {
+        "point_mm": [
+          1.775,
+          17.474999999999998
+        ],
+        "lat_mm": 0.41605583876371455,
+        "ax_mm": 0.4419513806700692,
+        "far_contrast_db": 29.738021850585938
+      },
+      "floor": {
+        "center_mm": 44.53385925685802,
+        "slope_deg": 4.400872366894804,
+        "slope": 0.07696112232216851,
+        "central_p95_abs_mm": 0.11506298778631527,
+        "central_rms_mm": 0.06735884265646476
+      },
+      "regions": {
+        "upper_wing_to_floor_db": -39.03988265991211,
+        "gel_rms_to_wire_db": -52.285118103027344
+      }
+    }
+  }
+}

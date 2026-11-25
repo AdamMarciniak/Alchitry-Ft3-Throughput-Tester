@@ -1,0 +1,5 @@
+File C:\Users\Adam\usb3-tester\bench_runs\builds\20260908T005343Z-4c8e5f\source\bench_lease_sim.ps1 cannot be loaded 
+because running scripts is disabled on this system. For more information, see about_Execution_Policies at 
+https:/go.microsoft.com/fwlink/?LinkID=135170.
+    + CategoryInfo          : SecurityError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : UnauthorizedAccess

@@ -1,0 +1,33 @@
+{
+  "user_report": "Some probe movement between clips; unsure how much. Prior recording context included rib shadowing.",
+  "acquisition_source": "User-recorded clips; assistant performed only offline analysis",
+  "clips": {
+    "baseline": {
+      "source": "C:\\Users\\Adam\\usb3-tester\\host\\heart-baseline.rf.npz.rf.npz.rf.npz",
+      "rf_sha256": "4a9a1d526eb8176a8fe7ea20568a58938f5ac53547d62243a10c4eaf6d8edb0f",
+      "shape": [
+        188,
+        48,
+        8020
+      ]
+    },
+    "start": {
+      "source": "C:\\Users\\Adam\\usb3-tester\\host\\heart-start.rf.npz.rf.npz.rf.npz",
+      "rf_sha256": "488a29fb408e02f987b21921861bc37cbf45b6277f82f9bf1f690bffaca40f35",
+      "shape": [
+        127,
+        48,
+        8020
+      ]
+    },
+    "tgc": {
+      "source": "C:\\Users\\Adam\\usb3-tester\\host\\heart-tgc-latest.rf.npz.rf.npz.rf.npz",
+      "rf_sha256": "ca0434b0febcff8263bab6f12dce2a29f3f2f9f66dfc737c2f0107d6471899ad",
+      "shape": [
+        189,
+        48,
+        8020
+      ]
+    }
+  }
+}

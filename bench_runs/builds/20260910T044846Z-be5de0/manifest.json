@@ -1,0 +1,31 @@
+{
+  "schema": "usb3-bench-build",
+  "version": 1,
+  "state": "failed",
+  "created_utc": "2026-09-10T04:48:46.213890+00:00",
+  "part": "xc7a35tftg256-2",
+  "board": "AuV2",
+  "vivado": "E:\\Vivado\\2025.2\\Vivado\\bin\\vivado.bat",
+  "source_sha256": {
+    "source/rtl/afe5804_ctrl.v": "64ecba8d751975b50ea1f72dc3d9cb91bde805e95b67fa31ed5cf803ed689ab3",
+    "source/rtl/afe_rx.v": "693e61efbced28a6ffaa532c7a6f4a1b8baea387cde45fc2d9593a9f0e7dde6a",
+    "source/rtl/afe_stream.v": "37a67cb57745a2da22bb701fa69859655aa28878a21a43a092e09b2aa8d13287",
+    "source/rtl/alchitry_top.v": "a6607d69f595b46cffae8913543296251ca2372e7dded7fea99dd5aa10237523",
+    "source/rtl/ctrl_decode.v": "0f40faaeca1930fe1e8f776e599fb23468eb888cdc35e4aed075638a5d729cbd",
+    "source/rtl/dac7554_ramp.v": "f07a136a074eaf5e033e07a8963ecdc4197b0f4f5ed142a6af443d972328012b",
+    "source/rtl/ft601_if.v": "05b300ef7afadf8fba06b16f4e73f4e4e1e4f04e22819fdb4c3477d2f1605cbd",
+    "source/rtl/tx_sequencer.v": "6cd97d6ef20a920d242982b326fde312a040521f449f575fa5d20c89b14b4316",
+    "source/constraints/au_ft.xdc": "9e122ac3939505d9a34a4c4e456440917a2423b0ff8244e1465d1c75d42e951a",
+    "source/constraints/pulser.xdc": "ec1261bbac770ce326ec0f072969a2a16432f61dd794f9138ebf79044996e6f3",
+    "source/tests/tb_capture_ready.v": "71ccd2aa63413f7d27e2e96c9248ee7a106e6244afe3b934f4a27669ea56be88",
+    "source/tests/tb_ctrl_lease.v": "40144a15ee6bdf948d23905c621dabdbb64f125ca4880f06af1cf977dd3d6050",
+    "source/bench_build.tcl": "3094eac02f51a10ddb5a6b3436dcc609d341e1dfe3e3c02e184e1784b0f7f941",
+    "source/bench_vivado.ps1": "d730c21867e3ae66b8df9b1a60dbe0597c81bd917184a60572e4f67a5c30b7a3",
+    "source/bench_lease_sim.ps1": "c4dfb88758ba4e8d954b8b4fd24ddcfb2800444e93cd7397dd358a37856c8ade",
+    "source/bench_capture_sim.ps1": "e019e597cfe9c2ae2e467782d4811bc81889803fa9bd1c8a53616641f948d7ef",
+    "source/bench_build.py": "68767f645eefb9a554f15125c5c85822e3eb9dd5d0d5be7ec70d36dd9c578cd6"
+  },
+  "runtime_build_id": "af12190e",
+  "capture_ready_simulation": "passed",
+  "error": "Command failed (1); log: C:\\Users\\Adam\\usb3-tester\\bench_runs\\builds\\20260910T044846Z-be5de0\\build.log\n\n****** Vivado v2025.2 (64-bit)\n  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025\n  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025\n  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025\n  **** Start of session at: Wed Sep  9 21:49:07 2026\n    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.\n    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.\n\nERROR: [Common 17-356] Failed to install all user apps.\nERROR: [Common 17-39] 'load_features' failed due to earlier errors.\n\n    while executing\n\"load_features base core vivado filemgmt board tclstore writecfgmem\"\n    (file \"E:/Vivado/2025.2/Vivado/lib/scripts/rdi/products/Vivado.tcl\" line 10)\nINFO: [Common 17-206] Exiting Vivado at Wed Sep  9 21:49:11 2026...\n"
+}

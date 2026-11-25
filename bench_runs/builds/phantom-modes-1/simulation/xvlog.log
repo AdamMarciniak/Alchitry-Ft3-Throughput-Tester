@@ -1,0 +1,6 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/phantom-modes-1/source/rtl/ctrl_decode.v" into library work
+INFO: [VRFC 10-311] analyzing module ctrl_decode
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/phantom-modes-1/source/rtl/tx_sequencer.v" into library work
+INFO: [VRFC 10-311] analyzing module tx_sequencer
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/phantom-modes-1/source/tests/tb_capture_ready.v" into library work
+INFO: [VRFC 10-311] analyzing module tb_capture_ready

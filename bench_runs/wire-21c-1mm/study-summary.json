@@ -1,0 +1,308 @@
+{
+  "scope": "Best of the tested settings for this stationary 1 mm wire in approximately 21 C water; not a global optimum or tissue-imaging validation.",
+  "captures": [
+    {
+      "name": "baseline",
+      "frames": 32,
+      "valid_frames": 0,
+      "max_element_clipping_fraction": 0.006874737605434907,
+      "accepted": false,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\baseline\\capture.rf.npz"
+    },
+    {
+      "name": "flat-tgc-1800",
+      "frames": 24,
+      "valid_frames": 24,
+      "max_element_clipping_fraction": 0.0032672099029299136,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-tgc-1800\\capture.rf.npz"
+    },
+    {
+      "name": "flat-tgc-2200",
+      "frames": 24,
+      "valid_frames": 24,
+      "max_element_clipping_fraction": 0.004391530857600855,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-tgc-2200\\capture.rf.npz"
+    },
+    {
+      "name": "flat-tgc-2600",
+      "frames": 24,
+      "valid_frames": 24,
+      "max_element_clipping_fraction": 0.007308086205361119,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-tgc-2600\\capture.rf.npz"
+    },
+    {
+      "name": "flat-trim-tgc1200",
+      "frames": 16,
+      "valid_frames": 16,
+      "max_element_clipping_fraction": 0.0006846112743788405,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-trim-tgc1200\\capture.rf.npz"
+    },
+    {
+      "name": "flat-trim-tgc1600",
+      "frames": 16,
+      "valid_frames": 16,
+      "max_element_clipping_fraction": 0.0010686615014694097,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-trim-tgc1600\\capture.rf.npz"
+    },
+    {
+      "name": "flat-trim-tgc1600-dly15",
+      "frames": 24,
+      "valid_frames": 24,
+      "max_element_clipping_fraction": 0.0,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-trim-tgc1600-dly15\\capture.rf.npz"
+    },
+    {
+      "name": "flat-trim-tgc1600-dly25",
+      "frames": 24,
+      "valid_frames": 24,
+      "max_element_clipping_fraction": 0.0,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-trim-tgc1600-dly25\\capture.rf.npz"
+    },
+    {
+      "name": "flat-trim-tgc2200",
+      "frames": 32,
+      "valid_frames": 32,
+      "max_element_clipping_fraction": 0.004424926529521774,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-trim-tgc2200\\capture.rf.npz"
+    },
+    {
+      "name": "flat-trim-tgc800",
+      "frames": 16,
+      "valid_frames": 16,
+      "max_element_clipping_fraction": 0.0,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\flat-trim-tgc800\\capture.rf.npz"
+    },
+    {
+      "name": "gap300",
+      "frames": 16,
+      "valid_frames": 16,
+      "max_element_clipping_fraction": 0.007171720545017366,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\gap300\\capture.rf.npz"
+    },
+    {
+      "name": "validation-air-control",
+      "frames": 32,
+      "valid_frames": 32,
+      "max_element_clipping_fraction": 0.0,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\validation-air-control\\capture.rf.npz"
+    },
+    {
+      "name": "validation-flat-a",
+      "frames": 32,
+      "valid_frames": 32,
+      "max_element_clipping_fraction": 0.0,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\validation-flat-a\\capture.rf.npz"
+    },
+    {
+      "name": "validation-flat-b",
+      "frames": 32,
+      "valid_frames": 32,
+      "max_element_clipping_fraction": 0.0,
+      "accepted": true,
+      "rf": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\wire-21c-1mm\\validation-flat-b\\capture.rf.npz"
+    }
+  ],
+  "validation": [
+    {
+      "session": "validation-air-control",
+      "view": "das",
+      "frames": [
+        4,
+        12,
+        20,
+        28
+      ],
+      "normalized_peak": {
+        "min": 0.0009972086470378073,
+        "max": 0.0010390793414492357,
+        "mean": 0.0010170901782418553
+      },
+      "wide_arc_p99_db": {
+        "min": -12.261542320251465,
+        "max": -11.834641456604004,
+        "mean": -11.988734006881714
+      },
+      "wide_arc_max_db": {
+        "min": -4.6269731521606445,
+        "max": -4.210102081298828,
+        "mean": -4.502255082130432
+      },
+      "lateral_width_6db_mm": {
+        "min": 1.3876554818125442,
+        "max": 1.4182229759171605,
+        "mean": 1.4059772380278446
+      }
+    },
+    {
+      "session": "validation-air-control",
+      "view": "weighted",
+      "frames": [
+        4,
+        12,
+        20,
+        28
+      ],
+      "normalized_peak": {
+        "min": 3.570768259171593e-05,
+        "max": 4.5874860676887786e-05,
+        "mean": 4.013064761621583e-05
+      },
+      "wide_arc_p99_db": {
+        "min": -24.119670867919922,
+        "max": -21.969106674194336,
+        "mean": -22.767005920410156
+      },
+      "wide_arc_max_db": {
+        "min": -10.383487701416016,
+        "max": -8.145009994506836,
+        "mean": -9.304672718048096
+      },
+      "lateral_width_6db_mm": {
+        "min": 0.6530229060444981,
+        "max": 0.6876697996631265,
+        "mean": 0.6738057119946461
+      }
+    },
+    {
+      "session": "validation-flat-a",
+      "view": "das",
+      "frames": [
+        4,
+        12,
+        20,
+        28
+      ],
+      "normalized_peak": {
+        "min": 0.0021501873668871426,
+        "max": 0.0021721981465816498,
+        "mean": 0.002162579201946133
+      },
+      "wide_arc_p99_db": {
+        "min": -21.28866958618164,
+        "max": -21.033405303955078,
+        "mean": -21.16194200515747
+      },
+      "wide_arc_max_db": {
+        "min": -15.462894439697266,
+        "max": -14.830231666564941,
+        "mean": -15.220547914505005
+      },
+      "lateral_width_6db_mm": {
+        "min": 1.310767960967496,
+        "max": 1.3174271836760454,
+        "mean": 1.31539662470459
+      }
+    },
+    {
+      "session": "validation-flat-a",
+      "view": "weighted",
+      "frames": [
+        4,
+        12,
+        20,
+        28
+      ],
+      "normalized_peak": {
+        "min": 0.001519524443306421,
+        "max": 0.0015833945454735506,
+        "mean": 0.0015531656773466814
+      },
+      "wide_arc_p99_db": {
+        "min": -50.388545989990234,
+        "max": -50.29948806762695,
+        "mean": -50.33498287200928
+      },
+      "wide_arc_max_db": {
+        "min": -26.304794311523438,
+        "max": -25.31610679626465,
+        "mean": -25.665643215179443
+      },
+      "lateral_width_6db_mm": {
+        "min": 0.643387834134046,
+        "max": 0.6484770334282075,
+        "mean": 0.6468523122521219
+      }
+    },
+    {
+      "session": "validation-flat-b",
+      "view": "das",
+      "frames": [
+        4,
+        12,
+        20,
+        28
+      ],
+      "normalized_peak": {
+        "min": 0.002160872675870594,
+        "max": 0.002170543921621222,
+        "mean": 0.002166355813020154
+      },
+      "wide_arc_p99_db": {
+        "min": -21.303298950195312,
+        "max": -21.071735382080078,
+        "mean": -21.176676750183105
+      },
+      "wide_arc_max_db": {
+        "min": -15.771549224853516,
+        "max": -14.951786994934082,
+        "mean": -15.383827686309814
+      },
+      "lateral_width_6db_mm": {
+        "min": 1.3133522050338797,
+        "max": 1.322686270577833,
+        "mean": 1.3170503389119403
+      }
+    },
+    {
+      "session": "validation-flat-b",
+      "view": "weighted",
+      "frames": [
+        4,
+        12,
+        20,
+        28
+      ],
+      "normalized_peak": {
+        "min": 0.0015420139228042803,
+        "max": 0.0015691544272397693,
+        "mean": 0.0015547923057487136
+      },
+      "wide_arc_p99_db": {
+        "min": -50.870933532714844,
+        "max": -50.32981491088867,
+        "mean": -50.56345748901367
+      },
+      "wide_arc_max_db": {
+        "min": -25.750591278076172,
+        "max": -23.922298431396484,
+        "mean": -24.811113834381104
+      },
+      "lateral_width_6db_mm": {
+        "min": 0.6443866652261931,
+        "max": 0.6496212370620924,
+        "mean": 0.646778757482025
+      }
+    }
+  ],
+  "flat_trim_das_signal_gain_db": 6.567406567117154,
+  "final_coherence_peak_retention": 0.717699417798386,
+  "candidate": "flat trims; quiet-channel mask; TGC 1600 constant; receive delay 15 us; gap 300 us; 2-5 MHz receive band; Hann aperture; CF exponent 2; 4-sweep average; 45 dB display; +40 dB display gain",
+  "residual": "A small point-like off-wire feature remains near x=+13.6 mm, z=53.3 mm. It may be a bubble or another reflector; this has not been identified physically. Container-bottom responses remain visible.",
+  "reference_for_water_model": "https://resource.npl.co.uk/acoustics/techguides/soundpurewater/underlying-phys.html",
+  "presets": [
+    "C:\\Users\\Adam\\usb3-tester\\host\\presets\\wire-21c-1mm-best.json",
+    "C:\\Users\\Adam\\usb3-tester\\host\\presets\\wire-21c-1mm-das.json"
+  ]
+}

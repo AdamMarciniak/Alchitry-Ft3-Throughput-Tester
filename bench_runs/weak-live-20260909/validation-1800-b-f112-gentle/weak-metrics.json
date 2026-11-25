@@ -1,0 +1,38 @@
+{
+  "trial": "validation-1800-b-f112-gentle",
+  "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\validation-1800-b\\capture.rf.npz",
+  "frame": 112,
+  "aperture_scale": 97280.0,
+  "wire": {
+    "peak": 93.93923950195312,
+    "normalized_peak": 0.0009656583008013273,
+    "position_mm": [
+      -3.212890625,
+      40.390625
+    ],
+    "local_rms": 2.82606840133667,
+    "local_db": 30.433287415875206
+  },
+  "faint_right": {
+    "peak": 14.318047523498535,
+    "normalized_peak": 0.0001471838766807004,
+    "position_mm": [
+      17.978515625,
+      37.734375
+    ],
+    "local_rms": 1.924309253692627,
+    "local_db": 17.4321786250074
+  },
+  "faint_left": {
+    "peak": 6.520332336425781,
+    "normalized_peak": 6.702644260306107e-05,
+    "position_mm": [
+      -20.986328125,
+      36.015625
+    ],
+    "local_rms": 1.5188841819763184,
+    "local_db": 12.654901453504849
+  },
+  "quiet_rms": 1.2711155414581299,
+  "arc_p99_relative_db": -18.23480224609375
+}

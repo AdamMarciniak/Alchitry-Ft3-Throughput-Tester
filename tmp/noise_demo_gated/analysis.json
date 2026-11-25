@@ -1,0 +1,697 @@
+{
+  "schema": "usb3_tester.single_element_noise.v2",
+  "generated_at_utc": "2026-08-19T02:13:09.347895+00:00",
+  "overall_status": "investigate",
+  "threshold_note": "Severity thresholds are generic engineering triage, not a calibrated AFE5804 production limit.",
+  "capture_settings": {
+    "element": 0,
+    "frames": 32,
+    "depth_cm": 6.0,
+    "analysis_start_depth_cm": 3.0,
+    "sound_speed_m_s": 1496.0,
+    "delay_us": 5.0,
+    "damp_us": 50.0,
+    "tgc_start": 834,
+    "tgc_end": 834,
+    "signed_adc": false,
+    "pulse_pairs": 2,
+    "pulse_width_ns": 100.0,
+    "pulse_dead_ns": 40.0,
+    "switch_settle_us": 5.0,
+    "mux_inhibit_us": 4.5,
+    "ringdown_us": 3.0,
+    "captured_at_utc": "2026-08-19T02:13:09.316380+00:00",
+    "source": "simulation",
+    "sample_rate_hz": 40000000,
+    "adc_bits": 12,
+    "sample_coding": "offset_binary",
+    "window_words": 1604,
+    "samples_per_frame": 3208,
+    "window_us": 80.2,
+    "estimated_frame_rate_hz": 6242.197253433209,
+    "selected_transmit_trim_ns": 0.0,
+    "transmit_trim_bias_ns": 0.0,
+    "simulation_note": "Fault-rich deterministic demo: ringdown, tones, localized noise, impulses, and 60 Hz frame modulation."
+  },
+  "transport_integrity": {
+    "requested_frames": 32,
+    "headers_seen": 32,
+    "accepted_frames": 32,
+    "wrong_element_frames": 0,
+    "tag_damaged_frames": 0,
+    "sample_tag_discontinuities": 0,
+    "frame_counter_discontinuities": 0,
+    "estimated_missing_frames": 0,
+    "resync_events": 0,
+    "discarded_words_during_resync": 0,
+    "capture_seconds": 0.0051264,
+    "clean_frame_rate_hz": 6242.197253433209,
+    "partial_words_at_stop": 0
+  },
+  "analysis_gate": {
+    "requested_start_depth_cm": 3.0,
+    "actual_start_depth_cm": 3.001,
+    "start_sample": 1405,
+    "start_capture_time_us": 35.125,
+    "physical_hv_delay_after_tx_sync_us": 0.0,
+    "selected_transmit_trim_ns": 0.0,
+    "transmit_trim_bias_ns": 0.0,
+    "note": "Only samples at/after this physical-depth gate affect the assessment. Earlier limiter saturation and ringdown remain in excluded_near_field."
+  },
+  "excluded_near_field": {
+    "available": true,
+    "samples": 1405,
+    "end_capture_time_us": 35.125,
+    "peak_counts": 192.0,
+    "peak_dbfs": -20.56,
+    "random_rms_counts": 4.9053,
+    "random_rms_dbfs": -52.41,
+    "coherent_rms_counts": 43.4073,
+    "coherent_rms_dbfs": -33.48,
+    "clipped_samples_percent": 0.0,
+    "residual_kurtosis": 3.022,
+    "assessment_role": "context_only_expected_limiter_and_ringdown_not_used_for_overall_status"
+  },
+  "full_capture_context": {
+    "samples_per_frame": 3208,
+    "duration_per_frame_us": 80.2,
+    "peak_counts": 314.0,
+    "peak_dbfs": -16.29,
+    "total_ac_rms_counts": 30.3533,
+    "random_residual_rms_counts": 6.606,
+    "coherent_rms_counts": 29.6257,
+    "clipped_samples_percent": 0.0,
+    "near_rail_samples_percent": 0.0,
+    "assessment_role": "context_only_not_used_for_overall_status"
+  },
+  "summary": {
+    "frames_analyzed": 32,
+    "samples_per_frame": 1803,
+    "duration_per_frame_us": 45.075,
+    "analysis_start_depth_cm": 3.001,
+    "dc_mean_counts": 6.9147,
+    "dc_drift_std_counts": 3.2344,
+    "total_ac_rms_counts": 12.3374,
+    "total_ac_rms_dbfs": -44.4,
+    "random_rms_counts": 7.6727,
+    "random_rms_dbfs": -48.53,
+    "coherent_rms_counts": 9.6613,
+    "coherent_rms_dbfs": -46.53,
+    "random_fraction_of_ac_power_percent": 38.68,
+    "peak_counts": 314.0,
+    "peak_dbfs": -16.29,
+    "peak_to_peak_counts": 578.0,
+    "crest_factor_db": 28.11,
+    "clipped_samples_percent": 0.0,
+    "near_rail_samples_percent": 0.0,
+    "residual_kurtosis": 146.312,
+    "median_frame_correlation_to_mean": 0.79977,
+    "frame_rms_variation_percent": 8.293,
+    "effective_bits_from_random_noise": 7.268
+  },
+  "adc_code_health": {
+    "sample_coding": "offset_binary",
+    "unique_codes_observed": 132,
+    "observed_code_min": 1734,
+    "observed_code_max": 2312,
+    "lsb_toggle_percent": 50.153,
+    "bit_one_fraction_lsb_to_msb": [
+      0.495632,
+      0.499497,
+      0.499047,
+      0.497868,
+      0.403252,
+      0.268667,
+      0.244402,
+      0.244211,
+      0.244176,
+      0.244176,
+      0.244176,
+      0.755824
+    ],
+    "fully_static_bits": [],
+    "note": "Static upper bits can be normal for a very small input range; this is a diagnostic clue, not a DNL test."
+  },
+  "spectrum": {
+    "method": "one-sided Hann Welch PSD, 50% overlap, DC removed per frame",
+    "frequency_resolution_hz": 39062.5,
+    "spectral_flatness_0_to_1": 0.931664,
+    "random_noise_tones": [],
+    "repeatable_waveform_tones": [
+      {
+        "frequency_hz": 1250000.0,
+        "frequency_mhz": 1.25,
+        "prominence_db": 42.78,
+        "estimated_rms_counts": 5.7212,
+        "estimated_rms_dbfs": -51.08
+      },
+      {
+        "frequency_hz": 7265625.0,
+        "frequency_mhz": 7.265625,
+        "prominence_db": 31.42,
+        "estimated_rms_counts": 2.008,
+        "estimated_rms_dbfs": -60.17
+      },
+      {
+        "frequency_hz": 3554687.5,
+        "frequency_mhz": 3.554688,
+        "prominence_db": 20.81,
+        "estimated_rms_counts": 0.4698,
+        "estimated_rms_dbfs": -72.79
+      },
+      {
+        "frequency_hz": 7070312.5,
+        "frequency_mhz": 7.070312,
+        "prominence_db": 6.88,
+        "estimated_rms_counts": 0.1049,
+        "estimated_rms_dbfs": -85.81
+      },
+      {
+        "frequency_hz": 16132812.5,
+        "frequency_mhz": 16.132812,
+        "prominence_db": 6.57,
+        "estimated_rms_counts": 0.1149,
+        "estimated_rms_dbfs": -85.02
+      },
+      {
+        "frequency_hz": 17656250.0,
+        "frequency_mhz": 17.65625,
+        "prominence_db": 6.26,
+        "estimated_rms_counts": 0.1448,
+        "estimated_rms_dbfs": -83.01
+      }
+    ],
+    "random_noise_bands": [
+      {
+        "name": "sub_100_khz",
+        "low_hz": 0.0,
+        "high_hz": 100000.0,
+        "rms_counts": 0.3208,
+        "rms_dbfs": -76.1,
+        "percent_of_random_noise_power": 0.25
+      },
+      {
+        "name": "100_khz_to_1_mhz",
+        "low_hz": 100000.0,
+        "high_hz": 1000000.0,
+        "rms_counts": 1.0735,
+        "rms_dbfs": -65.61,
+        "percent_of_random_noise_power": 2.83
+      },
+      {
+        "name": "1_to_2_mhz",
+        "low_hz": 1000000.0,
+        "high_hz": 2000000.0,
+        "rms_counts": 1.1684,
+        "rms_dbfs": -64.87,
+        "percent_of_random_noise_power": 3.36
+      },
+      {
+        "name": "probe_band_2_to_6_mhz",
+        "low_hz": 2000000.0,
+        "high_hz": 6000000.0,
+        "rms_counts": 2.3348,
+        "rms_dbfs": -58.86,
+        "percent_of_random_noise_power": 13.41
+      },
+      {
+        "name": "6_to_10_mhz",
+        "low_hz": 6000000.0,
+        "high_hz": 10000000.0,
+        "rms_counts": 2.408,
+        "rms_dbfs": -58.59,
+        "percent_of_random_noise_power": 14.27
+      },
+      {
+        "name": "10_to_20_mhz",
+        "low_hz": 10000000.0,
+        "high_hz": 20000000.0,
+        "rms_counts": 5.1748,
+        "rms_dbfs": -51.95,
+        "percent_of_random_noise_power": 65.88
+      }
+    ],
+    "repeatable_waveform_bands": [
+      {
+        "name": "sub_100_khz",
+        "low_hz": 0.0,
+        "high_hz": 100000.0,
+        "rms_counts": 0.0416,
+        "rms_dbfs": -93.84,
+        "percent_of_random_noise_power": 0.0
+      },
+      {
+        "name": "100_khz_to_1_mhz",
+        "low_hz": 100000.0,
+        "high_hz": 1000000.0,
+        "rms_counts": 0.1647,
+        "rms_dbfs": -81.9,
+        "percent_of_random_noise_power": 0.07
+      },
+      {
+        "name": "1_to_2_mhz",
+        "low_hz": 1000000.0,
+        "high_hz": 2000000.0,
+        "rms_counts": 5.7253,
+        "rms_dbfs": -51.07,
+        "percent_of_random_noise_power": 84.98
+      },
+      {
+        "name": "probe_band_2_to_6_mhz",
+        "low_hz": 2000000.0,
+        "high_hz": 6000000.0,
+        "rms_counts": 0.6144,
+        "rms_dbfs": -70.46,
+        "percent_of_random_noise_power": 0.98
+      },
+      {
+        "name": "6_to_10_mhz",
+        "low_hz": 6000000.0,
+        "high_hz": 10000000.0,
+        "rms_counts": 2.119,
+        "rms_dbfs": -59.7,
+        "percent_of_random_noise_power": 11.64
+      },
+      {
+        "name": "10_to_20_mhz",
+        "low_hz": 10000000.0,
+        "high_hz": 20000000.0,
+        "rms_counts": 0.9463,
+        "rms_dbfs": -66.71,
+        "percent_of_random_noise_power": 2.32
+      }
+    ]
+  },
+  "time_depth_localization": {
+    "block_samples": 256,
+    "block_us": 6.4,
+    "depth_mapping": "one-way equivalent depth = sound_speed * (tx_sync_to_capture_delay + sample_time - physical_HV_delay_after_tx_sync) / 2",
+    "localized_regions": [
+      {
+        "start_us": 73.525,
+        "end_us": 80.2,
+        "start_depth_cm": 5.874,
+        "end_depth_cm": 6.373,
+        "classification": "repeatable_coherent_artifact",
+        "max_random_excess_db": 4.94,
+        "max_total_excess_db": 7.05,
+        "max_peak_dbfs": -29.18,
+        "max_kurtosis": 3.291
+      },
+      {
+        "start_us": 47.925,
+        "end_us": 54.325,
+        "start_depth_cm": 3.959,
+        "end_depth_cm": 4.438,
+        "classification": "impulsive_or_bursty",
+        "max_random_excess_db": 1.79,
+        "max_total_excess_db": 0.66,
+        "max_peak_dbfs": -16.06,
+        "max_kurtosis": 658.45
+      }
+    ],
+    "highest_noise_blocks": [
+      {
+        "index": 7,
+        "start_sample": 3197,
+        "end_sample": 3208,
+        "start_us": 79.925,
+        "end_us": 80.2,
+        "start_depth_cm": 6.352,
+        "end_depth_cm": 6.373,
+        "total_rms_dbfs": -39.46,
+        "random_rms_dbfs": -44.61,
+        "coherent_rms_dbfs": -41.04,
+        "peak_dbfs": -31.71,
+        "random_kurtosis": 3.291,
+        "random_excess_over_median_db": 4.8,
+        "total_excess_over_median_db": 7.05
+      },
+      {
+        "index": 6,
+        "start_sample": 2941,
+        "end_sample": 3197,
+        "start_us": 73.525,
+        "end_us": 79.925,
+        "start_depth_cm": 5.874,
+        "end_depth_cm": 6.352,
+        "total_rms_dbfs": -39.69,
+        "random_rms_dbfs": -44.47,
+        "coherent_rms_dbfs": -41.45,
+        "peak_dbfs": -29.18,
+        "random_kurtosis": 3.035,
+        "random_excess_over_median_db": 4.94,
+        "total_excess_over_median_db": 6.83
+      },
+      {
+        "index": 5,
+        "start_sample": 2685,
+        "end_sample": 2941,
+        "start_us": 67.125,
+        "end_us": 73.525,
+        "start_depth_cm": 5.395,
+        "end_depth_cm": 5.874,
+        "total_rms_dbfs": -42.51,
+        "random_rms_dbfs": -47.09,
+        "coherent_rms_dbfs": -44.37,
+        "peak_dbfs": -31.7,
+        "random_kurtosis": 3.211,
+        "random_excess_over_median_db": 2.31,
+        "total_excess_over_median_db": 4.01
+      },
+      {
+        "index": 2,
+        "start_sample": 1917,
+        "end_sample": 2173,
+        "start_us": 47.925,
+        "end_us": 54.325,
+        "start_depth_cm": 3.959,
+        "end_depth_cm": 4.438,
+        "total_rms_dbfs": -45.85,
+        "random_rms_dbfs": -47.62,
+        "coherent_rms_dbfs": -50.6,
+        "peak_dbfs": -16.06,
+        "random_kurtosis": 658.45,
+        "random_excess_over_median_db": 1.79,
+        "total_excess_over_median_db": 0.66
+      },
+      {
+        "index": 4,
+        "start_sample": 2429,
+        "end_sample": 2685,
+        "start_us": 60.725,
+        "end_us": 67.125,
+        "start_depth_cm": 4.916,
+        "end_depth_cm": 5.395,
+        "total_rms_dbfs": -47.18,
+        "random_rms_dbfs": -51.19,
+        "coherent_rms_dbfs": -49.37,
+        "peak_dbfs": -35.33,
+        "random_kurtosis": 3.094,
+        "random_excess_over_median_db": -1.78,
+        "total_excess_over_median_db": -0.66
+      },
+      {
+        "index": 0,
+        "start_sample": 1405,
+        "end_sample": 1661,
+        "start_us": 35.125,
+        "end_us": 41.525,
+        "start_depth_cm": 3.001,
+        "end_depth_cm": 3.48,
+        "total_rms_dbfs": -48.46,
+        "random_rms_dbfs": -52.47,
+        "coherent_rms_dbfs": -50.65,
+        "peak_dbfs": -37.74,
+        "random_kurtosis": 2.958,
+        "random_excess_over_median_db": -3.06,
+        "total_excess_over_median_db": -1.95
+      },
+      {
+        "index": 3,
+        "start_sample": 2173,
+        "end_sample": 2429,
+        "start_us": 54.325,
+        "end_us": 60.725,
+        "start_depth_cm": 4.438,
+        "end_depth_cm": 4.916,
+        "total_rms_dbfs": -48.52,
+        "random_rms_dbfs": -52.35,
+        "coherent_rms_dbfs": -50.84,
+        "peak_dbfs": -38.31,
+        "random_kurtosis": 3.012,
+        "random_excess_over_median_db": -2.95,
+        "total_excess_over_median_db": -2.01
+      },
+      {
+        "index": 1,
+        "start_sample": 1661,
+        "end_sample": 1917,
+        "start_us": 41.525,
+        "end_us": 47.925,
+        "start_depth_cm": 3.48,
+        "end_depth_cm": 3.959,
+        "total_rms_dbfs": -48.64,
+        "random_rms_dbfs": -52.45,
+        "coherent_rms_dbfs": -50.97,
+        "peak_dbfs": -37.98,
+        "random_kurtosis": 3.04,
+        "random_excess_over_median_db": -3.05,
+        "total_excess_over_median_db": -2.12
+      }
+    ],
+    "all_blocks": [
+      {
+        "index": 0,
+        "start_sample": 1405,
+        "end_sample": 1661,
+        "start_us": 35.125,
+        "end_us": 41.525,
+        "start_depth_cm": 3.001,
+        "end_depth_cm": 3.48,
+        "total_rms_dbfs": -48.46,
+        "random_rms_dbfs": -52.47,
+        "coherent_rms_dbfs": -50.65,
+        "peak_dbfs": -37.74,
+        "random_kurtosis": 2.958,
+        "random_excess_over_median_db": -3.06,
+        "total_excess_over_median_db": -1.95
+      },
+      {
+        "index": 1,
+        "start_sample": 1661,
+        "end_sample": 1917,
+        "start_us": 41.525,
+        "end_us": 47.925,
+        "start_depth_cm": 3.48,
+        "end_depth_cm": 3.959,
+        "total_rms_dbfs": -48.64,
+        "random_rms_dbfs": -52.45,
+        "coherent_rms_dbfs": -50.97,
+        "peak_dbfs": -37.98,
+        "random_kurtosis": 3.04,
+        "random_excess_over_median_db": -3.05,
+        "total_excess_over_median_db": -2.12
+      },
+      {
+        "index": 2,
+        "start_sample": 1917,
+        "end_sample": 2173,
+        "start_us": 47.925,
+        "end_us": 54.325,
+        "start_depth_cm": 3.959,
+        "end_depth_cm": 4.438,
+        "total_rms_dbfs": -45.85,
+        "random_rms_dbfs": -47.62,
+        "coherent_rms_dbfs": -50.6,
+        "peak_dbfs": -16.06,
+        "random_kurtosis": 658.45,
+        "random_excess_over_median_db": 1.79,
+        "total_excess_over_median_db": 0.66
+      },
+      {
+        "index": 3,
+        "start_sample": 2173,
+        "end_sample": 2429,
+        "start_us": 54.325,
+        "end_us": 60.725,
+        "start_depth_cm": 4.438,
+        "end_depth_cm": 4.916,
+        "total_rms_dbfs": -48.52,
+        "random_rms_dbfs": -52.35,
+        "coherent_rms_dbfs": -50.84,
+        "peak_dbfs": -38.31,
+        "random_kurtosis": 3.012,
+        "random_excess_over_median_db": -2.95,
+        "total_excess_over_median_db": -2.01
+      },
+      {
+        "index": 4,
+        "start_sample": 2429,
+        "end_sample": 2685,
+        "start_us": 60.725,
+        "end_us": 67.125,
+        "start_depth_cm": 4.916,
+        "end_depth_cm": 5.395,
+        "total_rms_dbfs": -47.18,
+        "random_rms_dbfs": -51.19,
+        "coherent_rms_dbfs": -49.37,
+        "peak_dbfs": -35.33,
+        "random_kurtosis": 3.094,
+        "random_excess_over_median_db": -1.78,
+        "total_excess_over_median_db": -0.66
+      },
+      {
+        "index": 5,
+        "start_sample": 2685,
+        "end_sample": 2941,
+        "start_us": 67.125,
+        "end_us": 73.525,
+        "start_depth_cm": 5.395,
+        "end_depth_cm": 5.874,
+        "total_rms_dbfs": -42.51,
+        "random_rms_dbfs": -47.09,
+        "coherent_rms_dbfs": -44.37,
+        "peak_dbfs": -31.7,
+        "random_kurtosis": 3.211,
+        "random_excess_over_median_db": 2.31,
+        "total_excess_over_median_db": 4.01
+      },
+      {
+        "index": 6,
+        "start_sample": 2941,
+        "end_sample": 3197,
+        "start_us": 73.525,
+        "end_us": 79.925,
+        "start_depth_cm": 5.874,
+        "end_depth_cm": 6.352,
+        "total_rms_dbfs": -39.69,
+        "random_rms_dbfs": -44.47,
+        "coherent_rms_dbfs": -41.45,
+        "peak_dbfs": -29.18,
+        "random_kurtosis": 3.035,
+        "random_excess_over_median_db": 4.94,
+        "total_excess_over_median_db": 6.83
+      },
+      {
+        "index": 7,
+        "start_sample": 3197,
+        "end_sample": 3208,
+        "start_us": 79.925,
+        "end_us": 80.2,
+        "start_depth_cm": 6.352,
+        "end_depth_cm": 6.373,
+        "total_rms_dbfs": -39.46,
+        "random_rms_dbfs": -44.61,
+        "coherent_rms_dbfs": -41.04,
+        "peak_dbfs": -31.71,
+        "random_kurtosis": 3.291,
+        "random_excess_over_median_db": 4.8,
+        "total_excess_over_median_db": 7.05
+      }
+    ]
+  },
+  "shot_to_shot_modulation": {
+    "frame_dc": {
+      "available": true,
+      "frame_rate_hz": 6242.197,
+      "frequency_resolution_hz": 195.069,
+      "peaks": [
+        {
+          "frequency_hz": 195.07,
+          "frequency_mhz": 0.000195,
+          "prominence_db": 35.57,
+          "estimated_rms_counts": 1.3299,
+          "estimated_rms_dbfs": -63.75
+        },
+        {
+          "frequency_hz": 2926.03,
+          "frequency_mhz": 0.002926,
+          "prominence_db": 8.91,
+          "estimated_rms_counts": 0.1016,
+          "estimated_rms_dbfs": -86.09
+        }
+      ],
+      "note": "This spectrum uses one scalar per repeated shot and can expose mains/supply modulation below the shot-rate Nyquist limit."
+    },
+    "frame_rms": {
+      "available": true,
+      "frame_rate_hz": 6242.197,
+      "frequency_resolution_hz": 195.069,
+      "peaks": [],
+      "note": "This spectrum uses one scalar per repeated shot and can expose mains/supply modulation below the shot-rate Nyquist limit."
+    },
+    "interpretation": "Frame-DC modulation is sensitive to baseline/supply movement; frame-RMS modulation is sensitive to gain or interference amplitude changing between shots."
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "code": "broadband_noise_level",
+      "summary": "Measured random noise is high relative to ADC full scale.",
+      "evidence": {
+        "random_rms_counts": 7.6727,
+        "random_rms_dbfs": -48.53
+      },
+      "next_test": "Repeat at several fixed TGC values and with the probe/cable substituted to separate input-referred noise from gain-stage or supply noise."
+    },
+    {
+      "severity": "medium",
+      "code": "repeatable_artifact",
+      "summary": "Repeatable energy is stronger than frame-to-frame random noise, consistent with transmit feedthrough, ringdown, or synchronous pickup.",
+      "evidence": {
+        "coherent_rms_dbfs": -46.53,
+        "random_rms_dbfs": -48.53,
+        "median_frame_correlation": 0.7998
+      },
+      "next_test": "Compare probe-in-air, probe-loaded, and transmit-voltage conditions; repeatable early energy that tracks voltage/loading is likely acoustic or HV feedthrough."
+    },
+    {
+      "severity": "medium",
+      "code": "narrowband_interference",
+      "summary": "One or more narrow spectral lines rise clearly above the local noise floor; the component label shows whether each line repeats with the shot.",
+      "evidence": {
+        "strongest_tones": [
+          {
+            "frequency_hz": 1250000.0,
+            "frequency_mhz": 1.25,
+            "prominence_db": 42.78,
+            "estimated_rms_counts": 5.7212,
+            "estimated_rms_dbfs": -51.08,
+            "component": "repeatable_waveform"
+          }
+        ]
+      },
+      "next_test": "Correlate the listed frequencies and harmonics with switching regulators, clocks, USB activity, and the transmit centre frequency; vary transmit amplitude to distinguish acoustic/ringdown lines from electrical pickup."
+    },
+    {
+      "severity": "medium",
+      "code": "time_localized_noise",
+      "summary": "Noise is not stationary across the receive window; one or more time/depth regions are materially worse.",
+      "evidence": {
+        "random_noise_spread_db": 8.0,
+        "regions": [
+          {
+            "start_us": 73.525,
+            "end_us": 80.2,
+            "start_depth_cm": 5.874,
+            "end_depth_cm": 6.373,
+            "classification": "repeatable_coherent_artifact",
+            "max_random_excess_db": 4.94,
+            "max_total_excess_db": 7.05,
+            "max_peak_dbfs": -29.18,
+            "max_kurtosis": 3.291
+          },
+          {
+            "start_us": 47.925,
+            "end_us": 54.325,
+            "start_depth_cm": 3.959,
+            "end_depth_cm": 4.438,
+            "classification": "impulsive_or_bursty",
+            "max_random_excess_db": 1.79,
+            "max_total_excess_db": 0.66,
+            "max_peak_dbfs": -16.06,
+            "max_kurtosis": 658.45
+          }
+        ]
+      },
+      "next_test": "Use the reported time/depth gates to relate each rise to ringdown, TGC changes, supply settling, or a fixed-delay digital event."
+    },
+    {
+      "severity": "medium",
+      "code": "impulsive_noise",
+      "summary": "The random residual has heavy tails, indicating intermittent spikes or burst noise.",
+      "evidence": {
+        "residual_kurtosis": 146.312,
+        "gaussian_reference": 3.0
+      },
+      "next_test": "Capture more frames and trigger a bench scope on the affected time gate while monitoring rails and digital control lines."
+    }
+  ],
+  "recommended_comparisons": [
+    "Same settings with probe face in air versus acoustically loaded/coupled.",
+    "Same fixed TGC at two or three gain codes; input noise should scale predictably while post-gain pickup may not.",
+    "Same element with transmit voltage reduced or disabled upstream, if the bench setup provides a safe HV control.",
+    "Neighbouring elements with identical settings to separate a shared receive-path issue from one mux/probe path.",
+    "Battery/linear bench supplies versus normal switchers, and USB connected through the normal versus isolated ground arrangement."
+  ]
+}

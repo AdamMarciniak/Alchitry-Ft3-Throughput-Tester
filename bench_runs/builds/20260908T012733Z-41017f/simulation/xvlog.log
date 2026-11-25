@@ -1,0 +1,4 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/20260908T012733Z-41017f/source/rtl/ctrl_decode.v" into library work
+INFO: [VRFC 10-311] analyzing module ctrl_decode
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/Adam/usb3-tester/bench_runs/builds/20260908T012733Z-41017f/source/tests/tb_ctrl_lease.v" into library work
+INFO: [VRFC 10-311] analyzing module tb_ctrl_lease

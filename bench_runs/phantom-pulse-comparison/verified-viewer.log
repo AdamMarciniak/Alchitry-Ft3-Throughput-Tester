@@ -1,0 +1,9 @@
+locking RX window (0xA5A55A5A)...
+pulser: STOPPED  chirp 5.20->2.60 MHz  8 halves  burst 1.0 us  settle 5.0 us  inhibit 4.5 us  rx 252 us  elements 0-47  frame 12.85 ms  trim 306.0 ns rms, 2230 ns p-p
+LIVE DROP-DOWN Broad 2-6 MHz chirp (48, 3208)
+LIVE DROP-DOWN Golay pair (4 chips) (48, 6416)
+LIVE DROP-DOWN Neighbor RX (one cycle) (48, 3208)
+LIVE DROP-DOWN Current / custom (48, 3208)
+LIVE DROP-DOWN Broad 2-6 MHz chirp (48, 3208)
+LIVE VERIFIED 48 el  depth 6.0 cm  c 1531 m/s  dly 5 us  aper 26 deg  apod 30%  coh 0.25  drive 1.7-5.6 MHz  burst 3.00 us  pulse-comp on  band 1.0-7.0 MHz  avg 8 sw  t0 +20 ns  R 71.6 mm  pitch 0.3120 mm  dyn 66 dB  gain +35 dB  curve 0.85  zoom 1.4x  TGC 1100-2123
+saved settings C:\Users\Adam\usb3-tester\host\settings\20261124_072619_627138900.json

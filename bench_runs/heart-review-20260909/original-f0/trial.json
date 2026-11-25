@@ -1,0 +1,11 @@
+{
+  "source_session": "C:\\Users\\Adam\\usb3-tester\\host\\heart-recording.rf.npz.rf.npz",
+  "frame": 0,
+  "box_mm": [
+    -65,
+    65,
+    0,
+    165
+  ],
+  "patch": {}
+}

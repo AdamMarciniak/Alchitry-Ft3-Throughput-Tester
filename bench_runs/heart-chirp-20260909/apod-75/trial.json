@@ -1,0 +1,11 @@
+{
+  "name": "apod-75",
+  "patch": {
+    "beamformer": {
+      "apod": 0.75
+    }
+  },
+  "source": "C:\\Users\\Adam\\usb3-tester\\host\\heart-chirp.rf.npz",
+  "experimental_decoder": null,
+  "reproduction": "Production host processing and beamformer."
+}

@@ -1,0 +1,65 @@
+{
+  "capture": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\phantom-pulse-comparison\\one-cycle.rf.npz",
+  "rf_sha256": "41474d273d2c991236b4179562b2b3e60f02cd566a6280e7d5888c967526273c",
+  "preset": {
+    "c_m_s": 1490.0,
+    "apod": 0.0,
+    "cf": 0.15,
+    "accept_deg": 22.0,
+    "t0_ns": 1900.0,
+    "R_mm": 67.02,
+    "pitch_mm": 0.3325,
+    "aperture_mm": 15.628,
+    "flip_lr": false,
+    "dead": [
+      25,
+      46
+    ],
+    "alive": 46
+  },
+  "gel_region_mm": [
+    -4,
+    4,
+    26,
+    29
+  ],
+  "description": "Coherence-weighted envelope, images compared at the same eight-sweep separation. Temporal changes include motion and phase variation as well as noise.",
+  "results": {
+    "1": {
+      "lateral_mm": 0.4261992327868923,
+      "peak": 1188.46484375,
+      "gel_median": 13.312358856201172,
+      "gel_pair_rms": 3.047431707382202,
+      "group_count": 48,
+      "gel_pair_rms_change_db": 0.0,
+      "gel_median_change_db": 0.0
+    },
+    "2": {
+      "lateral_mm": 0.4246826946735366,
+      "peak": 1175.0028686523438,
+      "gel_median": 13.250341892242432,
+      "gel_pair_rms": 2.007997751235962,
+      "group_count": 24,
+      "gel_pair_rms_change_db": -3.6234151960285117,
+      "gel_median_change_db": -0.04055863810738406
+    },
+    "4": {
+      "lateral_mm": 0.4241919875144943,
+      "peak": 1173.12548828125,
+      "gel_median": 13.220372200012207,
+      "gel_pair_rms": 1.3727120161056519,
+      "group_count": 12,
+      "gel_pair_rms_change_db": -6.927090931776048,
+      "gel_median_change_db": -0.060226679514800416
+    },
+    "8": {
+      "lateral_mm": 0.4241866603493675,
+      "peak": 1172.870361328125,
+      "gel_median": 13.213160037994385,
+      "gel_pair_rms": 0.990574836730957,
+      "group_count": 6,
+      "gel_pair_rms_change_db": -9.760933807395702,
+      "gel_median_change_db": -0.06496642025993166
+    }
+  }
+}

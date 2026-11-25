@@ -1,0 +1,28 @@
+{
+  "source_rf_sha256": "39d29a645267cc9d76f56b2769dc74fb579e2bf85695a63f4e9819aef9557f75",
+  "assumptions": "Gaussian 0.39 us envelope, measured center frequency, fixed point target, recorded trim-corrected sample magnitude at target for the amplitude-weighted variant; model beamformed with rectangular aperture, plain DAS, and no coherence multiplication",
+  "wires": [
+    {
+      "xz_mm": [
+        -7.1458333,
+        18.6458333
+      ],
+      "MHz": 3.984375,
+      "admitted": 25,
+      "span_mm": 7.962310015406546,
+      "uniform_response_width_mm": 0.5150769002215041,
+      "measured_amplitude_response_width_mm": 0.5104379304822912
+    },
+    {
+      "xz_mm": [
+        7.7291667,
+        20.1041667
+      ],
+      "MHz": 4.0625,
+      "admitted": 23,
+      "span_mm": 7.962310015406546,
+      "uniform_response_width_mm": 0.5707881002413464,
+      "measured_amplitude_response_width_mm": 0.7151132317642805
+    }
+  ]
+}

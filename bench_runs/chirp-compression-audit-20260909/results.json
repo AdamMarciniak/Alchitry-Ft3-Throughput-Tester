@@ -1,0 +1,232 @@
+{
+  "source": "Synthetic audit only; not measured ultrasound",
+  "signal_model": "100 MHz table-driven +/-1/0 waveform, assumed fourth-order causal analog Butterworth response, polyphase resampling to 40 MSPS. No noise, motion or nonlinearities.",
+  "receive_band_mhz": [
+    2,
+    5
+  ],
+  "width_definition": "Contiguous -6.02 dB amplitude width with linear crossing interpolation",
+  "trials": [
+    {
+      "chirp_us": 1,
+      "assumed_analog_band_mhz": [
+        2,
+        5
+      ],
+      "compressed": {
+        "width_us": 0.6661133170127869,
+        "width_mm_c1540": 0.5129072070121765,
+        "peak_sample": 2512,
+        "peak": 0.7169709801673889
+      },
+      "uncompressed": {
+        "width_us": 0.8462280631065369,
+        "width_mm_c1540": 0.6515955924987793,
+        "peak_sample": 2536,
+        "peak": 1.3208376169204712
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 8
+    },
+    {
+      "chirp_us": 2,
+      "assumed_analog_band_mhz": [
+        2,
+        5
+      ],
+      "compressed": {
+        "width_us": 0.576397716999054,
+        "width_mm_c1540": 0.44382625818252563,
+        "peak_sample": 2511,
+        "peak": 0.7471569776535034
+      },
+      "uncompressed": {
+        "width_us": 1.6157044172286987,
+        "width_mm_c1540": 1.244092345237732,
+        "peak_sample": 2557,
+        "peak": 1.256563425064087
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 16
+    },
+    {
+      "chirp_us": 4,
+      "assumed_analog_band_mhz": [
+        2,
+        5
+      ],
+      "compressed": {
+        "width_us": 0.5791870355606079,
+        "width_mm_c1540": 0.4459739923477173,
+        "peak_sample": 2511,
+        "peak": 0.7787601351737976
+      },
+      "uncompressed": {
+        "width_us": 3.17254638671875,
+        "width_mm_c1540": 2.4428608417510986,
+        "peak_sample": 2584,
+        "peak": 1.2590324878692627
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 31
+    },
+    {
+      "chirp_us": 8,
+      "assumed_analog_band_mhz": [
+        2,
+        5
+      ],
+      "compressed": {
+        "width_us": 0.585736095905304,
+        "width_mm_c1540": 0.45101675391197205,
+        "peak_sample": 2511,
+        "peak": 0.780420184135437
+      },
+      "uncompressed": {
+        "width_us": 6.368030071258545,
+        "width_mm_c1540": 4.903383255004883,
+        "peak_sample": 2794,
+        "peak": 1.2310374975204468
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 62
+    },
+    {
+      "chirp_us": 16,
+      "assumed_analog_band_mhz": [
+        2,
+        5
+      ],
+      "compressed": {
+        "width_us": 0.577746570110321,
+        "width_mm_c1540": 0.4448648691177368,
+        "peak_sample": 2511,
+        "peak": 0.7475347518920898
+      },
+      "uncompressed": {
+        "width_us": 12.895525932312012,
+        "width_mm_c1540": 9.929555892944336,
+        "peak_sample": 3103,
+        "peak": 1.226584792137146
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 125
+    },
+    {
+      "chirp_us": 1,
+      "assumed_analog_band_mhz": [
+        2.8,
+        3.6
+      ],
+      "compressed": {
+        "width_us": 1.2407348155975342,
+        "width_mm_c1540": 0.9553658366203308,
+        "peak_sample": 2546,
+        "peak": 0.292659729719162
+      },
+      "uncompressed": {
+        "width_us": 1.229949951171875,
+        "width_mm_c1540": 0.9470614790916443,
+        "peak_sample": 2576,
+        "peak": 0.6008851528167725
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 8
+    },
+    {
+      "chirp_us": 2,
+      "assumed_analog_band_mhz": [
+        2.8,
+        3.6
+      ],
+      "compressed": {
+        "width_us": 1.32159423828125,
+        "width_mm_c1540": 1.0176275968551636,
+        "peak_sample": 2545,
+        "peak": 0.3157881200313568
+      },
+      "uncompressed": {
+        "width_us": 1.365441918373108,
+        "width_mm_c1540": 1.051390290260315,
+        "peak_sample": 2609,
+        "peak": 0.9065061807632446
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 16
+    },
+    {
+      "chirp_us": 4,
+      "assumed_analog_band_mhz": [
+        2.8,
+        3.6
+      ],
+      "compressed": {
+        "width_us": 1.410736083984375,
+        "width_mm_c1540": 1.0862668752670288,
+        "peak_sample": 2546,
+        "peak": 0.3646831512451172
+      },
+      "uncompressed": {
+        "width_us": 1.674066185951233,
+        "width_mm_c1540": 1.2890310287475586,
+        "peak_sample": 2671,
+        "peak": 1.1697521209716797
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 31
+    },
+    {
+      "chirp_us": 8,
+      "assumed_analog_band_mhz": [
+        2.8,
+        3.6
+      ],
+      "compressed": {
+        "width_us": 1.3078124523162842,
+        "width_mm_c1540": 1.007015585899353,
+        "peak_sample": 2546,
+        "peak": 0.3683902621269226
+      },
+      "uncompressed": {
+        "width_us": 3.1538209915161133,
+        "width_mm_c1540": 2.4284420013427734,
+        "peak_sample": 2790,
+        "peak": 1.2900899648666382
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 62
+    },
+    {
+      "chirp_us": 16,
+      "assumed_analog_band_mhz": [
+        2.8,
+        3.6
+      ],
+      "compressed": {
+        "width_us": 1.2315673828125,
+        "width_mm_c1540": 0.9483068585395813,
+        "peak_sample": 2546,
+        "peak": 0.36046409606933594
+      },
+      "uncompressed": {
+        "width_us": 6.301886081695557,
+        "width_mm_c1540": 4.852452278137207,
+        "peak_sample": 3016,
+        "peak": 1.312412977218628
+      },
+      "nominal_delay_samples": 2500,
+      "transmitted_table_halves": 125
+    }
+  ],
+  "wrong_reference_example": {
+    "width_us": 4.671661376953125,
+    "width_mm_c1540": 3.5971791744232178,
+    "peak_sample": 2977,
+    "peak": 0.672325074672699
+  },
+  "limits": [
+    "No new long-chirp RF was supplied.",
+    "These results validate algorithm behavior under the stated model, not the real probe response.",
+    "Compressed peak includes the assumed analog group delay; absolute depth needs its own calibration."
+  ]
+}

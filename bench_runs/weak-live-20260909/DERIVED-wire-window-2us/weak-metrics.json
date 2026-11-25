@@ -1,0 +1,38 @@
+{
+  "trial": "DERIVED-wire-window-2us",
+  "source": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\weak-live-20260909\\DERIVED-wire-window-2us.rf.npz",
+  "frame": 0,
+  "aperture_scale": 97280.0,
+  "wire": {
+    "peak": 89.42484283447266,
+    "normalized_peak": 0.0009192520850583127,
+    "position_mm": [
+      -3.212890625,
+      40.390625
+    ],
+    "local_rms": 3.3171727657318115,
+    "local_db": 28.613801888237948
+  },
+  "faint_right": {
+    "peak": 14.600531578063965,
+    "normalized_peak": 0.00015008770125476937,
+    "position_mm": [
+      17.705078125,
+      37.578125
+    ],
+    "local_rms": 1.9885263442993164,
+    "local_db": 17.31674637926341
+  },
+  "faint_left": {
+    "peak": 6.4238104820251465,
+    "normalized_peak": 6.603423604055455e-05,
+    "position_mm": [
+      -20.986328125,
+      36.015625
+    ],
+    "local_rms": 1.791029691696167,
+    "local_db": 11.093798681519814
+  },
+  "quiet_rms": 0.0004831028636544943,
+  "arc_p99_relative_db": -16.281641006469727
+}

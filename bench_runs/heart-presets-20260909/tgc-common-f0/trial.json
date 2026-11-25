@@ -1,0 +1,33 @@
+{
+  "clip": "tgc",
+  "frame": 0,
+  "source": "C:\\Users\\Adam\\usb3-tester\\host\\heart-tgc-latest.rf.npz.rf.npz.rf.npz",
+  "patch": {
+    "receive": {
+      "bandpass_on": true,
+      "band_f0_mhz": 3.5,
+      "band_bw_mhz": 3,
+      "avg_sweeps": 1,
+      "matched_filter": false,
+      "frequency_compounding": false,
+      "bg_subtract": false,
+      "dejitter_on": false
+    },
+    "beamformer": {
+      "cf": 0,
+      "apod": 0.75,
+      "dead": [
+        25,
+        46
+      ]
+    },
+    "display": {
+      "dyn_db": 95,
+      "gain_db": 15,
+      "curve": 1,
+      "auto_gain": false,
+      "debug_view": 0
+    }
+  },
+  "label": "common"
+}

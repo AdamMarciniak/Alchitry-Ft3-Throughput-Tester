@@ -1,0 +1,59 @@
+{
+  "beamformer": {
+    "c_m_s": 1490.0,
+    "apod": 0.0,
+    "cf": 0.15,
+    "accept_deg": 22.0,
+    "t0_ns": 1900.0,
+    "R_mm": 67.02,
+    "pitch_mm": 0.3325,
+    "aperture_mm": 15.628,
+    "flip_lr": false,
+    "dead": [
+      25,
+      46
+    ],
+    "alive": 46
+  },
+  "receive": {
+    "bandpass_on": true,
+    "band_f0_mhz": 4.5,
+    "band_bw_mhz": 6.0,
+    "band_lo_mhz": 1.5,
+    "band_hi_mhz": 7.5,
+    "frequency_compounding": false,
+    "frequency_compound_bands": 1,
+    "frequency_compound_edges_mhz": [],
+    "avg_sweeps": 1,
+    "avg_held": 0,
+    "matched_filter": false,
+    "dejitter_on": false,
+    "jitter_rms_ns": 0.0,
+    "jitter_pp_ns": 0.0,
+    "jitter_used": 0,
+    "jitter_railed": 0,
+    "bg_subtract": false,
+    "bg_ref": false,
+    "near_dbfs": 0.0,
+    "far_dbfs": -24.96
+  },
+  "display": {
+    "debug_view": 0,
+    "dyn_db": 66.0,
+    "gain_db": 25.0,
+    "curve": 0.9,
+    "auto_gain": false,
+    "signed": false,
+    "zoom": 1.0,
+    "pan_cx": 0.0,
+    "pan_cz": 0.032546399999999996,
+    "grid": [
+      512,
+      640
+    ],
+    "mmode_on": false,
+    "mline_a": null,
+    "mline_b": null,
+    "measurements_mm": []
+  }
+}

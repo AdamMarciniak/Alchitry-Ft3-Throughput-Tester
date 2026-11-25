@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "result": {
+    "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005902Z-1ec66c\\apod-1",
+    "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005902Z-1ec66c\\apod-1\\image-axes.png",
+    "metrics": {
+      "peak_position_mm": [
+        4.98046875,
+        62.015625
+      ],
+      "peak": 26205.5,
+      "lateral_width_6db_mm": 0.9560253471136093,
+      "axial_width_6db_mm": 0.36345981527119875,
+      "clutter_p95_relative_db": -39.79331898903984,
+      "clutter_to_target_energy": 0.14867255091667175,
+      "anchor_mm": [
+        4.98046875,
+        62.015625
+      ],
+      "search_mm": [
+        -20,
+        20,
+        40,
+        110
+      ],
+      "exclusion_mm": 6,
+      "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+      "normalized_peak": 0.18149864250886524,
+      "frame": 0,
+      "quality": {
+        "valid": true,
+        "valid_elements": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "source": "simulation"
+      },
+      "box_mm": [
+        -50,
+        50,
+        0,
+        140
+      ],
+      "view": "ordinary_DAS"
+    }
+  },
+  "error": null,
+  "finished_unix": 1788915553.278985
+}

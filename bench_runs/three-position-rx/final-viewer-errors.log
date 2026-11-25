@@ -1,0 +1,21 @@
+Exception in thread Thread-1 (reader):
+Traceback (most recent call last):
+  File "C:\Users\Adam\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1044, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\Adam\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 995, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 1515, in reader
+    process(views[i][:nw])          # done before the buffer requeues
+    ~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 1477, in process
+    batch(w[pos : pos + nfr*FW].reshape(nfr, FW))
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 1399, in batch
+    ingest(lo, w)
+    ~~~~~~^^^^^^^
+  File "C:\Users\Adam\usb3-tester\host\tfm_gl_host.py", line 1392, in ingest
+    raw_buf[rr] = c[a:b][good_id]
+    ~~~~~~~^^^^
+ValueError: shape mismatch: value array of shape (1,7486) could not be broadcast to indexing result of shape (1,22458)

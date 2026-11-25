@@ -1,0 +1,3142 @@
+{
+  "created_utc": "2026-09-09T00:53:11.229112+00:00",
+  "source": "simulation",
+  "trials": [
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-reference",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-reference\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 20053.248046875,
+        "lateral_width_6db_mm": 1.1376225229469128,
+        "axial_width_6db_mm": 0.3629736937582493,
+        "clutter_p95_relative_db": -40.21540186346,
+        "clutter_to_target_energy": 0.11220986396074295,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18115864982216806,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "display-reference",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\baseline",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\baseline\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 20053.248046875,
+        "lateral_width_6db_mm": 1.1376225229469128,
+        "axial_width_6db_mm": 0.3629736937582493,
+        "clutter_p95_relative_db": -40.21540186346,
+        "clutter_to_target_energy": 0.11220986396074295,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18115864982216806,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "baseline",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.0
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-0",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-0\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          5.17578125,
+          62.671875
+        ],
+        "peak": 18229.193359375,
+        "lateral_width_6db_mm": 1.1618853313848376,
+        "axial_width_6db_mm": 0.42588409036397934,
+        "clutter_p95_relative_db": -39.1332499013634,
+        "clutter_to_target_energy": 0.10589079558849335,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.16468035744694404,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "t0-0",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "t0_ns": -1000.0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.0714415823505967
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-1",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-1\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.453125
+        ],
+        "peak": 17857.46875,
+        "lateral_width_6db_mm": 1.1289643356576562,
+        "axial_width_6db_mm": 0.4445462618023157,
+        "clutter_p95_relative_db": -39.04935468679693,
+        "clutter_to_target_energy": 0.10910598933696747,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.16132224168521625,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "t0-1",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "t0_ns": -500.0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.06202725077377104
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-2",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-2\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 20053.248046875,
+        "lateral_width_6db_mm": 1.1376225229469128,
+        "axial_width_6db_mm": 0.3629736937582493,
+        "clutter_p95_relative_db": -40.21540186346,
+        "clutter_to_target_energy": 0.11220986396074295,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18115864982216806,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "t0-2",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "t0_ns": 0.0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.0
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-3",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-3\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          61.578125
+        ],
+        "peak": 19455.025390625,
+        "lateral_width_6db_mm": 1.1365209735231474,
+        "axial_width_6db_mm": 0.4016939694993198,
+        "clutter_p95_relative_db": -40.144551290099784,
+        "clutter_to_target_energy": 0.11622155457735062,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.17575437773387814,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "t0-3",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "t0_ns": 500.0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.035697539380128776
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-4",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-4\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.78515625,
+          61.359375
+        ],
+        "peak": 16120.9404296875,
+        "lateral_width_6db_mm": 1.133083866443485,
+        "axial_width_6db_mm": 0.46369586512446404,
+        "clutter_p95_relative_db": -38.56765870075888,
+        "clutter_to_target_energy": 0.12192455679178238,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.14563465206629694,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "t0-4",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "t0_ns": 1000.0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.11333619632174201
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-5",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\t0-5\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          60.484375
+        ],
+        "peak": 19660.876953125,
+        "lateral_width_6db_mm": 1.1334780021570623,
+        "axial_width_6db_mm": 0.36215426540002227,
+        "clutter_p95_relative_db": -40.79322921940992,
+        "clutter_to_target_energy": 0.12216781824827194,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.17761401618442307,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "t0-5",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "t0_ns": 2000.0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.012490977637478085
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-0",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-0\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 4612.80419921875,
+        "lateral_width_6db_mm": 1.4747439854545519,
+        "axial_width_6db_mm": 0.7535447692498565,
+        "clutter_p95_relative_db": -31.855331787020262,
+        "clutter_to_target_energy": 0.1135721430182457,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.04167152267159631,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "band-0",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "bandpass_on": true,
+          "band_f0_mhz": 3,
+          "band_bw_mhz": 3
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": null
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-1",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-1\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 12164.5185546875,
+        "lateral_width_6db_mm": 1.2736754142679274,
+        "axial_width_6db_mm": 0.5570316747762263,
+        "clutter_p95_relative_db": -37.982737019256646,
+        "clutter_to_target_energy": 0.04872162267565727,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.10989280898299734,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "band-1",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "bandpass_on": true,
+          "band_f0_mhz": 3,
+          "band_bw_mhz": 5
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.19487547392800236
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-2",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-2\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 8976.63671875,
+        "lateral_width_6db_mm": 1.3429977756459266,
+        "axial_width_6db_mm": 0.6532049849629402,
+        "clutter_p95_relative_db": -37.52111746747319,
+        "clutter_to_target_energy": 0.04324674978852272,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.08109386489966973,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "band-2",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 3
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": null
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-3",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-3\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 16774.205078125,
+        "lateral_width_6db_mm": 1.1918430507648736,
+        "axial_width_6db_mm": 0.44314226135611534,
+        "clutter_p95_relative_db": -39.93821257931347,
+        "clutter_to_target_energy": 0.047449614852666855,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.1515361669436304,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "band-3",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "bandpass_on": true,
+          "band_f0_mhz": 3.5,
+          "band_bw_mhz": 5
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.003054847195211763
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-4",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-4\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 13849.375,
+        "lateral_width_6db_mm": 1.2397619750117883,
+        "axial_width_6db_mm": 0.5409830934368074,
+        "clutter_p95_relative_db": -41.02439382194791,
+        "clutter_to_target_energy": 0.024936994537711143,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.12511360104937558,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "band-4",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "bandpass_on": true,
+          "band_f0_mhz": 4,
+          "band_bw_mhz": 3
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.03417072493688712
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-5",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\band-5\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 20053.248046875,
+        "lateral_width_6db_mm": 1.1376225229469128,
+        "axial_width_6db_mm": 0.3629736937582493,
+        "clutter_p95_relative_db": -40.21540186346,
+        "clutter_to_target_energy": 0.11220986396074295,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18115864982216806,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "band-5",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "bandpass_on": true,
+          "band_f0_mhz": 4,
+          "band_bw_mhz": 5
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.0
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-0",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-0\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 34798.16796875,
+        "lateral_width_6db_mm": 0.7356403861194849,
+        "axial_width_6db_mm": 0.3634047959931195,
+        "clutter_p95_relative_db": -33.48473982250121,
+        "clutter_to_target_energy": 0.20072095096111298,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18075843567543842,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "apod-0",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": null
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-1",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-1\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26124.53125,
+        "lateral_width_6db_mm": 0.9564203792251647,
+        "axial_width_6db_mm": 0.36333745531737804,
+        "clutter_p95_relative_db": -39.70165124939894,
+        "clutter_to_target_energy": 0.1477457582950592,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18093785495622783,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "apod-1",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": -0.13173568609112513
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-2",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-2\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 21993.40625,
+        "lateral_width_6db_mm": 1.0792405053507537,
+        "axial_width_6db_mm": 0.3630177623126656,
+        "clutter_p95_relative_db": -39.99823132841791,
+        "clutter_to_target_energy": 0.12692150473594666,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.1813402211331951,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "apod-2",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.74
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": -0.034172983640685536
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-3",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\apod-3\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 17199.21875,
+        "lateral_width_6db_mm": 1.2193750124424696,
+        "axial_width_6db_mm": 0.3629601092543453,
+        "clutter_p95_relative_db": -40.53156888905211,
+        "clutter_to_target_energy": 0.08921407908201218,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.17868204319730718,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "apod-3",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 1
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": 0.03774175197494469
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\matched-0",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\matched-0\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26124.53125,
+        "lateral_width_6db_mm": 0.9564203792251647,
+        "axial_width_6db_mm": 0.36333745531737804,
+        "clutter_p95_relative_db": -39.70165124939894,
+        "clutter_to_target_energy": 0.1477457582950592,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18093785495622783,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "matched-0",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "matched_filter": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": -0.13173568609112513
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\matched-1",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\matched-1\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          61.796875
+        ],
+        "peak": 7484.0830078125,
+        "lateral_width_6db_mm": 1.0211191838607192,
+        "axial_width_6db_mm": 0.5087386281229556,
+        "clutter_p95_relative_db": -39.27123457953195,
+        "clutter_to_target_energy": 0.052020877599716187,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.051834573136999254,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "matched-1",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false,
+          "matched_filter": true
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      },
+      "score": null
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-0-baseline",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-0-baseline\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 20014.9375,
+        "lateral_width_6db_mm": 1.1307534703519195,
+        "axial_width_6db_mm": 0.3611420332454145,
+        "clutter_p95_relative_db": -40.18235554627697,
+        "clutter_to_target_energy": 0.11625201255083084,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18081255691344822,
+        "frame": 8,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "validation-0-baseline",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-0-candidate",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-0-candidate\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26125.39453125,
+        "lateral_width_6db_mm": 0.9512094315141439,
+        "axial_width_6db_mm": 0.3624543664045632,
+        "clutter_p95_relative_db": -39.656735651255985,
+        "clutter_to_target_energy": 0.15041778981685638,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18094383402073638,
+        "frame": 8,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "validation-0-candidate",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-1-baseline",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-1-baseline\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 20100.13671875,
+        "lateral_width_6db_mm": 1.1302221770165488,
+        "axial_width_6db_mm": 0.3612559132743627,
+        "clutter_p95_relative_db": -40.77299962921827,
+        "clutter_to_target_energy": 0.11140752583742142,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18158223648847638,
+        "frame": 15,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "validation-1-baseline",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-1-candidate",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\validation-1-candidate\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26231.669921875,
+        "lateral_width_6db_mm": 0.9523144224658608,
+        "axial_width_6db_mm": 0.3622403440531343,
+        "clutter_p95_relative_db": -39.828059446134745,
+        "clutter_to_target_energy": 0.14510031044483185,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.1816798947381635,
+        "frame": 15,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "ordinary_DAS"
+      },
+      "name": "validation-1-candidate",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 1,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-cf-0.25",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-cf-0.25\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26100.365234375,
+        "lateral_width_6db_mm": 0.8040999338845722,
+        "axial_width_6db_mm": 0.36301533225923777,
+        "clutter_p95_relative_db": -46.07947838564694,
+        "clutter_to_target_energy": 0.03930584341287613,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.1807704817318747,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "weighted"
+      },
+      "name": "display-cf-0.25",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0.25,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-cf-0.5",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-cf-0.5\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26076.22265625,
+        "lateral_width_6db_mm": 0.704467948526144,
+        "axial_width_6db_mm": 0.36269553820602596,
+        "clutter_p95_relative_db": -51.68635027286762,
+        "clutter_to_target_energy": 0.010958935134112835,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.18060327083506483,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "weighted"
+      },
+      "name": "display-cf-0.5",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0.5,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-cf-1.0",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\display-cf-1.0\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 26028.001953125,
+        "lateral_width_6db_mm": 0.5944452481344342,
+        "axial_width_6db_mm": 0.36206276435405016,
+        "clutter_p95_relative_db": -62.682890007837045,
+        "clutter_to_target_energy": 0.0009136845474131405,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 0.1802692954421889,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "weighted"
+      },
+      "name": "display-cf-1.0",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 1.0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 0,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    },
+    {
+      "output": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\coherence-map",
+      "image": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260909T005309Z-4b7aa6\\coherence-map\\image-axes.png",
+      "metrics": {
+        "peak_position_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "peak": 0.9963050484657288,
+        "lateral_width_6db_mm": 0.7158306194469333,
+        "axial_width_6db_mm": 1.23878925293684,
+        "clutter_p95_relative_db": -21.93828957364371,
+        "clutter_to_target_energy": 0.8164230585098267,
+        "anchor_mm": [
+          4.98046875,
+          62.015625
+        ],
+        "search_mm": [
+          -20,
+          20,
+          40,
+          110
+        ],
+        "exclusion_mm": 6,
+        "interpretation": "Finite-wire response, not point resolution or tissue contrast. Clutter includes sidelobes, background scattering and receiver noise.",
+        "normalized_peak": 6.900384034697257e-06,
+        "frame": 0,
+        "quality": {
+          "valid": true,
+          "valid_elements": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "source": "simulation"
+        },
+        "box_mm": [
+          -50,
+          50,
+          0,
+          140
+        ],
+        "view": "coherence_map"
+      },
+      "name": "coherence-map",
+      "patch": {
+        "receive": {
+          "avg_sweeps": 1,
+          "frequency_compounding": false,
+          "bg_subtract": false,
+          "dejitter_on": false
+        },
+        "beamformer": {
+          "cf": 0,
+          "apod": 0.5
+        },
+        "display": {
+          "debug_view": 2,
+          "auto_gain": false,
+          "dyn_db": 80,
+          "curve": 1,
+          "gain_db": 6.8388184955916245
+        }
+      }
+    }
+  ],
+  "validation": [
+    {
+      "frame": 8,
+      "score": -0.133349956012691,
+      "passed": true
+    },
+    {
+      "frame": 15,
+      "score": -0.13095936448926168,
+      "passed": true
+    }
+  ],
+  "state": "complete",
+  "objective_version": 2,
+  "objective": "Minimize log lateral width + 0.25 log axial width + 0.15 log clutter-energy ratio + 0.2 log peak-loss penalty, relative to baseline. Reject >50% normalized peak loss, >3 dB clutter-p95 increase, or >50% clutter-energy increase. Validate score < -0.03 on two other frames.",
+  "source_hashes": {
+    "tools\\bench.py": "e54801e830a0b2f2a561617769ce935877f28632b011ee2c3346fa4524d26bb6",
+    "host\\bench_host.py": "39425d4d3685741123e7fee156d58c31a24c145a1a9882cff37a71aa34e61055",
+    "host\\bench_render.py": "d1774233210f66b64aa68d325b3929c2397ad23ff5632597c27826261598d35a",
+    "host\\bench_client.py": "edaaae9b4dc0dd89776810eb172038bbb3d01d6f9d11eeeeafcd49b8b4215bcc",
+    "host\\bench_transport.py": "f6aab7d43cd3fd1343101181f22383e9ab10c4f77286a364c3cf330b095b42e7"
+  },
+  "session": "C:\\Users\\Adam\\usb3-tester\\bench_runs\\experiments\\20260908T010723Z-3013ad\\acquisition\\capture.rf.npz",
+  "frame_count": 16,
+  "display_reference": "Baseline target mapped near 90% gray at 80 dB range; gain held fixed thereafter. Linear RF/image metrics are independent of this display adjustment.",
+  "selected_trial": "apod-1",
+  "improvement_validated": true,
+  "conclusion": "SIMULATION REHEARSAL ONLY. A candidate improved the declared wire score on separate frames; test another target position next. This is not evidence of improvement on the physical probe."
+}

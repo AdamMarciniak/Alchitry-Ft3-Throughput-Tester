@@ -1,0 +1,745 @@
+{
+  "timestamp": "2026-08-18T18:32:57-07:00",
+  "port": "COM3",
+  "baud": 2000000,
+  "scan_captures": 128,
+  "validation_captures": 256,
+  "minimum_eye_taps": 6,
+  "guard_taps": 2,
+  "initial_fpga_map": "#####################.##########",
+  "initial_fpga_tap": 10,
+  "fclk_scores": [
+    {
+      "tap": 0,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 1,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 2,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 3,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 4,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 5,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 6,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 7,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 8,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 9,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 10,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 11,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 12,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 13,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 14,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 15,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 16,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 17,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 18,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 19,
+      "observations": 4096,
+      "errors": 1,
+      "details": {
+        "invalid_codes": 1,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 0
+      },
+      "passed": false
+    },
+    {
+      "tap": 20,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 21,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 22,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 23,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 24,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 25,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 26,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 27,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 28,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 29,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 30,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    },
+    {
+      "tap": 31,
+      "observations": 4096,
+      "errors": 4224,
+      "details": {
+        "invalid_codes": 4096,
+        "non_alternating_edges": 0,
+        "captures_missing_a_level": 128
+      },
+      "passed": false
+    }
+  ],
+  "data_scores": [
+    {
+      "tap": 0,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 1,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 2,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 3,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 4,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 5,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 6,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 7,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 8,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 9,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 10,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 11,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 12,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 13,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 14,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 15,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 16,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 17,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 18,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 19,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 20,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 21,
+      "observations": 4096,
+      "errors": 1994,
+      "details": {
+        "invalid_codes": 673,
+        "deskew_code_changes": 1321,
+        "fclk_errors": 0
+      },
+      "passed": false
+    },
+    {
+      "tap": 22,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 23,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 24,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 25,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 26,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 27,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 28,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 29,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 30,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    },
+    {
+      "tap": 31,
+      "observations": 4096,
+      "errors": 0,
+      "details": {
+        "invalid_codes": 0,
+        "deskew_code_changes": 0,
+        "fclk_errors": 0
+      },
+      "passed": true
+    }
+  ],
+  "fclk_window": {
+    "start": 0,
+    "end": 18,
+    "width": 19,
+    "center": 9,
+    "margin": 9,
+    "touches_edge": true
+  },
+  "data_window": {
+    "start": 0,
+    "end": 20,
+    "width": 21,
+    "center": 10,
+    "margin": 10,
+    "touches_edge": true
+  },
+  "fclk_tap": 9,
+  "data_tap": 10,
+  "bitslips": 0,
+  "sync_errors": 0,
+  "ramp_errors": 0,
+  "passed": true,
+  "notes": [
+    "FCLK eye touches the scan boundary; its width is clipped",
+    "DATA eye touches the scan boundary; its width is clipped"
+  ]
+}
