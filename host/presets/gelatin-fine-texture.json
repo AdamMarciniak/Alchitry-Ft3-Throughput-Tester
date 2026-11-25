@@ -1,0 +1,28 @@
+{
+  "settings_schema": 1,
+  "note": "Fine texture in the wire and psyllium phantom. Tested on the saved final-live RF capture.",
+  "receive": {
+    "bandpass_on": true,
+    "band_f0_mhz": 5.0,
+    "band_bw_mhz": 4.0,
+    "matched_filter": false,
+    "frequency_compounding": false,
+    "avg_sweeps": 8
+  },
+  "beamformer": {
+    "apod": 0.45,
+    "cf": 0.25,
+    "accept_deg": 20,
+    "dead": [
+      25,
+      46
+    ]
+  },
+  "display": {
+    "gain_db": 36,
+    "dyn_db": 66,
+    "curve": 0.85,
+    "auto_gain": false,
+    "debug_view": 0
+  }
+}

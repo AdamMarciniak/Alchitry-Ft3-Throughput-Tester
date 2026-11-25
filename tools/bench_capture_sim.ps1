@@ -4,5 +4,7 @@ $ErrorActionPreference='Stop'
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & (Join-Path $Bin 'xelab.bat') tb_capture_ready -s capture_ready_test
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& (Join-Path $Bin 'xsim.bat') capture_ready_test -runall
-exit $LASTEXITCODE
+foreach ($method in 0,1,2,3) {
+    & (Join-Path $Bin 'xsim.bat') capture_ready_test -testplusarg "METHOD$method" -runall
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}

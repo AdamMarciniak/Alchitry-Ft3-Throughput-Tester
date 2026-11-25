@@ -30,7 +30,7 @@ from rf_debug import atomic_json, load_session
 class HandshakeTests(unittest.TestCase):
     def packet(self, nonce=123, build=0x12345678):
         return np.array([MAGIC, nonce, build, 0x10002, 1900,
-                         2047, 500, 5000, 0, 8194, (2 << 16) | 10,
+                         2047, 500, 5000, (4095 << 12), 8194, (2 << 16) | 10,
                          4, 500, 450, 300, 13000], np.uint32)
 
     def test_fragmented_packet_and_stale_identity(self):
@@ -46,6 +46,8 @@ class HandshakeTests(unittest.TestCase):
         self.assertEqual(info['runtime_build_id'], '12345678')
         self.assertEqual(info['n_cycles'], 2)
         self.assertEqual(info['drive_cycles'], 10)
+        self.assertFalse(info['pulser_fault'])
+        self.assertEqual(info['pulser_frames'], 0)
         self.assertFalse(info['armed'])
         self.assertTrue(info['lease_enabled'])
 
@@ -71,7 +73,7 @@ class HandshakeTests(unittest.TestCase):
                             pls_ns_to_cyc=lambda v: max(1, round(v/10)))
         h.pulser = SimpleNamespace(n_cycles=2, t_drive_ns=100, t_dead_ns=40,
                                   t_settle_us=5, t_inhib_us=4.5, t_ring_us=3, t_rx_us=130)
-        w = SimpleNamespace(tgc_lo=0, tgc_hi=4095, gap=50)
+        w = SimpleNamespace(tgc_lo=0, tgc_hi=4095, tgc_reach_pct=100, gap=50)
         p = InfoProbe(123, 0x12345678)
         p.feed(self.packet())
         info = p.result()

@@ -4,6 +4,9 @@
 #   python tfm_gl_host.py sim        -> no hardware; synthetic phantom (UI testing)
 #   python tfm_gl_host.py flip       -> start with the array mirrored L/R
 #                                       (also a checkbox; see ELEM_UNIFORM_FLIP)
+#   python tfm_gl_host.py --fast17   -> apply the stable 24-shot / 17 cm profile
+#   python tfm_gl_host.py --fast17 --arm -> also start transmitting after the
+#                                           firmware identity check succeeds
 #
 # Same acquisition path as tfm_host.py (SRC_SEQ: the FPGA fires elements 0..N-1
 # in turn and streams back one TGC-ramped receive window per fire, tagged with
@@ -101,11 +104,15 @@
 # All 48 elements transmit through the shared HV driver and receive through the
 # same single AFE channel, so the receive path is identical for every one of
 # them - only the mux tree moves between shots.
-import ctypes as C, sys, time, threading, os, struct, collections, json
+import ctypes as C, sys, time, threading, os, struct, collections, json, copy
 import subprocess, shutil, tempfile
 import numpy as np
 import moderngl
 import rf_debug
+from acquisition_timing import tgc_increment
+from afe_settings import metadata as afe_metadata, recommended_profile, register_writes
+from pulse_methods import GOLAY_CODES, RX_OFFSETS, GolayPairs, ThreeRxGroups, decode_golay, windows_per_tx, FAST17
+from pulse_methods import ALTERNATING_24, BANKS, BANK_FOR_ELEMENT, SLOT_FOR_ELEMENT, BankFrame, shots_per_sweep
 from rf_debug_ui import DebugMixin
 
 pipeline_lock = threading.RLock()
@@ -148,8 +155,10 @@ FT_OK, FT_OPEN_BY_INDEX = 0, 0x10
 LOCK_WORD = 0xA5A55A5A
 OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
+OP_AFE_REG = 0x0A
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
+OP_SEQ_TGC1 = 0x21
 OP_PLS_TRX = 0x17           # pulser's OWN receive window, clk cycles
 SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
@@ -391,7 +400,7 @@ GAP_US_DEF   = 50           # receive end -> next pulse (DAC ring-out)
 # TGC min starts well up the range (settings/latest.json 2026-08-15): the ramp
 # runs lo -> hi across the window, so lifting the FLOOR lifts the near field with
 # it.  0 is the flat-out-of-the-box value; drop it back if the near meter clips.
-TGC_MIN_DEF, TGC_MAX_DEF = 834, 4095
+TGC_MIN_DEF, TGC_MAX_DEF, TGC_REACH_DEF = 834, 4095, 100
 # 56 dB / +36 dB with auto gain OFF (settings/latest.json 2026-08-15).  The gain
 # figure only means anything against the absolute full_scale() reference, which
 # is why AUTO_DEF goes with it - turning auto back on cancels it outright.
@@ -450,9 +459,10 @@ SPEED_MIN, SPEED_MAX, SPEED_DEF = 0.1, 4.0, 1.0     # replay rate vs acquisition
 # window is accounted for here: the angular taper depends on the pixel, and at
 # any depth worth calibrating against the cone is wider than the array and it
 # is flat at 1.0 anyway.
-def full_scale(apod=None):
+def full_scale(apod=None, bank=None):
     a = APOD_DEF if apod is None else apod
-    return float(n_alive() * 2048 * 2) * (1.0 - 0.5 * a)
+    count = n_alive() if bank is None else max(1, int(alive_mask(bank).sum()))
+    return float(count * 2048 * 2) * (1.0 - 0.5 * a)
 
 # CPU twin of scurve() in the COMPRESS shader - see CURVE_DEF.  The M-mode
 # strip greyscales itself in numpy rather than through the GL pipeline, and a
@@ -481,16 +491,12 @@ def scurve_np(v, p=None):
 #     row.  That is the physical element, so it is NOT affected by "flip L/R" -
 #     flip mirrors the geometry against the rows, it does not renumber them.
 #
-# 2026-08-14: the connector-side failures were repaired, so the old
-# 1,3,4,23,25,46 default is gone and 47 of the 48 elements are summed.  Element
-# 46 is the one that did NOT come back and is genuinely dead.  Everything else
-# stays in - do not restore the old list without re-measuring, because a stale
-# mask silently throws away part of the aperture and looks like nothing more
-# than a slightly softer image.
+# Current probe check: positions 25 and 46 are dead.  Keep both out of the
+# coherent sum; raw RF is still retained, so this mask remains reversible.
 #
 # Override on the command line:  python tfm_gl_host.py dead=1,3,4
 # or edit the box in the control row while running.
-DEAD_DEF = "46"
+DEAD_DEF = "25,46"
 
 def parse_dead(s):
     """Accept '1,3, 4' / '1 3 4' / empty.  Silently drops anything out of range
@@ -510,7 +516,7 @@ dead = {"set": set(), "gen": 0}
 def n_alive():
     return max(1, int(alive_mask().sum()))
 
-def alive_mask():
+def alive_mask(bank=None):
     m = np.zeros(N_ELEM, dtype=np.float32)
     ctl = globals().get("pulser")
     if ctl is None:
@@ -522,7 +528,23 @@ def alive_mask():
     d = dead["set"]                 # one read: rebound, never mutated in place
     if d:
         m[sorted(d)] = 0.0
+        if ctl is not None and ctl.shot_method == 2:
+            m[[i ^ 1 for i in d]] = 0.0
+    if bank is not None:
+        m[BANK_FOR_ELEMENT != bank] = 0
     return m
+
+def multi_rx_weights():
+    # Normalize each transmitter over its usable receivers, including aperture edges.
+    tx = np.arange(N_ELEM)[:, None]
+    rx = tx + np.array(RX_OFFSETS)
+    valid = (rx >= 0) & (rx < N_ELEM) & ~np.isin(rx, list(dead["set"]))
+    weights = valid.astype(np.float32) * alive_mask()[:, None]
+    # Reciprocal neighbor paths sample the same midpoint twice. Balance their
+    # combined contribution against the center path at each full element pitch.
+    weights[:, 0] *= 2.
+    return weights / np.maximum(weights.sum(axis=1, keepdims=True), 1.)
+
 
 def set_dead(s):
     new = parse_dead(s)
@@ -722,7 +744,7 @@ def _aligned_bg(ref, s, ok):
                   fr         * np.roll(ref[i], k0 + 1))
     return out
 
-def _condition(rf, samps, live):
+def _condition(rf, samps, live, bank=None):
     """Meters + background subtraction, applied to every frame the Hilbert
     worker publishes (live and cine replay both pass through here, so a
     replayed sweep gets the same treatment the live view had).  Only live
@@ -733,15 +755,20 @@ def _condition(rf, samps, live):
     # makes the tissue reading look worse than the image it produced.  (near is
     # a max, so it is already immune - kept symmetric so the two always
     # describe the same set of elements.)
-    d = dead["set"]                 # one read: the UI thread rebinds this
-    m = rf[sorted(set(range(N_ELEM)) - d)] if d else rf
+    used = (multi_rx_weights().ravel() if pulser.shot_method == 3 else alive_mask()).astype(bool)
+    rows = slice(None) if bank is None else list(BANKS[bank])
+    if bank is not None:
+        used = used[rows]
+    m = rf[used] if used.any() else np.zeros((1, samps), np.float32)
     level["near"] = 20.0 * np.log10(float(np.abs(m[:, :g]).max()) / 2048.0 + 1e-12)
     level["far"]  = 20.0 * np.log10(
         float(np.sqrt(np.mean(np.square(m[:, g:])))) / 2048.0 + 1e-12)
     if live and bg["want"] > 0:
-        if bg["acc"] is None or bg["acc"].shape != rf.shape:
-            bg["acc"]   = np.zeros_like(rf)
-            bg["first"] = None
+        ref_shape = rf.shape if bank is None else (N_ELEM, samps)
+        if bg["acc"] is None or bg["acc"].shape != ref_shape:
+            bg["acc"]   = np.zeros(ref_shape, dtype=rf.dtype)
+            bg["first"] = np.zeros_like(bg["acc"])
+            bg["counts"] = [0, 0]
             bg["n"]     = 0
         # ALIGN each sweep onto the first before averaging.  The whole point
         # of the reference is to measure capture-start jitter, and averaging
@@ -751,22 +778,25 @@ def _condition(rf, samps, live):
         # used=0 - silently dead exactly when it is needed most.  Aligning to
         # the first sweep keeps the reference as sharp as a single sweep with
         # sqrt(BG_AVG) less noise, which is what the correlator wants.
-        if bg["first"] is None:
-            bg["first"] = rf.copy()
-            bg["acc"]  += rf
-        else:
-            s, ok, _ = measure_shifts(rf, bg["first"], min(g, JIT_GATE))
-            # positive s = this sweep's artifact sits LATER than the first's,
-            # so roll it back by -s; rows with no usable fiducial go in as-is.
-            bg["acc"] += _aligned_bg(rf, -s, ok)
-        bg["n"]   += 1
-        bg["want"] -= 1
+        group = bank if bank is not None else 0
+        if bank is None or bg["counts"][group] < BG_AVG:
+            if bg["counts"][group] == 0:
+                bg["first"][rows] = rf
+                bg["acc"][rows] += rf
+            else:
+                s, ok, _ = measure_shifts(rf, bg["first"][rows], min(g, JIT_GATE))
+                bg["acc"][rows] += _aligned_bg(rf, -s, ok)
+            bg["counts"][group] += 1
+            bg["n"]   += 1
+            bg["want"] -= 1
         if bg["want"] == 0:
-            bg["ref"], bg["acc"] = bg["acc"] / bg["n"], None
+            bg["ref"], bg["acc"] = bg["acc"] / (BG_AVG if bank is not None else bg["n"]), None
             bg["first"] = None
     # One measurement, up to two consumers.  Skipped entirely when neither the
     # subtraction nor the correction wants it, so the default path is unchanged.
     ref  = bg["ref"]
+    if ref is not None and bank is not None:
+        ref = ref[rows]
     have = ref is not None and ref.shape == rf.shape
     want_sub = bg["on"] and have
     want_jit = state["jit"] and have
@@ -857,6 +887,20 @@ if "--replay" in sys.argv:
         raise SystemExit("Usage: python host/tfm_gl_host.py --replay recording.rf.npz")
     REPLAY_PATH = sys.argv[replay_arg]
 FORCE_SIM = any(a.startswith("sim") for a in argv) or REPLAY_PATH is not None
+START_FAST17 = "--fast17" in argv
+START_ARMED = "--arm" in argv
+START_SETTINGS = None
+if "--settings" in sys.argv:
+    settings_arg = sys.argv.index("--settings") + 1
+    if settings_arg >= len(sys.argv) or sys.argv[settings_arg].startswith("--"):
+        raise SystemExit("Usage: python host/tfm_gl_host.py --settings preset.json [--arm]")
+    START_SETTINGS = os.path.abspath(sys.argv[settings_arg])
+if START_FAST17 and START_SETTINGS is not None:
+    raise SystemExit("Use either --fast17 or --settings, not both")
+if START_ARMED and not (START_FAST17 or START_SETTINGS is not None):
+    raise SystemExit("--arm needs --fast17 or --settings preset.json")
+if REPLAY_PATH is not None and (START_FAST17 or START_SETTINGS is not None or START_ARMED):
+    raise SystemExit("Live startup flags cannot be combined with --replay")
 flip["on"] = any(a.startswith("flip") for a in argv)    # startup array direction
 set_dead(next((a.split("=", 1)[1] for a in argv if a.startswith("dead=")),
               DEAD_DEF))                                # dead=  (empty) uses none
@@ -970,6 +1014,21 @@ def cmd(op, payload=0):
 
 def us_to_cycles(us): return int(round(float(us) * CLK_HZ / 1_000_000))
 
+afe_profile = recommended_profile()
+
+def apply_afe_profile(profile=None):
+    """Reapply the absolute low-noise CH1 receive profile while disarmed."""
+    global afe_profile
+    requested = recommended_profile() if profile is None else dict(profile)
+    writes = register_writes(requested)  # validate before changing live state
+    afe_profile = requested
+    for addr, value in writes:
+        send_cmd(cmd(OP_AFE_REG, (addr << 16) | value), f"afe_{addr:02x}")
+        # afe5804_ctrl has a one-entry request latch.  One SPI transaction is
+        # about 30 us; 1 ms prevents a later absolute write replacing it.
+        if HW:
+            time.sleep(.001)
+
 # --- the pulser's receive window must cover ours ------------------------------
 # The transmit sequencer runs on its OWN timebase: it fires the next element
 # t_settle + burst + (t_ring + t_rx) later regardless of what the capture side
@@ -1031,13 +1090,14 @@ def send_pls_rx(dly_us, gap_us):
     """
     pulser.set_t_rx_us(pulser_rx_us(dly_us, gap_us))
 
-def send_seq_config(lo, hi, dly_us, gap_us):
+def send_seq_config(lo, hi, dly_us, gap_us, reach_pct=100):
     """Push the full sequencer timing/TGC setup for the current window length."""
-    inc = max(0, ((hi - lo) * 4096) // cfg["win_words"])
+    inc = tgc_increment(lo, hi, cfg["win_words"], reach_pct)
     send_cmd(cmd(OP_SEQ_LEN, cfg["win_words"]), "seq_len")
     send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us)), "seq_dly")
     send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us)), "seq_gap")
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
+    send_cmd(cmd(OP_SEQ_TGC1, hi), "seq_tgc1")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
     send_pls_rx(dly_us, gap_us)
 
@@ -1048,6 +1108,7 @@ if HW:
     send_cmd(LOCK_WORD, "lock")
     time.sleep(0.05)
     send_cmd(cmd(0x10, 0), "startup_disarm")
+    apply_afe_profile()
     send_cmd(cmd(OP_RST_CNT), "rst_cnt")    # implies STOP, zeroes word count
     send_cmd(cmd(OP_SET_SRC, SRC_SEQ), "set_src")
     send_seq_config(TGC_MIN_DEF, TGC_MAX_DEF, DLY_US_DEF, GAP_US_DEF)
@@ -1087,6 +1148,8 @@ else:
 # shared state: reader thread <-> render
 #===============================================================================
 buf_lk  = threading.Lock()
+golay_pairs = GolayPairs()
+three_rx_groups = ThreeRxGroups()
 raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)  # sweep being assembled
 live_buf = np.zeros_like(raw_buf)                            # last complete sweep
 carry   = np.empty(0, dtype=np.uint32)
@@ -1167,7 +1230,7 @@ replay    = {"rf": None}
 def request_replay(rf):
     """Ask the Hilbert worker to publish this recorded sweep (int16 (N, samps))."""
     with replay_lk:
-        replay["rf"] = np.array(rf, copy=True)  # detach cine slots and file mappings
+        replay["rf"] = rf.copy()  # detach cine slots and retain the physical aperture
     hil_ev.set()
 
 def publish_replay_sync(rf):
@@ -1178,7 +1241,7 @@ def publish_replay_sync(rf):
     frame k before it grabs frame k, and 'ask the worker and hope' would race
     every frame.  Same _condition + analytic as the worker, so an exported
     frame is bit-identical to the scrubbed one."""
-    samps = rf.shape[1]
+    samps = cfg["samps"]
     out = prepare_analytic(rf, samps, live=False)
     with hil_lk:
         hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
@@ -1261,6 +1324,7 @@ class Cine:
 
 cine = Cine()
 _prev_elem = -1             # last element id seen, for sweep-boundary detection
+live_bank = None            # published with live_buf under buf_lk
 _sweep_seen = np.zeros(N_ELEM, dtype=bool)
 _sweep_bad = np.zeros(N_ELEM, dtype=bool)
 _sweep_fcnt = np.full(N_ELEM, -1, dtype=np.int64)
@@ -1306,7 +1370,7 @@ def seq_check(raw16):
 
 def batch(fr):
     """fr: (m, frame_words) uint32, all rows verified to start with a header."""
-    global _prev_elem, _sweep_ok, _rej_run
+    global _prev_elem, _sweep_ok, _rej_run, live_bank
     hdr   = fr[:, 0]
     elems = ((hdr >> 16) & ELEM_MASK).astype(np.int32)
     fcnt  = (hdr & 0xFFFF).astype(np.int64)
@@ -1327,7 +1391,18 @@ def batch(fr):
     # last sweep's data in raw_buf.  A stale element is decorrelated against
     # anything that moved, which is per-frame clutter - so this is the counter
     # that measures the boiling, and it is invisible to `drops` and `holes`.
-    de = np.diff(elems)
+    sparse = pulser.shot_method == ALTERNATING_24
+    if sparse:
+        ids = np.r_[_prev_elem, elems] if _prev_elem >= 0 else elems
+        slots = SLOT_FOR_ELEMENT[ids]
+        groups = BANK_FOR_ELEMENT[ids]
+        # The current fixed group wraps every 24 shots. The cross-group path
+        # remains for streams made by the earlier alternating implementation.
+        de = np.where(groups[1:] == groups[:-1],
+                      np.diff(slots % 24) % 24,
+                      np.diff(slots) % N_ELEM)
+    else:
+        de = np.diff(elems)
     stats["skips"] += int(np.sum(de[de > 1] - 1))
 
     raw16 = np.ascontiguousarray(fr[:, 1:]).view(np.uint16)
@@ -1335,6 +1410,11 @@ def batch(fr):
     u = (raw16 & 0x0FFF).astype(np.int32)
     c = np.where(u >= 2048, u - 4096, u) if mode["signed"] else u - 2048
     c = c.astype(np.int16)
+    if pulser.shot_method in (1, 3):
+        assembler = golay_pairs if pulser.shot_method == 1 else three_rx_groups
+        elems, fcnt, c, bad_rows = assembler.unpack((hdr >> 22) & 3, elems, fcnt, c, bad_rows)
+        if not elems.size:
+            return
     keep = elems < N_ELEM                   # ignore ids the array cannot hold
 
     # Build one sweep in raw_buf, then copy it into live_buf only at a verified
@@ -1348,6 +1428,11 @@ def batch(fr):
     # each no-wrap segment.  cine receives every clean sweep; live_buf keeps the
     # newest one for the display worker.
     wraps = np.nonzero(np.diff(np.concatenate(([_prev_elem], elems))) <= 0)[0]
+    if sparse:
+        # Finish on the last physical shot, even at a USB transfer boundary.
+        # A wrap also closes a damaged/truncated group so we can resynchronize.
+        ends = np.flatnonzero((elems == BANKS[0][-1]) | (elems == BANKS[1][-1])) + 1
+        wraps = np.union1d(wraps, ends)
     lo = 0
     published = False
 
@@ -1375,7 +1460,15 @@ def batch(fr):
     for w in wraps:
         w = int(w)
         ingest(lo, w)
+        lo = w
+        if not _sweep_seen.any():
+            continue
         expected = ([pulser.single_elem] if pulser.single_elem is not None else list(range(pulser.n_elem)))
+        bank = None
+        if sparse:
+            bank = int(BANK_FOR_ELEMENT[np.flatnonzero(_sweep_seen)[0]])
+            expected = list(BANKS[bank])
+            _sweep_ok &= _sweep_seen.sum() == len(expected)
         complete = _sweep_ok and bool(np.all(_sweep_seen[expected]))
         quality = {"valid": bool(complete),
                    "valid_elements": np.flatnonzero(_sweep_seen & ~_sweep_bad).tolist(),
@@ -1385,6 +1478,9 @@ def batch(fr):
                    "transport_counters": {k: int(stats[k]) for k in
                        ("drops", "resyncs", "seq_bad", "seq_chk", "skips", "bad_sweeps")}}
         if complete:
+            live_bank = bank
+            if sparse:
+                quality["bank"] = bank
             stats['complete_sweeps'] += 1
             stats['win_sweeps'] += 1
             np.copyto(live_buf, raw_buf)
@@ -1394,7 +1490,7 @@ def batch(fr):
         elif bool(np.any(_sweep_seen)):
             stats["bad_sweeps"] += 1
             _rej_run += 1
-            if _rej_run >= REJECT_MAX:      # fail open - see REJECT_MAX above
+            if _rej_run >= REJECT_MAX and pulser.shot_method not in (1, 3, ALTERNATING_24):
                 np.copyto(live_buf, raw_buf)
                 cine.push(raw_buf, quality)
                 published = True
@@ -1404,7 +1500,6 @@ def batch(fr):
         _sweep_fcnt.fill(-1)
         raw_buf.fill(0)            # absent rows must never masquerade as current RF
         _sweep_ok = True
-        lo = w
     ingest(lo, elems.size)
     _prev_elem = int(elems[-1])
 
@@ -1413,6 +1508,17 @@ def batch(fr):
     if published:
         stats["dirty"] = True
         hil_ev.set()
+
+def valid_headers(words):
+    kind = (words >> 22) & 3
+    if pulser.shot_method == 3:
+        return ((words >> 24) == 0xe2) & (kind < 3) & (((words >> 16) & ELEM_MASK) < N_ELEM)
+    if pulser.shot_method == 1:
+        valid = (kind == 1) | (kind == 2)
+    else:
+        valid = kind == (3 if pulser.shot_method == 2 else 0)
+    return ((words >> 24) == 0xe1) & valid & (((words >> 16) & ELEM_MASK) < N_ELEM)
+
 
 def process(words):
     """Frame parser.  Fast path: back-to-back aligned frames, fully vectorized.
@@ -1439,7 +1545,7 @@ def process(words):
         while n - pos >= FW:
             nfr  = (n - pos) // FW
             hdrs = w[pos : pos + nfr*FW : FW]
-            ok   = (hdrs >> HDR_SHIFT) == HDR_MAGIC
+            ok   = valid_headers(hdrs)
             if ok.all():
                 batch(w[pos : pos + nfr*FW].reshape(nfr, FW))
                 pos += nfr * FW
@@ -1450,7 +1556,7 @@ def process(words):
                     pos += bad * FW
                 else:                               # lost sync: hunt for a header
                     stats["resyncs"] += 1
-                    nxt = np.nonzero((w[pos+1:] >> HDR_SHIFT) == HDR_MAGIC)[0]
+                    nxt = np.nonzero(valid_headers(w[pos+1:]))[0]
                     if nxt.size == 0:
                         pos = n
                         break
@@ -1503,6 +1609,7 @@ def sim_reader():
     calibration can be rehearsed with no probe attached.  Truth here has no
     lens delay, so t0 is correct at 0.
     """
+    global live_bank
     scat = [(0.000, 0.020), (0.010, 0.034), (-0.013, 0.048),
             (0.005, 0.062), (-0.004, 0.013), (0.017, 0.075)]
     _R  = PROBE_R_MM * 1e-3
@@ -1515,28 +1622,54 @@ def sim_reader():
             continue
         with buf_lk:
             samps, c = cfg["samps"], state["c"]
+            method = pulser.shot_method
         t = (np.arange(samps, dtype=np.float32) / FS_HZ)[None, :]
-        a = np.zeros((N_ELEM, samps), np.float32)
+        offsets = RX_OFFSETS if method == 3 else (0,)
+        a = np.zeros((N_ELEM, len(offsets), samps), np.float32)
         dly_s = state["dly_us"] * 1e-6
         for (sx, sz) in scat:
             d   = np.hypot(sx - tx, sz - tz).astype(np.float32)
-            tof = (2.0 * d / c - dly_s)[:, None]
-            dt  = t - tof
-            a  += 900.0 * np.exp(-(dt / 2.5e-7) ** 2) * np.cos(2*np.pi*5e6 * dt)
+            for slot, offset in enumerate(offsets):
+                ids = np.arange(N_ELEM) ^ 1 if method == 2 else np.arange(N_ELEM) + offset
+                path = d + d[np.clip(ids, 0, N_ELEM-1)]
+                dt = t - (path / c - dly_s)[:,None]
+                a[:,slot,:] += 900.0 * np.exp(-(dt / 2.5e-7) ** 2) * np.cos(2*np.pi*5e6 * dt)
+        a = a.reshape(N_ELEM, -1)
+        if method == 1:
+            members = [np.zeros_like(a), np.zeros_like(a)]
+            for i, signs in enumerate(zip(*GOLAY_CODES)):
+                delay = i * golay_chip_samples()
+                lag = int(delay)
+                for shift, weight in ((lag, 1 - (delay - lag)), (lag + 1, delay - lag)):
+                    if shift >= samps or weight == 0:
+                        continue
+                    for member, sign in zip(members, signs):
+                        member[:,shift:] += sign * weight * a[:,:samps-shift]
+            a = np.concatenate(members, axis=1)
         a += np.random.normal(0.0, 35.0, a.shape).astype(np.float32)
+        if method == 3:
+            a[0,samps:2*samps] = 0
+            a[-1,2*samps:] = 0
         with buf_lk:
-            if cfg["samps"] == samps:
+            if cfg["samps"] == samps and pulser.shot_method == method and raw_buf.shape == a.shape:
                 raw_buf[:] = np.clip(a, -2048, 2047).astype(np.int16)
+                quality = None
+                shots = shots_per_sweep(method, pulser.n_elem, pulser.single_elem)
+                if method == ALTERNATING_24:
+                    live_bank = 0
+                    raw_buf[BANK_FOR_ELEMENT != live_bank] = 0
+                    quality = {"valid": True, "bank": live_bank, "source": "simulation",
+                               "valid_elements": list(BANKS[live_bank])}
                 np.copyto(live_buf, raw_buf)
-                cine.push(raw_buf)          # one synthetic sweep == one frame
+                cine.push(raw_buf, quality)
                 stats["dirty"] = True
                 hil_ev.set()
-                stats["frames"] += N_ELEM
-                stats["win_frames"] += N_ELEM
+                stats["frames"] += shots
+                stats["win_frames"] += shots
                 stats['complete_sweeps'] += 1
                 stats['win_sweeps'] += 1
-                stats["bytes"] += samps * 2 * N_ELEM
-                stats["win_bytes"] += samps * 2 * N_ELEM
+                stats["bytes"] += samps * 2 * shots
+                stats["win_bytes"] += samps * 2 * shots
         dt_w = time.perf_counter() - stats["t0"]
         if dt_w >= 0.5:
             stats["mbps"] = stats["win_bytes"] / dt_w / 1e6
@@ -1626,20 +1759,28 @@ def mline_sample(an, samps, a, b, npts=MM_PTS):
     d   = np.hypot(dvx, dvz)
     ds  = np.maximum(d, 1e-9)
 
-    # tx == rx: round trip is 2*d, capture starts dly_s after the fire, t0_s is
-    # the lens/electronic offset the geometry cannot see.
-    t    = (2.0 * d / state["c"] + state["t0_ns"] * 1e-9
-            - state["dly_us"] * 1e-6) * FS_HZ
-    cosa = (dvx * E[None, :, 2] + dvz * E[None, :, 3]) / ds
+    bank = getattr(an, 'bank', None)
+    tx = np.arange(N_ELEM) if bank is None else np.asarray(BANKS[bank])
+    if an.shape[0] == 3 * N_ELEM:
+        rx = np.clip(tx[:,None] + np.array(RX_OFFSETS), 0, N_ELEM-1).ravel()
+        tx = np.repeat(tx, 3)
+        row_weight = multi_rx_weights().ravel()
+    else:
+        rx = tx ^ 1 if pulser.shot_method == 2 else tx
+        row_weight = alive[tx]
+    paths = d[:,tx] + d[:,rx]
+    t = (paths / state["c"] + state["t0_ns"] * 1e-9 - state["dly_us"] * 1e-6) * FS_HZ
+    normals = (dvx * E[None,:,2] + dvz * E[None,:,3]) / ds
+    cosa = np.minimum(normals[:,tx], normals[:,rx])
     cacc = float(np.cos(np.radians(state["accept"])))
     ok   = ((t >= 0.0) & (t <= samps - 1.0) & (cosa >= cacc) &
-            (alive[None, :] > 0.5))
+            (row_weight[None, :] > 0))
 
     ap = max(state["apod"], 1e-4)
-    v  = np.abs(2.0 * (np.arange(N_ELEM, dtype=np.float32) / (N_ELEM - 1.0)) - 1.0)
+    v  = np.abs(2.0 * (tx.astype(np.float32) / (N_ELEM - 1.0)) - 1.0)
     w  = (_ramp((1.0 - v) / ap)[None, :] *
           _ramp(((cosa - cacc) / max(1.0 - cacc, 1e-6)) / ap))
-    w  = np.where(ok, w, 0.0).astype(np.float32)
+    w  = np.where(ok, w * row_weight, 0.0).astype(np.float32)
 
     # Fractional-delay tap, the CPU's version of the shader's bilinear fetch.
     # Flatten to (N*samps, 2) and gather with take(): 2-D fancy indexing on the
@@ -1648,10 +1789,11 @@ def mline_sample(an, samps, a, b, npts=MM_PTS):
     ti   = np.clip(t, 0.0, samps - 2.0)
     i0   = ti.astype(np.int32)
     fr   = (ti - i0)[..., None].astype(np.float32)
-    flat = an.reshape(N_ELEM * samps, 2)
-    k    = (np.arange(N_ELEM, dtype=np.int64) * samps + i0).ravel()
-    s    = (flat.take(k, axis=0).reshape(npts, N_ELEM, 2) * (1.0 - fr) +
-            flat.take(k + 1, axis=0).reshape(npts, N_ELEM, 2) * fr)   # (M,N,2)
+    rows = len(tx)
+    flat = an.reshape(rows * samps, 2)
+    k    = (np.arange(rows, dtype=np.int64) * samps + i0).ravel()
+    s    = (flat.take(k, axis=0).reshape(npts, rows, 2) * (1.0 - fr) +
+            flat.take(k + 1, axis=0).reshape(npts, rows, 2) * fr)   # (M,N,2)
 
     acc = np.einsum('mn,mnk->mk', w, s)                 # (M,2) complex sum
     mag = np.hypot(acc[:, 0], acc[:, 1])
@@ -1829,8 +1971,25 @@ def mm_push(col):
         audio_fb["pos"] = float((dif * np.arange(dif.size)).sum()
                                 / tot / max(dif.size - 1, 1))
 
+def golay_chip_samples():
+    return 2 * (pls_ns_to_cyc(pulser.t_drive_ns) + pls_ns_to_cyc(pulser.t_dead_ns)) * FS_HZ / CLK_HZ
+
+
 def prepare_analytic(rf, samps, live=False):
     with pipeline_lock:
+        if rf.shape[1] != samps * windows_per_tx(pulser.shot_method):
+            raise ValueError("RF window length does not match the acquisition method")
+        if pulser.shot_method == 3:
+            rf = rf.reshape(N_ELEM * 3, samps)
+        if pulser.shot_method == 1:
+            rf = decode_golay(rf, golay_chip_samples())
+        if pulser.shot_method == ALTERNATING_24:
+            bank = getattr(rf, 'bank', None)
+            if bank not in (0, 1):
+                raise ValueError("Sparse RF is missing its aperture group")
+            selected = np.asarray(rf)[list(BANKS[bank])].astype(np.float32)
+            cond, sh = _condition(selected, samps, live, bank)
+            return BankFrame(analytic(cond, samps, sh), bank)
         cond, sh = _condition(np.asarray(rf, dtype=np.float32), samps, live=live)
         return analytic(cond, samps, sh)
 
@@ -1853,9 +2012,14 @@ def hilbert_worker():
             rep = replay["rf"]
             replay["rf"] = None
         if rep is not None:
-            samps = rep.shape[1]
+            samps = cfg["samps"]
             t0 = time.perf_counter()
-            out = prepare_analytic(rep, samps, live=False)
+            with pipeline_lock:
+                if (rep.shape != live_buf.shape or
+                        isinstance(rep, BankFrame) != (pulser.shot_method == ALTERNATING_24)):
+                    continue
+                samps = cfg["samps"]
+                out = prepare_analytic(rep, samps, live=False)
             perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
             with hil_lk:
                 hil.update(data=out, samps=samps, gen=hil["gen"] + 1)
@@ -1867,13 +2031,18 @@ def hilbert_worker():
                 continue
             stats["dirty"] = False
             samps = cfg["samps"]
-            rf = live_buf.copy()        # immutable, complete 48-element sweep
+            source = live_buf
+            rf = source.copy()          # immutable, complete 48-element sweep
+            bank = live_bank if pulser.shot_method == ALTERNATING_24 else None
         # Averaging goes here, not in the reader: the copy above is already off
         # the USB path, and the cine ring keeps storing RAW sweeps so a recorded
         # loop can be re-averaged (or not) at replay time.
-        rf = rf_avg.push(rf)
         t0 = time.perf_counter()
-        out = prepare_analytic(rf, samps, live=True)
+        with pipeline_lock:
+            if source is not live_buf or samps != cfg["samps"]:
+                continue
+            sample = BankFrame(rf, bank) if bank is not None else rf_avg.push(rf)
+            out = prepare_analytic(sample, samps, live=True)
         perf["hil_ms"] = (time.perf_counter() - t0) * 1e3
         if state["frozen"]:             # froze mid-transform: do not stomp the
             continue                    # frame the user just paused on
@@ -1883,7 +2052,10 @@ def hilbert_worker():
         a, b = mline["a"], mline["b"]
         if mline["on"] and a is not None and b is not None:
             try:
-                mm_push(mline_sample(out, samps, a, b))
+                column = mline_sample(out, samps, a, b)
+                if bank is not None:
+                    column *= full_scale() / full_scale(bank=bank)
+                mm_push(column)
             except Exception as e:      # a bad line must never kill the worker
                 # Disarming silently is worse than the original fault: the
                 # checkbox stays ticked over a dead strip and every drag falls
@@ -2144,6 +2316,8 @@ def analytic(rf, samps, shifts=None):
     mf   = state["mf"]                 # read ONCE, like the band below
     comp = state["freq_comp"] and state.get("debug_view", 0) == 0
     ref  = mf_reference() if mf else None
+    if mf and pulser.shot_method == 1:
+        ref = ref[:max(1, round(golay_chip_samples()))]
     nfft = next_fast_len(samps + (ref.size if mf else 0))
     lo, hi = band_edges()
     key  = (nfft, mf, _mf_ref["gen"] if mf else None, comp, lo, hi)
@@ -2223,6 +2397,10 @@ uniform float samps;           // valid samples per A-scan == texture width
 uniform float cos_acc;         // cos(acceptance half-angle)
 uniform float apod;            // Tukey fraction, 0 = rect, 1 = full Hann
 uniform float t0_s;            // fixed lens/electronic round-trip offset
+uniform int neighbor_rx;
+uniform int multi_rx;
+uniform int alternating;
+uniform vec3 rx_weights[%(N)d];
 uniform float alive[%(N)d];    // 0 = dead element, excluded from the sum
 uniform float cf_pow;          // coherence-factor exponent, 0 = off
 uniform float freq_comp;       // 1 = RSS of three independently beamformed bands
@@ -2248,33 +2426,45 @@ void main() {
         if (alive[i] < 0.5) continue;   // dead element: contributes nothing
         vec2 dv = p - elems[i].xy;
         float d = length(dv);
-        // tx == rx (monostatic): round trip is 2*d; capture starts dly_s after
-        // fire; t0_s is the lens/electronic delay the geometry cannot see
-        float t = (2.0 * d / c + t0_s - dly_s) * fs;
-        float cosa = dot(dv, elems[i].zw) / max(d, 1e-9);
-        if (t >= 0.0 && t <= samps - 1.0 && cosa >= cos_acc) {
-            // Index window: v runs 0 at the array centre to 1 at either end,
-            // so one ramp handles both ends and stays symmetric under `flip`.
-            float v = abs(2.0 * (float(i) / %(Nm1)s) - 1.0);
-            float w = apod <= 0.0 ? 1.0 : ramp((1.0 - v) / a);
-            // Angular window: u runs 0 at the acceptance edge to 1 on axis.
-            // Tapering the outer `a` of the cone is what stops an element from
-            // entering the sum at full weight and stepping the image.
-            float u = (cosa - cos_acc) / max(1.0 - cos_acc, 1e-6);
-            w *= apod <= 0.0 ? 1.0 : ramp(u / a);
-            vec2 uv = vec2((t + 0.5) * inv_w,
-                           (float(i) + 0.5) / %(N)d.0);
-            vec2 s = texture(rf0, uv).rg;
-            acc  += w * s;
-            wsum += w;
-            psum += w * dot(s, s);      // |s|^2 for the analytic sample
-            if (freq_comp > 0.5) {
-                vec2 s1 = texture(rf1, uv).rg;
-                vec2 s2 = texture(rf2, uv).rg;
-                acc1  += w * s1;
-                acc2  += w * s2;
-                psum1 += w * dot(s1, s1);
-                psum2 += w * dot(s2, s2);
+        int slots = multi_rx != 0 ? 3 : 1;
+        for (int slot = 0; slot < slots; ++slot) {
+            float row_weight = multi_rx != 0 ? rx_weights[i][slot] : 1.0;
+            if (row_weight <= 0.0) continue;
+            int rx = neighbor_rx != 0 ? (i ^ 1) : i;
+            if (multi_rx != 0) rx += slot == 1 ? -1 : slot == 2 ? 1 : 0;
+            vec2 rv = p - elems[rx].xy;
+            float rd = length(rv);
+            float path = d + rd;
+            float t = (path / c + t0_s - dly_s) * fs;
+            float cosa = min(dot(dv, elems[i].zw) / max(d, 1e-9),
+                             dot(rv, elems[rx].zw) / max(rd, 1e-9));
+            if (t >= 0.0 && t <= samps - 1.0 && cosa >= cos_acc) {
+                // Index window: v runs 0 at the array centre to 1 at either end,
+                // so one ramp handles both ends and stays symmetric under `flip`.
+                float v = abs(2.0 * (float(i) / %(Nm1)s) - 1.0);
+                float w = apod <= 0.0 ? 1.0 : ramp((1.0 - v) / a);
+                // Angular window: u runs 0 at the acceptance edge to 1 on axis.
+                // Tapering the outer `a` of the cone is what stops an element from
+                // entering the sum at full weight and stepping the image.
+                float u = (cosa - cos_acc) / max(1.0 - cos_acc, 1e-6);
+                w *= apod <= 0.0 ? 1.0 : ramp(u / a);
+                w *= row_weight;
+                // A sparse group has exactly one TX from each adjacent pair.
+                int row = alternating != 0 ? i / 2 : i * slots + slot;
+                vec2 uv = vec2((t + 0.5) * inv_w,
+                               (float(row) + 0.5) / float(textureSize(rf0, 0).y));
+                vec2 s = texture(rf0, uv).rg;
+                acc  += w * s;
+                wsum += w;
+                psum += w * dot(s, s);      // |s|^2 for the analytic sample
+                if (freq_comp > 0.5) {
+                    vec2 s1 = texture(rf1, uv).rg;
+                    vec2 s2 = texture(rf2, uv).rg;
+                    acc1  += w * s1;
+                    acc2  += w * s2;
+                    psum1 += w * dot(s1, s1);
+                    psum2 += w * dot(s2, s2);
+                }
             }
         }
     }
@@ -2381,6 +2571,8 @@ class BModeGL(QOpenGLWidget):
         self.rf_tex = None
         self.rf_tex_bands = []      # one normally, FREQ_COMP_BANDS when enabled
         self.tex_samps = 0
+        self.tex_rows = 0
+        self.tex_bank = None
         self.tex_bands = 0
         self.tex_gen = -1
         self.elem_key = None         # (geom gen, direction) in the 'elems' uniform
@@ -2389,6 +2581,8 @@ class BModeGL(QOpenGLWidget):
         self._screen = None
         self._screen_id = -1
         self._q = 0
+        self.rendered_generation = -1
+        self.rendered_images = 0
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumSize(240, 200)
 
@@ -2477,6 +2671,7 @@ class BModeGL(QOpenGLWidget):
             if hil["data"] is None or hil["gen"] == self.tex_gen:
                 return
             data, samps, gen = hil["data"], hil["samps"], hil["gen"]
+        self.tex_bank = getattr(data, 'bank', None)
         if data.ndim == 3:
             bands = (data,)
         elif data.ndim == 4 and data.shape[0] == FREQ_COMP_BANDS:
@@ -2485,17 +2680,19 @@ class BModeGL(QOpenGLWidget):
             raise ValueError("analytic upload has unexpected shape %r" % (data.shape,))
         nb = len(bands)
         if (self.tex_samps != samps or self.tex_bands != nb or
+                self.tex_rows != bands[0].shape[0] or
                 not self.rf_tex_bands):
             self._release(self.rf_tex_bands)
             self.rf_tex_bands = []
             for _ in range(nb):
-                tex = self.ctx.texture((samps, N_ELEM), 2, dtype='f4')
+                tex = self.ctx.texture((samps, bands[0].shape[0]), 2, dtype='f4')
                 # LINEAR gives fractional-delay interpolation; y is sampled at
                 # row centres, so the extra band textures never bleed elements.
                 tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
                 tex.repeat_x = tex.repeat_y = False
                 self.rf_tex_bands.append(tex)
             self.rf_tex = self.rf_tex_bands[0]     # legacy readiness checks
+            self.tex_rows = bands[0].shape[0]
             self.tex_samps, self.tex_bands = samps, nb
         for tex, band in zip(self.rf_tex_bands, bands):
             tex.write(band)
@@ -2511,9 +2708,10 @@ class BModeGL(QOpenGLWidget):
         if self.elem_key != key:
             p['elems'].write(elem_uniform().tobytes())
             self.elem_key = key
-        dead_key = (dead["gen"], pulser.n_elem, pulser.single_elem)
+        dead_key = (dead["gen"], pulser.n_elem, pulser.single_elem, pulser.shot_method, self.tex_bank)
         if self.dead_key != dead_key:
-            p['alive'].write(alive_mask().tobytes())
+            p['alive'].write(alive_mask(self.tex_bank).tobytes())
+            p['rx_weights'].write(multi_rx_weights().tobytes())
             self.dead_key = dead_key
         p['viewbox'].value = (float(vb[0]), float(vb[1]),
                               float(vb[2]), float(vb[3]))
@@ -2523,6 +2721,9 @@ class BModeGL(QOpenGLWidget):
         p['samps'].value   = float(self.tex_samps)
         p['cos_acc'].value = float(np.cos(np.radians(state["accept"])))
         p['apod'].value    = float(state["apod"])
+        p['neighbor_rx'].value = int(pulser.shot_method == 2)
+        p['multi_rx'].value = int(self.tex_rows == 3 * N_ELEM)
+        p['alternating'].value = int(self.tex_bank is not None)
         p['cf_pow'].value  = float(state["cf"])
         p['debug_view'].value = int(state.get("debug_view", 0))
         p['t0_s'].value    = float(state["t0_ns"]) * 1e-9
@@ -2551,7 +2752,7 @@ class BModeGL(QOpenGLWidget):
     def _compress(self, magtex, fbo, size):
         magtex.use(0)
         (self.reduce[-1][1] if self.reduce else magtex).use(1)
-        self.prog_cp['full_scale'].value = full_scale(state["apod"])
+        self.prog_cp['full_scale'].value = full_scale(state["apod"], self.tex_bank)
         self.prog_cp['dyn_db'].value    = float(state["dyn"])
         self.prog_cp['gain_db'].value   = float(state["gain"])
         self.prog_cp['auto_gain'].value = 1.0 if state["auto"] else 0.0
@@ -2583,6 +2784,9 @@ class BModeGL(QOpenGLWidget):
             self._screen = self.ctx.detect_framebuffer(fid)
             self._screen_id = fid
         self._compress(self.mag_tex, self._screen, (self.fb_w, self.fb_h))
+        if self.tex_gen != self.rendered_generation:
+            self.rendered_generation = self.tex_gen
+            self.rendered_images += 1
         if q is not None:
             q.__exit__(None, None, None)
             perf["gpu_ms"] = q.elapsed / 1e6
@@ -3427,11 +3631,14 @@ def settings_snapshot(main, note=""):
             "damp_gap_us":  main.gap,             # receive end -> next pulse
             "tgc_min":      main.tgc_lo,
             "tgc_max":      max(main.tgc_lo, main.tgc_hi),
+            "tgc_reach_pct": main.tgc_reach_pct,
             "fs_hz":        FS_HZ,
             "n_elem_rx":    N_ELEM,
         },
+        "afe": afe_metadata(afe_profile),
         "transmit": {
             "armed":         pulser.arm,
+            "shot_method":   pulser.shot_method,
             "chirp_on":      pulser.chirp_on,
             "chirp_f0_mhz":  pulser.chirp_f0_mhz,
             "chirp_f1_mhz":  pulser.chirp_f1_mhz,
@@ -3528,7 +3735,7 @@ def settings_snapshot(main, note=""):
             "mbps":         round(stats["mbps"], 1),
             "sweeps_per_s": round(stats['sweep_hz'], 1),
             "complete_sweeps": stats['complete_sweeps'],
-            "packet_equivalent_sweeps_per_s": round(stats["fps"] / N_ELEM, 1),
+            "packet_equivalent_sweeps_per_s": round(stats["fps"] / shots_per_sweep(pulser.shot_method, pulser.n_elem, pulser.single_elem), 1),
             "frames":       stats["frames"],
             "drops":        stats["drops"],
             "resyncs":      stats["resyncs"],
@@ -4413,13 +4620,13 @@ class MModeStrip(QWidget):
 class Main(DebugMixin, QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"TFM B-mode - {N_ELEM} element convex, monostatic "
-                            f"(SAFT), GPU beamformer"
+        self.setWindowTitle(f"TFM B-mode - {N_ELEM} element convex, GPU beamformer"
                             + ("" if HW else "  [SIMULATION]"))
         self.captures = []
         self.dialogs = []
         self.last = None
         self.tgc_lo, self.tgc_hi = TGC_MIN_DEF, TGC_MAX_DEF
+        self.tgc_reach_pct = TGC_REACH_DEF
         self.gap = GAP_US_DEF
 
         # cine review state (only meaningful while frozen)
@@ -4494,6 +4701,10 @@ class Main(DebugMixin, QWidget):
                  width=118)
         mkslider(r2, "TGC max", 0, 4095, TGC_MAX_DEF, on_change=self.set_tgc_hi,
                  width=118)
+        tgc_knee = mkslider(r2, "TGC full @", 1, 100, TGC_REACH_DEF,
+                            on_change=self.set_tgc_reach, width=98, unit="%")
+        tgc_knee.setToolTip("Depth fraction where the TGC ramp reaches its maximum; "
+                            "the FPGA holds that gain for the rest of the receive window.")
         # A wider log window can retain faint gray while lowering display gain
         # enough to keep a strong reflector from becoming a solid white band.
         mkslider(r2, "dyn range", 20, 100, DYN_DEF, on_change=self.set_dyn,
@@ -4609,12 +4820,14 @@ class Main(DebugMixin, QWidget):
 
         # -- timers -----------------------------------------------------------
         self.t_draw = QTimer(self); self.t_draw.timeout.connect(self._tick)
+        self.t_draw.setTimerType(Qt.TimerType.PreciseTimer)
         self.t_draw.start(16)
         self.t_stat = QTimer(self); self.t_stat.timeout.connect(self._status)
+        self.render_clock = time.perf_counter()
+        self.render_count = 0
         self.t_stat.start(250)
-        # replay clock: 10 ms is finer than any frame interval we can record,
-        # so the play head lands on the right frame even at 4x
         self.t_play = QTimer(self); self.t_play.timeout.connect(self._play_tick)
+        self.t_play.setTimerType(Qt.TimerType.PreciseTimer)
 
         for key, fn in ((Qt.Key_Space,  self._space),
                         (Qt.Key_Escape, lambda: self.b_freeze.setChecked(False)),
@@ -4949,7 +5162,9 @@ class Main(DebugMixin, QWidget):
         interlock additionally holds the next shot when USB backpressure extends
         the actual drain; older bitstreams lack that feedback.
         """
-        if pulser.chirp_on:
+        if pulser.shot_method == 1:
+            tx = "Golay A/B, 4 chips per shot, %.2f MHz" % (pulser.f0_hz()/1e6)
+        elif pulser.chirp_on:
             tx = ("chirp %.1f-%.1f MHz  burst %.1f us"
                   % (pulser.chirp_f0_mhz, pulser.chirp_f1_mhz,
                      pulser.burst_ns() / 1e3))
@@ -5206,6 +5421,9 @@ class Main(DebugMixin, QWidget):
 
     # -- transmit callbacks ---------------------------------------------------
     def set_arm(self, on):
+        if on and not getattr(self, "method_verified", True):
+            self.cb_arm.setChecked(False)
+            return
         pulser.set_arm(bool(on)); self.pls_refresh()
         if hasattr(self, "g"):
             self.debug_lock_acquisition(state["frozen"])
@@ -5223,12 +5441,14 @@ class Main(DebugMixin, QWidget):
 
     def _send_tgc(self):
         lo, hi = self.tgc_lo, max(self.tgc_lo, self.tgc_hi)
-        inc = max(0, ((hi - lo) * 4096) // cfg["win_words"])
+        inc = tgc_increment(lo, hi, cfg["win_words"], self.tgc_reach_pct)
         send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
+        send_cmd(cmd(OP_SEQ_TGC1, hi), "seq_tgc1")
         send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
 
     def set_tgc_lo(self, v): self.tgc_lo = v; self._send_tgc()
     def set_tgc_hi(self, v): self.tgc_hi = v; self._send_tgc()
+    def set_tgc_reach(self, v): self.tgc_reach_pct = float(v); self._send_tgc()
 
     def set_auto(self, v):
         state["auto"] = v
@@ -5241,7 +5461,7 @@ class Main(DebugMixin, QWidget):
         if state["frozen"]:
             return                      # nothing live to average
         bg["acc"], bg["want"] = None, BG_AVG
-        self.b_bg.setText(f"capturing {BG_AVG}")
+        self.b_bg.setText(f"capturing {bg['want']}")
 
     def clear_bg(self):
         bg.update(ref=None, acc=None, n=0, want=0)
@@ -5264,6 +5484,7 @@ class Main(DebugMixin, QWidget):
         self.tl.t_in = self.tl.t_out = None      # marks belong to one snapshot
         if v:
             self.review, self.rev_t = cine.freeze()
+            self.debug_after_freeze()
             self.cur_idx = -1
             self._cine_enable(True)
             if len(self.review):
@@ -5283,7 +5504,7 @@ class Main(DebugMixin, QWidget):
             cine.resume()
             self._cine_enable(False)
             hil_ev.set()                  # wake the worker back up
-        self.debug_after_freeze()
+            self.debug_after_freeze()
 
     # -- cine transport -------------------------------------------------------
     def _cine_enable(self, on):
@@ -5321,6 +5542,8 @@ class Main(DebugMixin, QWidget):
 
         The window is trimmed at the start of the buffer rather than padded, so
         the oldest frames average over fewer sweeps instead of reusing one."""
+        if pulser.shot_method == ALTERNATING_24:
+            return BankFrame(self.review[i][1], self.debug_review_quality[i]["bank"])
         n = min(rf_avg.n, i + 1)
         if n <= 1:
             return self.review[i][1]
@@ -5379,7 +5602,7 @@ class Main(DebugMixin, QWidget):
             self.playing = True
             self.b_play.set_kind("pause")
             self._play_wall = time.perf_counter()
-            self.t_play.start(10)
+            self.t_play.start(8 if pulser.shot_method == ALTERNATING_24 else 10)
 
     def _stop_play(self):
         self.playing = False
@@ -5603,7 +5826,9 @@ class Main(DebugMixin, QWidget):
         rf_avg.reset()                        # held sweeps are the old length
         with buf_lk:
             set_cfg(words)
-            raw_buf = np.zeros((N_ELEM, cfg["samps"]), dtype=np.int16)
+            golay_pairs.pending = None
+            three_rx_groups.reset()
+            raw_buf = np.zeros((N_ELEM, cfg["samps"] * windows_per_tx(pulser.shot_method)), dtype=np.int16)
             live_buf = np.zeros_like(raw_buf)
             carry = np.empty(0, dtype=np.uint32)
             stats["last_fcnt"] = None
@@ -5612,14 +5837,15 @@ class Main(DebugMixin, QWidget):
             _sweep_ok = True
             _rej_run = 0
         send_seq_config(self.tgc_lo, max(self.tgc_lo, self.tgc_hi),
-                        int(state["dly_us"]), self.gap)
+                        int(state["dly_us"]), self.gap, self.tgc_reach_pct)
         send_cmd(cmd(OP_START), "start")
         view["cz"] = None                     # depth changed: recentre vertically
         self.pls_refresh()      # send_seq_config resized t_rx with the window
 
     # -- capture --------------------------------------------------------------
     def info_line(self):
-        return (f"{N_ELEM} el  depth {state['depth_cm']} cm  c {state['c']:.0f} m/s  "
+        paths = {3: "three-position RX  ", ALTERNATING_24: "24 shots/image  "}.get(pulser.shot_method, "")
+        return (f"{N_ELEM} el  {paths}depth {state['depth_cm']} cm  c {state['c']:.0f} m/s  "
                 f"dly {state['dly_us']:.0f} us  aper {state['accept']:.0f} deg  "
                 f"apod {state['apod']*100:.0f}%  "
                 # Only when on: CF makes brightness non-quantitative, so a
@@ -5827,8 +6053,12 @@ class Main(DebugMixin, QWidget):
         # deeper in the window look like.
         bad = (stats["drops"] or stats["resyncs"] or stats["seq_bad"]
                or stats["skips"] or stats["bad_sweeps"])
+        now = time.perf_counter()
+        render_hz = (gl.rendered_images - self.render_count) / max(now - self.render_clock, 1e-6)
+        self.render_clock, self.render_count = now, gl.rendered_images
         self.status.setText(
             f" {stats['mbps']:6.1f} MB/s   {stats['sweep_hz']:6.1f} valid sweeps/s"
+            f"   {render_hz:.0f} images/s drawn"
             f"   frames {stats['frames']}   drops {stats['drops']}"
             f"   resyncs {stats['resyncs']}"
             f"   holes {stats['seq_bad']}/{stats['seq_chk']}"
@@ -5881,5 +6111,180 @@ if __name__ == "__main__":
     win.show()
     if REPLAY_PATH:
         QTimer.singleShot(0, lambda: win.debug_open_rf(REPLAY_PATH))
+    elif START_SETTINGS is not None:
+        def start_settings():
+            errors = [None]
+            preset = None
+            try:
+                with open(START_SETTINGS, "r", encoding="utf-8-sig") as stream:
+                    preset = json.load(stream)
+                win.debug_apply(preset, replay=False)
+                if START_ARMED:
+                    win.cb_arm.setChecked(True)
+            except Exception as exc:
+                errors[0] = str(exc)
+                win.cb_arm.setChecked(False)
+                win.debug_label.setText(f"Settings startup failed; transmit off: {exc}")
+
+            def receipt(verify_live=False):
+                evidence = None
+                if verify_live and stats["complete_sweeps"] > 0:
+                    with cine.lk:
+                        items = list(cine.buf)[-8:]
+                        quality = list(cine.quality)[-len(items):]
+                        if items:
+                            first = items[0][0]
+                            evidence = ([rf.copy() for _, rf in items],
+                                        np.array([t - first for t, _ in items]),
+                                        copy.deepcopy(quality))
+                if verify_live and HW and START_ARMED and errors[0] is None:
+                    from bench_transport import query_firmware
+                    try:
+                        info = query_firmware(sys.modules[__name__], with_lease=False)
+                        win.debug_firmware_info = dict(info,
+                            checked_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                            note="Disarmed status readback after the settings-preset live interval.")
+                        good = (not info.get("pulser_fault") and info.get("pulser_frames", 0) > 0
+                                and stats["complete_sweeps"] > 0)
+                        if not good:
+                            raise RuntimeError("No complete RF flow: pulser_frames=%s fault=%s/%s valid_sweeps=%s"
+                                % (info.get("pulser_frames"), info.get("pulser_fault"),
+                                   info.get("pulser_fault_code"), stats["complete_sweeps"]))
+                        pulser.set_arm(True)
+                        evidence_dir = os.path.join(os.path.dirname(os.path.dirname(
+                            os.path.abspath(__file__))), "bench_runs")
+                        win.scene.gl.grabFramebuffer().save(
+                            os.path.join(evidence_dir, "live-settings.png"), "PNG")
+                        if evidence is not None:
+                            frames, times, quality = evidence
+                            acquired = copy.deepcopy(win.debug_epoch or settings_snapshot(win))
+                            metadata = {
+                                "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                "acquired_settings": acquired,
+                                "review_settings": settings_snapshot(win),
+                                "context": {"note": "Guarded settings-preset startup evidence",
+                                            "setup": copy.deepcopy(win.debug_setup)},
+                                "provenance": win.debug_source,
+                                "configuration_boundary": "Preset applied disarmed; verified status and live flow",
+                            }
+                            rf_path = os.path.join(evidence_dir, "live-settings.rf.npz")
+                            reference = mf_reference().copy()
+                            def save_evidence():
+                                rf_debug.save_session(rf_path, frames, times, metadata,
+                                                      quality, reference, None)
+                                report = rf_debug.diagnostics(frames, quality,
+                                    shot_method=acquired["transmit"].get("shot_method", 0))
+                                rf_debug.atomic_json(rf_path + ".report.json", report)
+                            win.debug_background_job(save_evidence,
+                                "Saved guarded preset PNG + RF evidence")
+                    except Exception as exc:
+                        errors[0] = str(exc)
+                        win.cb_arm.setChecked(False)
+                        win.debug_label.setText(errors[0] + "; transmit off")
+                path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                    "bench_runs", "live-settings-startup.json")
+                rf_debug.atomic_json(path, {
+                    "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "error": errors[0],
+                    "hardware": HW,
+                    "preset": START_SETTINGS,
+                    "requested_arm": START_ARMED,
+                    "armed": pulser.arm,
+                    "firmware": getattr(win, "debug_firmware_info", None),
+                    "frames_received": stats["frames"],
+                    "valid_sweeps": stats["complete_sweeps"],
+                    "settings": settings_snapshot(win),
+                })
+            QTimer.singleShot(2000, lambda: receipt(False))
+            QTimer.singleShot(8000, lambda: receipt(True))
+        QTimer.singleShot(0, start_settings)
+    elif START_FAST17:
+        def start_fast17():
+            errors = [None]
+            try:
+                win.apply_method(FAST17)
+                if START_ARMED:
+                    win.cb_arm.setChecked(True)
+            except Exception as exc:
+                errors[0] = str(exc)
+                win.cb_arm.setChecked(False)
+                win.debug_label.setText(f"Fast 17 cm startup failed; transmit off: {exc}")
+            def receipt(verify_live=False):
+                evidence = None
+                if verify_live and stats["complete_sweeps"] > 0:
+                    with cine.lk:
+                        items = list(cine.buf)[-8:]
+                        quality = list(cine.quality)[-len(items):]
+                        if items:
+                            t0 = items[0][0]
+                            evidence = ([rf.copy() for _, rf in items],
+                                        np.array([t - t0 for t, _ in items]),
+                                        copy.deepcopy(quality))
+                if verify_live and HW and START_ARMED and errors[0] is None:
+                    from bench_transport import query_firmware
+                    try:
+                        info = query_firmware(sys.modules[__name__], with_lease=False)
+                        win.debug_firmware_info = dict(info,
+                            checked_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                            note="Disarmed pulser status readback after the live-flow interval.")
+                        good = (not info.get("pulser_fault") and info.get("pulser_frames", 0) > 0
+                                and stats["complete_sweeps"] > 0)
+                        if good:
+                            pulser.set_arm(True)
+                            evidence_dir = os.path.join(os.path.dirname(os.path.dirname(
+                                os.path.abspath(__file__))), "bench_runs")
+                            win.scene.gl.grabFramebuffer().save(
+                                os.path.join(evidence_dir, "live-fast17.png"), "PNG")
+                            if evidence is not None:
+                                frames, times, quality = evidence
+                                acquired = copy.deepcopy(win.debug_epoch or settings_snapshot(win))
+                                metadata = {
+                                    "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                    "acquired_settings": acquired,
+                                    "review_settings": settings_snapshot(win),
+                                    "context": {"note": "Guarded Fast 17 cm startup evidence",
+                                                "setup": copy.deepcopy(win.debug_setup)},
+                                    "provenance": win.debug_source,
+                                    "configuration_boundary": "Verified FPGA readback and live-flow interval",
+                                }
+                                rf_path = os.path.join(evidence_dir, "live-fast17.rf.npz")
+                                reference = mf_reference().copy()
+                                def save_evidence():
+                                    rf_debug.save_session(rf_path, frames, times, metadata,
+                                                          quality, reference, None)
+                                    report = rf_debug.diagnostics(frames, quality,
+                                        shot_method=acquired["transmit"].get("shot_method", 0))
+                                    rf_debug.atomic_json(rf_path + ".report.json", report)
+                                win.debug_background_job(save_evidence,
+                                    "Saved guarded Fast 17 cm PNG + RF evidence")
+                        else:
+                            errors[0] = ("No complete RF flow: pulser_frames=%s fault=%s/%s "
+                                         "valid_sweeps=%s" % (info.get("pulser_frames"),
+                                         info.get("pulser_fault"), info.get("pulser_fault_code"),
+                                         stats["complete_sweeps"]))
+                            win.cb_arm.setChecked(False)
+                            win.debug_label.setText(errors[0] + "; transmit off")
+                    except Exception as exc:
+                        errors[0] = f"Live status readback failed: {exc}"
+                        win.cb_arm.setChecked(False)
+                        win.debug_label.setText(errors[0] + "; transmit off")
+                path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                    "bench_runs", "live-startup.json")
+                rf_debug.atomic_json(path, {
+                    "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "error": errors[0],
+                    "hardware": HW,
+                    "requested_fast17": True,
+                    "requested_arm": START_ARMED,
+                    "armed": pulser.arm,
+                    "method_verified": win.method_verified,
+                    "firmware": getattr(win, "debug_firmware_info", None),
+                    "frames_received": stats["frames"],
+                    "valid_sweeps": stats["complete_sweeps"],
+                    "settings": settings_snapshot(win),
+                })
+            QTimer.singleShot(2000, lambda: receipt(False))
+            QTimer.singleShot(8000, lambda: receipt(True))
+        QTimer.singleShot(0, start_fast17)
     print("streaming - close the window to stop.")
     sys.exit(app.exec())

@@ -46,6 +46,7 @@ OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
+OP_SEQ_TGC1 = 0x21
 SRC_SEQ = 2
 
 N_ELEM = 48
@@ -356,6 +357,7 @@ class SingleElementCapture:
             send(cmd(OP_SEQ_DLY, us_to_cycles(settings.delay_us)), "seq_dly")
             send(cmd(OP_SEQ_GAP, us_to_cycles(settings.damp_us)), "seq_gap")
             send(cmd(OP_SEQ_TGC0, settings.tgc_start), "seq_tgc0")
+            send(cmd(OP_SEQ_TGC1, settings.tgc_end), "seq_tgc1")
             send(cmd(OP_SEQ_TGC, tgc_inc), "seq_tgc")
 
             d3.FT_SetStreamPipe(

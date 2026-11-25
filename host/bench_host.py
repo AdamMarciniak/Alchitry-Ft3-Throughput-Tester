@@ -19,11 +19,12 @@ import uuid
 
 import numpy as np
 import rf_debug as files
+from pulse_methods import fpga_method
 from bench_client import pid_alive, server_info
 from bench_render import Renderer, wire_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
-WAVEFORM_FIELDS = ('chirp_on', 'chirp_f0_mhz', 'chirp_f1_mhz', 'chirp_us',
+WAVEFORM_FIELDS = ('shot_method', 'chirp_on', 'chirp_f0_mhz', 'chirp_f1_mhz', 'chirp_us',
                    'n_cycles', 't_drive_ns', 't_dead_ns')
 
 
@@ -129,7 +130,11 @@ class Control:
 
     def configure(self, supplied):
         value = files.validate_settings(supplied, self.h.settings_snapshot(self.w))
-        if any(value['transmit'][k] != self.waveform[k] for k in WAVEFORM_FIELDS):
+        requested = {k: value['transmit'][k] for k in WAVEFORM_FIELDS}
+        expected = self.waveform.copy()
+        for waveform in (requested, expected):
+            waveform['shot_method'] = fpga_method(waveform['shot_method'])
+        if requested != expected:
             raise ValueError('This bench session keeps the transmit waveform unchanged')
         if self.w.debug_offline:
             self.w.debug_new_live()
@@ -207,7 +212,7 @@ class Control:
             times = np.array([item[0] for item in items]); times -= times[0]
             frames = [item[1] for item in items]
             files.save_session(path, frames, times, meta, qualities, self.h.mf_reference(), self.h.bg['ref'])
-            report = files.diagnostics(frames, qualities)
+            report = files.diagnostics(frames, qualities, shot_method=self.h.pulser.shot_method)
             files.atomic_json(out / 'capture.report.json', report)
             files.atomic_json(out / 'settings.json', settings)
             result = {'session': str(path), 'report': str(out / 'capture.report.json'),
@@ -271,7 +276,7 @@ class Control:
         settings = self.h.settings_snapshot(self.w)
         settings['display']['grid'] = [mag.shape[1], mag.shape[0]]
         metric = wire_metrics(mag, box, search, anchor)
-        metric.update(normalized_peak=metric['peak']/self.h.full_scale(self.h.state['apod']),
+        metric.update(normalized_peak=metric['peak']/self.h.full_scale(self.h.state['apod'], getattr(transformed, 'bank', None)),
                       frame=frame, quality=session.quality[frame], box_mm=box,
                       view=['weighted', 'ordinary_DAS', 'coherence_map'][self.h.state.get('debug_view', 0)])
         files.atomic_json(out / 'metrics.json', metric)

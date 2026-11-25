@@ -19,7 +19,9 @@ class Renderer:
         h, ctx, p = self.h, self.ctx, self.bf
         bands = analytic if analytic.ndim == 4 else analytic[None]
         n, samples = bands.shape[1:3]
-        if n != 48 or samples > ctx.info['GL_MAX_TEXTURE_SIZE']:
+        bank = getattr(analytic, 'bank', None)
+        expected_rows = 24 if bank is not None else 144 if h.pulser.shot_method == 3 else 48
+        if n != expected_rows or samples > ctx.info['GL_MAX_TEXTURE_SIZE']:
             raise ValueError('RF shape exceeds this GPU texture limit')
         textures = []
         try:
@@ -31,14 +33,15 @@ class Renderer:
             for i in range(3):
                 textures[min(i, len(textures)-1)].use(i)
             p['elems'].write(h.elem_uniform().tobytes())
-            p['alive'].write(h.alive_mask().tobytes())
-            values = {'rf0': 0, 'rf1': 1, 'rf2': 2,
+            p['alive'].write(h.alive_mask(bank).tobytes())
+            p['rx_weights'].write(h.multi_rx_weights().tobytes())
+            values = {'multi_rx': int(n == 144), 'alternating': int(bank is not None), 'rf0': 0, 'rf1': 1, 'rf2': 2,
                       'viewbox': tuple(float(x)/1000 for x in box_mm),
                       'c': h.state['c'], 'dly_s': h.state['dly_us']*1e-6,
                       'fs': h.FS_HZ, 'samps': samples,
                       'cos_acc': float(np.cos(np.radians(h.state['accept']))),
                       'apod': h.state['apod'], 't0_s': h.state['t0_ns']*1e-9,
-                      'cf_pow': h.state['cf'], 'freq_comp': int(len(bands) == 3),
+                      'neighbor_rx': int(h.pulser.shot_method == 2), 'cf_pow': h.state['cf'], 'freq_comp': int(len(bands) == 3),
                       'debug_view': h.state.get('debug_view', 0)}
             for key, val in values.items():
                 p[key].value = val
@@ -54,7 +57,7 @@ class Renderer:
             textures.append(peak)
             mag.use(0)
             peak.use(1)
-            for key, val in {'magtex': 0, 'maxtex': 1, 'full_scale': h.full_scale(h.state['apod']),
+            for key, val in {'magtex': 0, 'maxtex': 1, 'full_scale': h.full_scale(h.state['apod'], bank),
                              'dyn_db': h.state['dyn'], 'gain_db': h.state['gain'],
                              'auto_gain': int(h.state['auto']), 'curve': h.state['curve'],
                              'debug_view': h.state.get('debug_view', 0)}.items():

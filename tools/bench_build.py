@@ -1,8 +1,9 @@
-"""Frozen-source Vivado builds and temporary Alchitry Au V2 programming.
+"""Frozen-source Vivado builds and Alchitry Au V2 programming.
 
 python tools/bench_build.py doctor
 python tools/bench_build.py build
 python tools/bench_build.py program BUILD_DIRECTORY
+python tools/bench_build.py program BUILD_DIRECTORY --flash
 """
 from __future__ import annotations
 import argparse
@@ -27,7 +28,8 @@ from rf_debug import atomic_json
 DEFAULT_VIVADO = Path('E:/Vivado/2025.2/Vivado/bin/vivado.bat')
 PART = 'xc7a35tftg256-2'
 BASE_CAPABILITIES = ['boot_disarmed', 'tx_lease_v1', 'runtime_info_v1']
-CAPABILITIES = BASE_CAPABILITIES + ['capture_ready_interlock_v1']
+CAPABILITIES = BASE_CAPABILITIES + ['capture_ready_interlock_v1', 'tagged_pulse_methods_v1',
+                                    'multi_rx_v1', 'pulser_status_v1']
 
 
 def sha(path):
@@ -119,7 +121,7 @@ def build(vivado, output=None):
                            src / 'bench_capture_sim.ps1', '-Bin', vivado.parent,
                            '-Source', src / 'rtl', '-Testbench', src / 'tests/tb_capture_ready.v'],
                           sim, out / 'capture-test.log', timeout=180)
-        if 'CAPTURE_READY_TEST_PASS' not in text:
+        if text.count('CAPTURE_READY_TEST_PASS') != 4:
             raise RuntimeError('Capture-ready simulation did not report success')
         manifest['capture_ready_simulation']='passed'
         print('Both simulations passed. Synthesizing and routing frozen inputs...', flush=True)
@@ -166,18 +168,19 @@ def validated_build(directory):
 
 def board_index(listing):
     # Current V2 CLI reports a count per model, rather than numbered devices.
-    counts = re.findall(r'^\s*Detected (\d+) Alchitry Au V2\s*$', listing, re.MULTILINE)
+    counts = re.findall(r'^\s*Detected (\d+) Alchitry Au V2(?: 35T)?\s*$', listing, re.MULTILINE)
     if counts:
         if counts == ['1']:
             return '0'  # --device is zero-based within the selected --board model
         raise RuntimeError('Expected exactly one detected Au V2; inspect boards.log')
-    boards = re.findall(r'^\s*(\d+)\s*[:.)-]\s*.*Au\s*V2', listing, re.MULTILINE | re.IGNORECASE)
+    boards = re.findall(r'^\s*(\d+)\s*[:.)-]\s*(?:Alchitry\s+)?Au\s*V2(?: 35T)?\s*$', listing,
+                        re.MULTILINE | re.IGNORECASE)
     if len(boards) != 1:
         raise RuntimeError('Expected exactly one detected Au V2; inspect boards.log before selecting a device')
     return boards[0]
 
 
-def program(directory, uploader, control_dir):
+def program(directory, uploader, control_dir, flash=False):
     directory = Path(directory).resolve()
     manifest = validated_build(directory)
     # Close the controlled host before resetting hardware. Its response follows
@@ -205,13 +208,19 @@ def program(directory, uploader, control_dir):
                              directory / 'boards.log', timeout=30)
         print(listing, flush=True)
         index = board_index(listing)
-        output = run_logged([uploader, 'load', '--board', 'AuV2', '--device', index,
-                             '--ram', '--bin', directory / 'alchitry_top.bin'],
+        model = 'AuV2-35T' if 'Alchitry Au V2 35T' in listing else 'AuV2'
+        storage = 'flash' if flash else 'ram'
+        output = run_logged([uploader, 'load', '--board', model, '--device', index,
+                             '--' + storage, '--bin', directory / 'alchitry_top.bin'],
                             directory, directory / 'program.log', timeout=120)
-        if 'done' not in output.lower():
+        if not re.search(r'^Done\.?\s*$', output, re.MULTILINE | re.IGNORECASE):
             raise RuntimeError('Uploader did not report completion; acquisition remains blocked')
+        warnings = [line.strip() for line in output.splitlines() if 'overflow' in line.lower()]
+        if warnings:
+            receipt['loader_warnings'] = warnings
+            print('\n'.join(warnings), flush=True)
         receipt.update(state='programmed', programmed_utc=datetime.now(timezone.utc).isoformat(),
-                       capabilities=CAPABILITIES, board='AuV2', device_index=int(index),
+                       capabilities=manifest['capabilities'], board=model, storage=storage, device_index=int(index),
                        manifest_sha256=sha(directory / 'manifest.json'),
                        runtime_build_id=manifest['runtime_build_id'],
                        provenance_note='Uploader operation and file hashes; host verifies runtime build tag before each capture')
@@ -221,7 +230,7 @@ def program(directory, uploader, control_dir):
     finally:
         atomic_json(receipt_path, receipt)
         lock.unlink(missing_ok=True)
-    print(f'RAM programmed; transmit starts off. Receipt: {receipt_path}', flush=True)
+    print(f'{storage.upper()} programmed; transmit starts off. Receipt: {receipt_path}', flush=True)
 
 
 def main():
@@ -233,17 +242,18 @@ def main():
     b.add_argument('--output', type=Path)
     u = sub.add_parser('program')
     u.add_argument('build_dir', type=Path)
+    u.add_argument('--flash', action='store_true', help='Program persistent flash instead of temporary RAM')
     u.add_argument('--uploader', default=shutil.which('alchitry') or 'alchitry')
     u.add_argument('--control-dir', type=Path, default=ROOT / 'bench_runs/control')
     args = p.parse_args()
     if args.op == 'doctor':
         print(json.dumps({'vivado': str(DEFAULT_VIVADO), 'vivado_found': DEFAULT_VIVADO.is_file(),
                           'uploader': shutil.which('alchitry'), 'project_part': PART,
-                          'board': 'AuV2', 'programming_mode': 'temporary RAM'}, indent=2))
+                          'board': 'AuV2', 'programming_mode': 'RAM by default; --flash for persistent programming'}, indent=2))
     elif args.op == 'build':
         build(args.vivado, args.output)
     else:
-        program(args.build_dir, args.uploader, args.control_dir)
+        program(args.build_dir, args.uploader, args.control_dir, flash=args.flash)
 
 
 if __name__ == '__main__':

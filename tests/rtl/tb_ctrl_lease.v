@@ -11,6 +11,7 @@ module tb_ctrl_lease;
         .clk(clk), .rst(rst), .ctrl_word(word), .ctrl_empty(empty),
         .tx_full(1'b0), .tx_wr_rst_busy(1'b0), .adc_word(32'd0),
         .adc_empty(1'b1), .tx_sync(1'b0), .tx_elem(6'd0), .pls_arm(arm),
+        .pls_fault(1'b0), .pls_fault_code(4'd0), .pls_frames(16'd0), .pls_state(4'd0),
         .tx_din(data), .tx_wr_en(valid)
     );
     task command(input [31:0] value);
@@ -54,7 +55,7 @@ module tb_ctrl_lease;
                 0: if (data !== 32'hB34D0001) $fatal(1,"Bad info signature");
                 1: if (data !== 32'h00123456) $fatal(1,"Bad echoed query nonce");
                 2: if (data !== 32'h00000000) $fatal(1,"Unexpected default build tag");
-                3: if (data !== 32'h00010004) $fatal(1,"Bad lease/disarm/capture-ready capability flags");
+                3: if (data !== 32'h0001004c) $fatal(1,"Bad lease/disarm/capture-ready capability flags");
                 5: if (data !== 32'd2047) $fatal(1,"Bad receive-length readback");
             endcase
             @(negedge clk);

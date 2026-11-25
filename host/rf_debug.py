@@ -21,6 +21,7 @@ import zipfile
 import zlib
 
 import numpy as np
+from pulse_methods import ALTERNATING_24, BANKS, windows_per_tx
 
 SCHEMA = "usb3-tester-rf"
 VERSION = 1
@@ -78,6 +79,7 @@ FIELDS = {
         "depth_cm": (2, 40), "win_words": (320, 65535, True),
         "dly_us": (0, 500), "damp_gap_us": (0, 5000),
         "tgc_min": (0, 4095, True), "tgc_max": (0, 4095, True),
+        "tgc_reach_pct": (1, 100),
         "fs_hz": (40000000, 40000000, True), "n_elem_rx": (48, 48, True)},
     "transmit": {
         "chirp_f0_mhz": (.5, 8), "chirp_f1_mhz": (.5, 8),
@@ -128,6 +130,9 @@ def validate_settings(document, defaults=None):
     if a.get("tgc_min", 0) > a.get("tgc_max", 4095):
         raise ValueError("TGC minimum exceeds maximum")
     tx = document.get("transmit", {})
+    # Complete legacy snapshots predate method tags and always use pulse-echo.
+    if "shot_method" in tx or "n_cycles" in tx and "trim_ns" in tx:
+        result["transmit"]["shot_method"] = _number(tx.get("shot_method", 0), "shot_method", 0, ALTERNATING_24, True)
     if "single_elem" in tx:
         result["transmit"]["single_elem"] = (None if tx["single_elem"] is None else
             _number(tx["single_elem"], "single_elem", 0, 47, True))
@@ -144,6 +149,10 @@ def validate_settings(document, defaults=None):
         result["beamformer"]["dead"] = sorted(set(
             _number(v, "dead", 0, 47, True) for v in ids))
     result["transmit"]["armed"] = False  # loading a file never authorizes firing
+    if result["transmit"].get("shot_method") == ALTERNATING_24 and (
+            result["transmit"].get("n_elem") != 48 or result["transmit"].get("single_elem") is not None
+            or result["receive"].get("avg_sweeps") != 1):
+        raise ValueError("Sparse 24 needs the full 48-position geometry and one group per image")
     return result
 
 
@@ -160,7 +169,8 @@ def acquisition_key(settings):
     value = {"acquisition": {k: settings["acquisition"].get(k)
                              for k in FIELDS["acquisition"]},
              "transmit": {k: tx.get(k) for k in (*FIELDS["transmit"],
-                           "chirp_on", "single_elem", "trim_ns")},
+                           "chirp_on", "single_elem", "trim_ns", "shot_method")},
+             "afe": settings.get("afe"),
              "signed": settings["display"]["signed"]}
     return hashlib.sha256(json_bytes(value)).hexdigest()
 
@@ -168,9 +178,9 @@ def acquisition_key(settings):
 def provenance(root):
     root = Path(root)
     names = ["host/tfm_gl_host.py", "host/pulser_ctrl.py", "host/rf_debug.py",
-             "host/rf_debug_ui.py", "host/waterfall_host.py",
+             "host/rf_debug_ui.py", "host/pulse_methods.py", "host/waterfall_host.py",
              "host/bench_host.py", "host/bench_render.py", "host/bench_client.py",
-             "host/bench_transport.py", "host/acquisition_timing.py",
+             "host/bench_transport.py", "host/acquisition_timing.py", "host/afe_settings.py",
              "docs/ultrasound-debug-setup.json", "docs/schematic-connectivity-2026-09-07.md"]
     names += [str(p.relative_to(root)) for p in
               (root / "usb3-tester.srcs/sources_1/new").glob("*.v")]
@@ -189,7 +199,7 @@ def _write_array(zf, name, a):
         np.lib.format.write_array(stream, np.asarray(a), allow_pickle=False)
 
 
-def validate_quality(quality, count):
+def validate_quality(quality, count, method=0):
     if not isinstance(quality, list) or len(quality) != count:
         raise ValueError("Frame quality records do not match the frame count")
     for q in quality:
@@ -206,6 +216,20 @@ def validate_quality(quality, count):
                     raise ValueError(f"Duplicate elements in {field}")
         if "valid_elements" not in q:
             raise ValueError("Frame-quality record must identify valid elements")
+        if method == ALTERNATING_24:
+            bank = q.get("bank")
+            if (type(bank) is not int or bank not in (0, 1) or not q["valid"]
+                    or sorted(q["valid_elements"]) != list(BANKS[bank])):
+                raise ValueError("Sparse RF frame does not match its recorded aperture group")
+
+
+def recorded_samples(settings):
+    return settings["acquisition"]["win_words"] * 2 * windows_per_tx(settings["transmit"].get("shot_method"))
+
+
+def background_shape(settings):
+    rows = 144 if settings["transmit"].get("shot_method") == 3 else 48
+    return rows, 2 * settings["acquisition"]["win_words"]
 
 
 def save_session(path, frames, timestamps, metadata, quality, tx_reference,
@@ -215,24 +239,28 @@ def save_session(path, frames, timestamps, metadata, quality, tx_reference,
     if not count:
         raise ValueError("There are no RF frames to save")
     shape = tuple(frames[0].shape)
-    if len(shape) != 2 or shape[0] != 48 or not 640 <= shape[1] <= 131070:
+    if len(shape) != 2 or shape[0] != 48 or not 640 <= shape[1] <= 393210:
         raise ValueError("RF frames must have shape (48, samples)")
     if count * math.prod(shape) * 2 > MAX_RF_BYTES:
         raise ValueError("Selected recording exceeds the session size limit")
     ts = np.asarray(timestamps, dtype="<f8")
     if ts.shape != (count,) or not np.isfinite(ts).all() or np.any(np.diff(ts) < 0):
         raise ValueError("Timestamps must be finite, ordered, and match the frames")
-    validate_quality(quality, count)
+    validate_quality(quality, count, metadata["acquired_settings"]["transmit"].get("shot_method", 0))
     reference = np.asarray(tx_reference, dtype="<f4")
     if reference.ndim != 1 or not 1 <= reference.size <= 100000 or not np.isfinite(reference).all():
         raise ValueError("Invalid transmit reference")
     meta = copy.deepcopy(metadata)
     meta.update(schema=SCHEMA, version=VERSION, shape=[count, *shape],
                 rf_format="int16 ADC counts, offset decoded, before averaging/filtering",
+                rf_layout={1: "A window followed by B window on each TX row",
+                           3: "TX rows contain center, left, right receive windows; nonexistent edge windows are zero",
+                           ALTERNATING_24: "One 24-position group per frame. Physical row IDs in quality.valid_elements, group in quality.bank, other rows zero."
+                           }.get(meta["acquired_settings"]["transmit"].get("shot_method"), "one receive window per TX row"),
                 wire_tags="not stored; sequence discontinuities recorded per frame",
                 timestamp_basis="host receipt monotonic seconds; not hardware shot timestamps")
     validate_settings(meta["acquired_settings"])
-    if meta["acquired_settings"]["acquisition"]["win_words"] * 2 != shape[1]:
+    if recorded_samples(meta["acquired_settings"]) != shape[1]:
         raise ValueError("Acquisition sample count does not match RF")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -257,7 +285,7 @@ def save_session(path, frames, timestamps, metadata, quality, tx_reference,
             _write_array(zf, "timestamps.npy", ts)
             _write_array(zf, "tx_reference.npy", reference)
             if background is not None:
-                if background.shape != shape or not np.isfinite(background).all():
+                if background.shape != background_shape(meta["acquired_settings"]) or not np.isfinite(background).all():
                     raise ValueError("Background reference shape/values invalid")
                 _write_array(zf, "background.npy", np.asarray(background, dtype="<f4"))
         os.replace(temp, path)
@@ -299,7 +327,7 @@ def _map_stored_rf(zf):
         if fortran:
             return None
         if (dtype != np.dtype("<i2") or len(shape) != 3 or shape[1] != 48
-                or not 640 <= shape[2] <= 131070 or shape[0] < 1):
+                or not 640 <= shape[2] <= 393210 or shape[0] < 1):
             raise ValueError("Invalid RF shape/dtype")
         size = math.prod(shape) * dtype.itemsize
         if size > MAX_RF_BYTES or header_size + size != info.file_size:
@@ -335,6 +363,8 @@ def load_session(path):
                     raise ValueError(f"Missing archive entry: {name}")
             for info in zf.infolist():
                 limit = MAX_RF_BYTES + 4096 if info.filename == "rf.npy" else MAX_JSON_BYTES
+                if info.filename == "background.npy":
+                    limit = 144 * 131070 * 4 + 4096
                 if info.file_size > limit:
                     raise ValueError(f"Archive entry too large: {info.filename}")
             meta = json.loads(zf.read("metadata.json"))
@@ -352,10 +382,10 @@ def load_session(path):
                     shutil.copyfileobj(src, out, 1024 * 1024)
                 rf = np.load(dest, mmap_mode="r", allow_pickle=False)
             if (rf.dtype != np.dtype("<i2") or rf.ndim != 3 or rf.shape[1] != 48
-                    or not 640 <= rf.shape[2] <= 131070 or rf.shape[0] < 1
+                    or not 640 <= rf.shape[2] <= 393210 or rf.shape[0] < 1
                     or list(rf.shape) != meta.get("shape")):
                 raise ValueError("Invalid RF shape/dtype")
-            if rf.shape[2] != 2 * meta["acquired_settings"]["acquisition"]["win_words"]:
+            if rf.shape[2] != recorded_samples(meta["acquired_settings"]):
                 raise ValueError("RF/acquisition sample-count mismatch")
             digest = hashlib.sha256()
             for frame in rf:
@@ -377,10 +407,10 @@ def load_session(path):
             background = array("background.npy") if "background.npy" in names else None
             if times.shape != (len(rf),) or np.any(np.diff(times) < 0):
                 raise ValueError("Invalid timestamps")
-            validate_quality(quality, len(rf))
+            validate_quality(quality, len(rf), meta["acquired_settings"]["transmit"].get("shot_method", 0))
             if reference.ndim != 1 or not 1 <= reference.size <= 100000:
                 raise ValueError("Invalid transmit reference")
-            if background is not None and background.shape != rf.shape[1:]:
+            if background is not None and background.shape != background_shape(meta["acquired_settings"]):
                 raise ValueError("Invalid background reference shape")
         return Session(directory, rf, times, meta, quality, reference, background)
     except BaseException:
@@ -390,7 +420,7 @@ def load_session(path):
         raise
 
 
-def diagnostics(frames, quality, fs_hz=40e6, max_frames=64):
+def diagnostics(frames, quality, fs_hz=40e6, max_frames=64, shot_method=0):
     """Full-window metrics on a declared, evenly sampled subset of a recording.
 
     Temporal residual includes motion/timing variation and must not be called
@@ -398,7 +428,7 @@ def diagnostics(frames, quality, fs_hz=40e6, max_frames=64):
     """
     if not len(frames):
         raise ValueError("No RF frames to analyze")
-    validate_quality(quality, len(frames))
+    validate_quality(quality, len(frames), shot_method)
     indices = np.unique(np.linspace(0, len(frames)-1, min(len(frames), max_frames)).astype(int))
     shape = frames[0].shape
     total = np.zeros(shape, np.float64)
@@ -406,7 +436,9 @@ def diagnostics(frames, quality, fs_hz=40e6, max_frames=64):
     peak = np.zeros(shape[0], np.float64)
     clipped = np.zeros(shape[0], np.int64)
     count = np.zeros(shape[0], np.int64)
-    gates = [slice(i*shape[1]//4, (i+1)*shape[1]//4) for i in range(4)]
+    windows = windows_per_tx(shot_method)
+    samples = shape[1] // windows
+    gates = [slice(i*samples//4, (i+1)*samples//4) for i in range(4)]
     for idx in indices:
         a = np.asarray(frames[int(idx)], dtype=np.float64)
         valid = quality[int(idx)].get("valid_elements", list(range(shape[0])))
@@ -423,18 +455,22 @@ def diagnostics(frames, quality, fs_hz=40e6, max_frames=64):
     variance = np.maximum(squares/divisor - mean*mean, 0)
     rows = []
     for e in range(shape[0]):
-        rms = float(np.sqrt(np.mean(squares[e]/max(count[e], 1))))
+        slots = slice(None)
+        if shot_method == 3:
+            slots = {0: [0, 2], 47: [0, 1]}.get(e, slots)
+        power = squares[e].reshape(windows, samples)[slots] / max(count[e], 1)
+        residual = variance[e].reshape(windows, samples)[slots]
+        rms = float(np.sqrt(np.mean(power)))
         rows.append({"element": e, "frames_measured": int(count[e]),
                      "peak_counts": float(peak[e]), "rms_counts": rms,
                      "rms_dbfs": 20*math.log10(max(rms/2048, 1e-12)),
-                     "clipped_fraction": float(clipped[e]/max(count[e]*shape[1], 1)),
-                     "temporal_residual_rms_counts": float(np.sqrt(variance[e].mean())),
-                     "quarter_window_rms_counts": [float(np.sqrt(
-                         np.mean(squares[e,g]/max(count[e],1)))) for g in gates]})
+                     "clipped_fraction": float(clipped[e]/max(count[e]*power.size, 1)),
+                     "temporal_residual_rms_counts": float(np.sqrt(residual.mean())),
+                     "quarter_window_rms_counts": [float(np.sqrt(power[:,g].mean())) for g in gates]})
     return {"frames_total": len(frames), "frames_examined": len(indices),
             "examined_indices": indices.tolist(),
             "degraded_frames_total": sum(not q["valid"] for q in quality),
-            "window_us": shape[1]/fs_hz*1e6, "elements": rows,
+            "window_us": samples/fs_hz*1e6, "elements": rows,
             "interpretation": "ADC-domain measurements before filtering/TGC removal; temporal residual is not an SNR or electronic-noise estimate. Zero/low response alone does not prove an open element."}
 
 
@@ -445,7 +481,8 @@ def main():
     args = parser.parse_args()
     session = load_session(args.session)
     try:
-        report = diagnostics(session.rf, session.quality)
+        report = diagnostics(session.rf, session.quality,
+                             shot_method=session.metadata["acquired_settings"]["transmit"].get("shot_method", 0))
         report["acquired_settings"] = session.metadata["acquired_settings"]
         report["context"] = session.metadata.get("context", {})
         report["provenance"] = session.metadata.get("provenance", {})

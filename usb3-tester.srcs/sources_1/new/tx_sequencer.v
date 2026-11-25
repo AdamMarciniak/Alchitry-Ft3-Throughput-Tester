@@ -150,6 +150,8 @@ module tx_sequencer #(
     input  wire [7:0]  cfg_n_cycles,          // +/- pulse pairs per burst (>= 1)
     input  wire [15:0] cfg_t_drive,           // width of each +HV and -HV pulse
     input  wire [15:0] cfg_t_dead,            // idle gap between opposite polarities
+    input  wire [1:0]  cfg_method,     // 0 legacy, 1 Golay A/B, 2 paired neighbor, 3 center/left/right RX
+    output wire [1:0]  shot_kind,      // captured at tx_sync
     input  wire [7:0]  cfg_chirp_len,         // half cycles from the chirp table;
                                               //   0 = fixed burst (n_cycles/t_drive)
 
@@ -440,7 +442,22 @@ module tx_sequencer #(
     // the first bit out travels furthest, so the LAST 16 bits sent (w_root)
     // stay in the device nearest the FPGA, which is the root mux.
     //==========================================================================
-    wire [5:0]  elem_hw   = mux_code(elem_sel);
+    wire golay = cfg_method == 2'd1;
+    wire neighbor = cfg_method == 2'd2;
+    wire multi_rx = cfg_method == 2'd3;
+    // Slot 0 = self, 1 = left, 2 = right. Skip nonexistent edge receivers.
+    reg [1:0] rx_slot = 0;
+    reg member_b = 0;
+    reg switching_rx = 0;
+    assign shot_kind = multi_rx ? rx_slot : golay ? (member_b ? 2'd2 : 2'd1) :
+                       neighbor ? 2'd3 : 2'd0;
+    wire change_rx = neighbor || (multi_rx && rx_slot != 0);
+    wire [5:0] rx_element = neighbor ? (element_current ^ 6'd1) :
+                            rx_slot == 1 ? element_current - 1'b1 : element_current + 1'b1;
+    wire [5:0] switch_element = (change_rx && state == S_INHIBIT) ? rx_element : elem_sel;
+    wire last_tx_shot = (!golay || member_b) &&
+                        (!multi_rx || rx_slot == 2 || (elem_sel == N_ELEM-1 && rx_slot == 1));
+    wire [5:0]  elem_hw   = mux_code(switch_element);
     wire [1:0]  branch    = elem_hw[5:4];
     wire [3:0]  channel   = elem_hw[3:0];
     wire [15:0] onehot_ch = 16'h0001 << channel;
@@ -490,7 +507,7 @@ module tx_sequencer #(
                             (branch == 2'd2) ? (w_br3 != 16'h0) : 1'b0;
     wire        word_ok   = (MUX_STATIC != 0) ? 1'b1 :
                             (root_1hot && root_rng && br_1hot && br_single &&
-                             br_match  && (elem_sel < N_ELEM));
+                             br_match  && (switch_element < N_ELEM));
 
     //==========================================================================
     // Pin output registers.  Reset state is exactly sec 7.1:
@@ -612,13 +629,17 @@ module tx_sequencer #(
     wire [15:0] t_drive_eff = (cfg_t_drive == 16'd0) ? 16'd1 : cfg_t_drive;
     wire [7:0]  n_cyc_eff   = (cfg_n_cycles == 8'd0) ? 8'd1 : cfg_n_cycles;
 
-    wire        chirp_en    = (cfg_chirp_len != 8'd0);
+    wire        chirp_en    = !golay && (cfg_chirp_len != 8'd0);
     reg  [7:0]  half_idx    = 8'd0;     // table entry for the NEXT driven phase
     wire [15:0] chirp_q     = chirp_ram[half_idx];
     wire [15:0] chirp_cur   = (chirp_q == 16'd0) ? 16'd1 : chirp_q;
     wire [15:0] half_drive  = chirp_en ? chirp_cur : t_drive_eff;
-    wire [8:0]  total_half  = chirp_en ? {1'b0, cfg_chirp_len}
+    wire [8:0]  total_half  = golay ? 9'd8 : chirp_en ? {1'b0, cfg_chirp_len}
                                        : {n_cyc_eff, 1'b0};   // 2 * n_cycles
+
+    // Each chip is a full bipolar cycle. A = +++-, B = ++-+.
+    wire invert_chip = golay && (half_idx[2:1] == (member_b ? 2'd2 : 2'd3));
+    wire next_negative = half_idx[0] ^ invert_chip;
 
     // Host-writable waits, floored at their datasheet minima.  The clamp is
     // deliberately here in the sequencer rather than in the host: a bad value
@@ -734,6 +755,9 @@ module tx_sequencer #(
         if (rx_tmr != 24'd0) rx_tmr <= rx_tmr - 24'd1;
 
         if (rst) begin
+            rx_slot <= 0;
+            member_b <= 0;
+            switching_rx <= 0;
             state           <= S_RST;
             tmr             <= T_CLR_C - 1;
             grid_wait       <= 6'd0;
@@ -769,6 +793,9 @@ module tx_sequencer #(
             fault_code <= trip_code;
             state      <= S_FAULT;
         end else if (disarm) begin
+            rx_slot <= 0;
+            member_b <= 0;
+            switching_rx <= 0;
             ina_r  <= 1'b0;
             inb_r  <= 1'b1;
             oe_r   <= 1'b0;
@@ -836,7 +863,7 @@ module tx_sequencer #(
                     shift_start   <= 1'b1;
                     elem_pend     <= elem_sel;
                     word_ok_pend  <= word_ok;
-                    last_of_frame <= (list_len == 7'd1);
+                    last_of_frame <= (list_len == 7'd1) && last_tx_shot;
                     run           <= 1'b1;
                     state         <= S_SHIFT;
                 end
@@ -848,7 +875,8 @@ module tx_sequencer #(
             // out before issuing this shift), so nothing is listening.
             //------------------------------------------------------------------
             S_SHIFT: if (shift_done) begin
-                list_ptr <= list_last ? 6'd0 : (list_ptr + 6'd1);
+                if (!switching_rx && last_tx_shot)
+                    list_ptr <= list_last ? 6'd0 : (list_ptr + 6'd1);
                 tmr      <= T_CS_C - 1;
                 state    <= S_TCS;
             end
@@ -875,7 +903,7 @@ module tx_sequencer #(
                     shift_start   <= 1'b1;
                     elem_pend     <= elem_sel;
                     word_ok_pend  <= word_ok;
-                    last_of_frame <= list_last;
+                    last_of_frame <= list_last && last_tx_shot;
                     state         <= S_SHIFT;
                 end
             end
@@ -890,7 +918,7 @@ module tx_sequencer #(
             S_LATCH: if (tmr != 24'd0) tmr <= tmr - 24'd1;
                      else begin
                          le_r            <= 1'b1;
-                         element_current <= elem_pend;
+                         if (!switching_rx) element_current <= elem_pend;
                          half_idx        <= 8'd0;    // table read settles in S_SETTLE
                          tmr             <= t_settle_eff - 24'd1;
                          gridded         <= 1'b0;    // S_SETTLE's only entry, so
@@ -921,7 +949,13 @@ module tx_sequencer #(
             // the trim physically IS: more settle before the shot.  Worst case
             // adds 41 us to a state the watchdog gives 200 ms.
             //------------------------------------------------------------------
-            S_SETTLE: if (!gridded) begin
+            S_SETTLE: if (switching_rx) begin
+                          if (tmr != 0) tmr <= tmr - 1'b1;
+                          else begin
+                              switching_rx <= 0;
+                              state <= S_WAITRX;
+                          end
+                      end else if (!gridded) begin
                           if (tmr != 24'd0) begin
                               tmr       <= tmr - 24'd1;
                               grid_wait <= 6'd0;
@@ -962,21 +996,6 @@ module tx_sequencer #(
                           state <= S_DEAD_A;
                       end
 
-            S_DEAD_A: if (btmr != 16'd0) begin
-                          btmr <= btmr - 16'd1;
-                      end else if (half_rem != 9'd0) begin
-                          half_rem <= half_rem - 9'd1;
-                          half_idx <= half_idx + 8'd1;
-                          inb_r    <= 1'b0;          // idle -> -HV
-                          btmr     <= half_drive - 16'd1;
-                          state    <= S_FIRE_N;
-                      end else begin
-                          // burst complete, parked in the idle state
-                          rx_tmr <= rx_win;
-                          tmr    <= t_inhibit_eff - 24'd1;
-                          state  <= S_INHIBIT;
-                      end
-
             S_FIRE_N: if (btmr != 16'd0) btmr <= btmr - 16'd1;
                       else begin
                           inb_r <= 1'b1;             // -HV -> idle
@@ -984,14 +1003,15 @@ module tx_sequencer #(
                           state <= S_DEAD_B;
                       end
 
-            S_DEAD_B: if (btmr != 16'd0) begin
+            S_DEAD_A, S_DEAD_B: if (btmr != 16'd0) begin
                           btmr <= btmr - 16'd1;
                       end else if (half_rem != 9'd0) begin
                           half_rem <= half_rem - 9'd1;
                           half_idx <= half_idx + 8'd1;
-                          ina_r    <= 1'b1;          // idle -> +HV, next cycle
+                          ina_r    <= !next_negative;
+                          inb_r    <= !next_negative;
                           btmr     <= half_drive - 16'd1;
-                          state    <= S_FIRE_P;
+                          state    <= next_negative ? S_FIRE_N : S_FIRE_P;
                       end else begin
                           // burst complete, parked in the idle state
                           rx_tmr <= rx_win;
@@ -1014,11 +1034,23 @@ module tx_sequencer #(
             S_INHIBIT: if (tmr != 24'd0) begin
                 tmr <= tmr - 24'd1;
             end else begin
+                if (golay) member_b <= !member_b;
                 if (last_of_frame) frame_count <= frame_count + 16'd1;
                 // drain the RX window either way; S_WAITRX issues the next
                 // shift, or parks in S_READY when the frame is done.
                 if (last_of_frame && !continuous) run <= 1'b0;
-                state <= S_WAITRX;
+                if (multi_rx) begin
+                    if (rx_slot == 0) rx_slot <= element_current == 0 ? 2 : 1;
+                    else if (rx_slot == 1 && element_current != N_ELEM-1) rx_slot <= 2;
+                    else rx_slot <= 0;
+                end
+                if (change_rx) begin
+                    switching_rx <= 1;
+                    shift_data <= chain_word;
+                    word_ok_pend <= word_ok;
+                    shift_start <= 1;
+                    state <= S_SHIFT;
+                end else state <= S_WAITRX;
             end
 
             //------------------------------------------------------------------

@@ -31,6 +31,7 @@
 # in the FPGA until the next command or a reset.
 
 import sys, time, os, json
+from pulse_methods import ALTERNATING_24, BANKS, fpga_method, shots_per_sweep
 
 CLK_HZ       = 100_000_000          # FPGA clk_in
 NS_PER_CYCLE = 1e9 / CLK_HZ         # 10.0 ns
@@ -254,6 +255,7 @@ class PulserCtl:
         self._send = send_cmd
         self._cmd  = cmd
         self.__dict__.update(DEFAULTS)
+        self.shot_method = 0
         self.single_elem = None      # None = walk 0..n_elem-1
         # Bumped whenever a setting that changes the TRANSMIT WAVEFORM is sent
         # (burst shape or chirp).  A receive-side matched filter caches its
@@ -275,16 +277,16 @@ class PulserCtl:
     def f0_hz(self):
         """Centre frequency: one cycle is drive/dead/drive/dead; a chirp
         reports the middle of its sweep."""
-        if self.chirp_on:
+        if self.chirp_on and self.shot_method != 1:
             return 0.5 * (self.chirp_f0_mhz + self.chirp_f1_mhz) * 1e6
         period_ns = 2.0 * (cyc_to_ns(ns_to_cyc(self.t_drive_ns)) +
                            cyc_to_ns(ns_to_cyc(self.t_dead_ns)))
         return 1e9 / period_ns if period_ns > 0 else 0.0
 
     def burst_ns(self):
-        if self.chirp_on:
+        if self.chirp_on and self.shot_method != 1:
             return cyc_to_ns(self._chirp_edges()[-1])
-        return self.n_cycles * 2.0 * (cyc_to_ns(ns_to_cyc(self.t_drive_ns)) +
+        return (4 if self.shot_method == 1 else self.n_cycles) * 2.0 * (cyc_to_ns(ns_to_cyc(self.t_drive_ns)) +
                                       cyc_to_ns(ns_to_cyc(self.t_dead_ns)))
 
     def element_period_us(self):
@@ -306,8 +308,8 @@ class PulserCtl:
                 quiet + T_SHIFT_US)
 
     def frame_ms(self):
-        n = 1 if self.single_elem is not None else self.n_elem
-        return n * self.element_period_us() / 1e3
+        shots = shots_per_sweep(self.shot_method, self.n_elem, self.single_elem)
+        return shots * self.element_period_us() / 1e3
 
     # -- setters (each sends one command) --------------------------------------
     def set_arm(self, on):
@@ -353,7 +355,8 @@ class PulserCtl:
     def set_n_elem(self, n):
         self.n_elem = max(1, min(N_ELEM_MAX, int(n)))
         if self.single_elem is None:
-            self._send(self._cmd(OP_PLS_NELEM, self.n_elem), "pls_nelem")
+            walk = 24 if self.shot_method == ALTERNATING_24 else self.n_elem
+            self._send(self._cmd(OP_PLS_NELEM, walk), "pls_nelem")
 
     def set_single_elem(self, elem):
         """elem=None walks the whole aperture; an int fires only that element.
@@ -363,8 +366,9 @@ class PulserCtl:
         """
         self.single_elem = None if elem is None else max(0, min(N_ELEM_MAX - 1, int(elem)))
         if self.single_elem is None:
-            self._send(self._cmd(OP_PLS_ELEM, (0 << 6) | 0), "pls_elem")
-            self._send(self._cmd(OP_PLS_NELEM, self.n_elem), "pls_nelem")
+            self.write_element(0, BANKS[0][0] if self.shot_method == ALTERNATING_24 else 0)
+            walk = 24 if self.shot_method == ALTERNATING_24 else self.n_elem
+            self._send(self._cmd(OP_PLS_NELEM, walk), "pls_nelem")
         else:
             self._send(self._cmd(OP_PLS_ELEM, (0 << 6) | self.single_elem), "pls_elem")
             self._send(self._cmd(OP_PLS_NELEM, 1), "pls_nelem")
@@ -460,14 +464,14 @@ class PulserCtl:
         self.chirp_us = max(0.5, float(us))
         if self.chirp_on: self._upload_chirp()
 
-    def tx_waveform(self, fs_hz):
+    def tx_waveform(self, fs_hz, member_b=False):
         """The commanded transmit waveform as +/-1/0 samples at fs_hz - chirp
         or fixed burst, whichever is active, from the same quantised edge
         times the FPGA fires.  This is the matched-filter reference: what the
         transducer makes of it differs (its band, plus the RTZ dead gaps), but
         the switching times are exact, and those carry the code."""
         dead = ns_to_cyc(self.t_dead_ns)
-        if self.chirp_on:
+        if self.chirp_on and self.shot_method != 1:
             edges = self._chirp_edges()
             halves = []
             prev = edges[0]
@@ -477,7 +481,7 @@ class PulserCtl:
                 prev = e
         else:
             drive, halves, t = ns_to_cyc(self.t_drive_ns), [], 0
-            for _ in range(2 * self.n_cycles):
+            for _ in range(2 * (4 if self.shot_method == 1 else self.n_cycles)):
                 halves.append((t, t + drive))
                 t += drive + dead
         n = int(round(halves[-1][1] * fs_hz / CLK_HZ)) + 1
@@ -486,6 +490,8 @@ class PulserCtl:
             i0 = int(round(a * fs_hz / CLK_HZ))
             i1 = max(int(round(b * fs_hz / CLK_HZ)), i0 + 1)
             s  = 1.0 if (m & 1) == 0 else -1.0
+            if self.shot_method == 1 and m//2 == (2 if member_b else 3):
+                s = -s
             for i in range(i0, min(i1, len(out))):
                 out[i] = s
         return out
@@ -493,6 +499,13 @@ class PulserCtl:
     # -- bulk ------------------------------------------------------------------
     def push_all(self):
         """Send every setting so the FPGA matches this object after a restart."""
+        self._send(self._cmd(OP_PLS_ARM, 0), "pls_disarm_config")
+        # An abrupt previous host exit can leave capture backpressured until the
+        # 200 ms hardware watchdog parks the pulser in a latched fault.  A new
+        # host owns a fresh, disarmed configuration transaction, so clear that
+        # stale latch before writing settings; arm remains the final command.
+        self.clear_fault()
+        self._send(self._cmd(0x20, fpga_method(self.shot_method)), "pls_method")
         self.set_n_cycles(self.n_cycles)
         self.set_t_drive_ns(self.t_drive_ns)
         self.set_t_dead_ns(self.t_dead_ns)
@@ -500,7 +513,12 @@ class PulserCtl:
         self.set_t_inhib_us(self.t_inhib_us)
         self.set_t_ring_us(self.t_ring_us)
         self.set_t_rx_us(self.t_rx_us)
-        self.set_single_elem(self.single_elem)   # also sets the list length
+        # List RAM persists across host restarts. Always restore the complete
+        # walk before selecting its length or overriding slot 0 for a single TX.
+        order = BANKS[0] + BANKS[1] if self.shot_method == ALTERNATING_24 else range(N_ELEM_MAX)
+        for slot, element in enumerate(order):
+            self.write_element(slot, element)
+        self.set_single_elem(self.single_elem)
         self.upload_trim_ns(self.trim_ns)        # per-element transmit trim
         self.set_chirp_on(self.chirp_on)         # table + length, or length 0
         self.set_arm(self.arm)                   # arm last

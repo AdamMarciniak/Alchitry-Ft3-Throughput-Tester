@@ -20,7 +20,7 @@
 //   p partial-PD  c complete-PD   o PD off
 //   h LVDS 7.5mA  l LVDS 3.5mA    v TGC-I 30dB  L TGC-II
 //   b MSB-first   B LSB-first
-//   7/8 CH2-8 off (two candidate bit maps)      9 all channels on
+//   8 CH2-8 off                                 9 all channels on
 //   A eye scan (run after 'd' or 's')
 //   + - dat_tap   > < fclk_tap
 //   r raw 32-word dump   g assembled 32-sample dump
@@ -274,13 +274,13 @@ module afe5804_ctrl #(
     rom[ 5] = {8'hE1, 16'h0020};
     rom[ 6] = {8'h02, 16'h0080};
     rom[ 7] = {8'h01, 16'h0000};
-    rom[ 8] = {8'h0F, 16'h0000};     // <-- set to 00F7 or 00FE for CH1-only
+    rom[ 8] = {8'h0F, 16'h00F7};     // CH1 on; unused CH2-8 powered down
     rom[ 9] = {8'h11, REG11_LO};
     rom[10] = {8'h16, 16'h00DB};     // VCA: TGC I, PGA 30 dB, LPF 12.5 MHz
-    rom[11] = {8'hFF, 16'd10};
-    rom[12] = {8'h45, 16'h0000};
-    rom[13] = {8'h25, REG25_OFF};
-    rom[14] = {8'hFE, 16'h0000};
+    rom[11] = {8'h14, 16'h0000};     // LF suppression off above its 0-1 MHz use
+    rom[12] = {8'hFF, 16'd10};
+    rom[13] = {8'h45, 16'h0000};
+    rom[14] = {8'h25, REG25_OFF};
     rom[15] = {8'hFE, 16'h0000};
   end
 
@@ -398,7 +398,8 @@ module afe5804_ctrl #(
              A_SYNC   = 5'd17, A_TAP   = 5'd18, A_CLR   = 5'd19,
              A_CHK    = 5'd20, A_SLIP  = 5'd21, A_OFF   = 5'd22,
              S_DCAP   = 5'd23, S_DRD   = 5'd24, S_DLO   = 5'd25, S_DHI = 5'd26,
-             A_DSKW   = 5'd27, A_SCAN  = 5'd28, A_ASYNC = 5'd29;
+             A_DSKW   = 5'd27, A_SCAN  = 5'd28, A_ASYNC = 5'd29,
+             A_GAIN   = 5'd30;
 
   reg [4:0]  seq       = S_RSTLOW;
   reg [4:0]  ret_state = S_ECHO1;
@@ -572,6 +573,16 @@ module afe5804_ctrl #(
         A_OFF: begin
           spi_word  <= {8'h45, 16'h0000};        // patterns off
           from_rom  <= 1'b0;
+          ret_state <= A_GAIN;
+          seq       <= S_ISSUE;
+        end
+
+        // Apply digital gain only after the deskew/sync patterns have done
+        // their job.  This guarantees the calibration words are never altered
+        // by the channel gain block.
+        A_GAIN: begin
+          spi_word  <= {8'h2A, 16'h0006};        // CH1 internal gain: +6 dB
+          from_rom  <= 1'b0;
           ret_state <= S_IDLE;
           ph        <= 3'b101;                   // LOCKED
           seq       <= S_ISSUE;
@@ -600,8 +611,7 @@ module afe5804_ctrl #(
               8'h4C: begin spi_word <= {8'h16, 16'h00EB};   seq <= S_ISSUE; end // L
               8'h62: begin spi_word <= {8'h46, REG46_MSB};  seq <= S_ISSUE; end // b
               8'h42: begin spi_word <= {8'h46, REG46_LSB};  seq <= S_ISSUE; end // B
-              8'h37: begin spi_word <= {8'h0F, 16'h00F7};   seq <= S_ISSUE; end // 7
-              8'h38: begin spi_word <= {8'h0F, 16'h00FE};   seq <= S_ISSUE; end // 8
+              8'h38: begin spi_word <= {8'h0F, 16'h00F7};   seq <= S_ISSUE; end // 8
               8'h39: begin spi_word <= {8'h0F, 16'h0000};   seq <= S_ISSUE; end // 9
               8'h2B: begin dat_tap  <= dat_tap  + 1'b1; tap_load <= 1'b1; seq <= S_ECHO1; end // +
               8'h2D: begin dat_tap  <= dat_tap  - 1'b1; tap_load <= 1'b1; seq <= S_ECHO1; end // -

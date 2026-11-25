@@ -40,6 +40,7 @@ OP_START, OP_STOP, OP_RST_CNT = 0x01, 0x02, 0x03
 OP_SET_SRC = 0x07
 OP_SEQ_LEN, OP_SEQ_DLY, OP_SEQ_TGC = 0x0B, 0x0C, 0x0D
 OP_SEQ_GAP, OP_SEQ_TGC0 = 0x0E, 0x0F
+OP_SEQ_TGC1 = 0x21
 OP_PLS_TRX = 0x17           # pulser's OWN receive window, clk cycles
 SRC_SEQ = 2
 CLK_HZ = 100_000_000        # FPGA clk_in - delay payloads are in these cycles
@@ -143,6 +144,7 @@ def send_seq_config(lo, hi, dly_us, gap_us):
     send_cmd(cmd(OP_SEQ_DLY, us_to_cycles(dly_us)), "seq_dly")
     send_cmd(cmd(OP_SEQ_GAP, us_to_cycles(gap_us)), "seq_gap")
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
+    send_cmd(cmd(OP_SEQ_TGC1, hi), "seq_tgc1")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
     send_pls_rx(dly_us, gap_us)
 
@@ -446,6 +448,7 @@ def send_tgc(_v=None):
     hi = max(lo, tgc_max.get())
     inc = max(0, ((hi - lo) * 4096) // cfg["win_words"])
     send_cmd(cmd(OP_SEQ_TGC0, lo), "seq_tgc0")
+    send_cmd(cmd(OP_SEQ_TGC1, hi), "seq_tgc1")
     send_cmd(cmd(OP_SEQ_TGC, inc), "seq_tgc")
 
 # Re-run the tx/rx pacing check.  Rebound once check_pacing() exists further

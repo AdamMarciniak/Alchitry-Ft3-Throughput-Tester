@@ -98,9 +98,15 @@ module ctrl_decode #(
 
     // Transmit sequencer feedback (tx_sequencer.v) - the capture trigger.
     input  wire        tx_sync,         // 1-cycle pulse at the first HV edge
+    input  wire [1:0]  tx_kind,
+    output reg  [1:0]  pls_method,
     input  wire [5:0]  tx_elem,         // element closed in the mux tree, valid
                                         //   from the LE latch through the burst
     output wire        capture_ready,  // same clock: next shot may be scheduled
+    input  wire        pls_fault,
+    input  wire [3:0]  pls_fault_code,
+    input  wire [15:0] pls_frames,
+    input  wire [3:0]  pls_state,
 
     // Real transmit sequencer (tx_sequencer.v) config registers.  The
     // sequencer runs on its own timebase; the receive window above is slaved
@@ -177,6 +183,8 @@ module ctrl_decode #(
                      OP_PLS_CLEN    = 8'h1C; // payload[7:0]: chirp half cycles,
                                              //   0 = fixed burst (n_cycles/t_drive)
 
+    localparam [7:0] OP_SEQ_TGC1 = 8'h21;    // payload[11:0]: ramp ceiling/hold code
+
     localparam [1:0] PAT_COUNTER = 2'd0,
                      PAT_LFSR    = 2'd1,
                      PAT_CONST   = 2'd2;
@@ -203,6 +211,7 @@ module ctrl_decode #(
     reg [23:0] seq_gap;
     reg [23:0] tgc_inc;
     reg [11:0] tgc_start;
+    reg [11:0] tgc_stop;
 
     // Optional unattended-run lease. Once enabled, missing renewals park the
     // pulser even if USB or the host process has stopped. Renewal never arms it.
@@ -237,9 +246,11 @@ module ctrl_decode #(
             seq_gap    <= 24'd5000;       // 50 us DAC ring-out before next pulse
             tgc_inc    <= 24'd8196;       // full 0->4095 sweep over 2047 words
             tgc_start  <= 12'd0;          // ramp starts at DAC code 0
+            tgc_stop   <= 12'd4095;       // clamp and hold at full scale
             cmd_count  <= 8'h0;
 
             // Programming/reset must not start transmission during a bench run.
+            pls_method    <= 0;
             pls_arm       <= 1'b0;
             lease_enabled <= 1'b0;
             lease_ms      <= 13'd0;
@@ -297,6 +308,7 @@ module ctrl_decode #(
                 OP_SEQ_TGC:   tgc_inc    <= payload;
                 OP_SEQ_GAP:   seq_gap    <= payload;
                 OP_SEQ_TGC0:  tgc_start  <= payload[11:0];
+                OP_SEQ_TGC1:  tgc_stop   <= payload[11:0];
 
                 // ---- transmit sequencer ------------------------------------
                 OP_PLS_ARM:     pls_arm <= payload[0] &&
@@ -312,6 +324,7 @@ module ctrl_decode #(
                         lease_tick <= 17'd0;
                     end
                 end
+                8'h20: if (!pls_arm && payload <= 3) pls_method <= payload[1:0];
                 OP_INFO_NONCE: if (!pls_arm) info_nonce <= payload;
                 OP_PLS_NCYC:    pls_n_cycles  <= payload[7:0];
                 OP_PLS_TDRIVE:  pls_t_drive   <= payload[15:0];
@@ -359,6 +372,8 @@ module ctrl_decode #(
                      S_RX    = 3'd4;
 
     reg [2:0]  sstate;
+    reg [1:0]  kind;
+    reg        multi_header;
     reg [5:0]  elem;                            // latched from tx_elem at tx_sync
     reg [15:0] frame_cnt;
     reg [23:0] dly_cnt;
@@ -410,11 +425,14 @@ module ctrl_decode #(
     assign tgc_code     = tgc_acc[23:12];
 
     wire [24:0] tgc_sum = {1'b0, tgc_acc} + {1'b0, tgc_inc};
+    wire        tgc_at_stop = (tgc_acc[23:12] >= tgc_stop) || tgc_sum[24] ||
+                              (tgc_sum[23:12] >= tgc_stop);
 
     always @(posedge clk) begin
         if (rst || !seq_run) begin
             sstate    <= S_DAMP;
             dly_cnt   <= 24'd0;
+            multi_header <= 0;
             elem      <= 6'd0;
             frame_cnt <= 16'd0;
             hdr_pend  <= 1'b0;
@@ -432,6 +450,8 @@ module ctrl_decode #(
             // Bursts that arrive in any other state are ignored - a frame is
             // never torn to chase one.
             S_ARMED: if (tx_sync) begin
+                multi_header <= (pls_method == 3);
+                kind     <= tx_kind;
                 elem     <= tx_elem;            // whose element this frame is
                 dly_cnt  <= seq_dly;
                 hdr_pend <= 1'b1;               // owed from here until written
@@ -465,7 +485,7 @@ module ctrl_decode #(
                     else begin
                         rt_div  <= 3'd4;
                         rt_cnt  <= rt_cnt - 16'd1;
-                        tgc_acc <= tgc_sum[24] ? 24'hFFFFFF : tgc_sum[23:0];
+                        tgc_acc <= tgc_at_stop ? {tgc_stop, 12'd0} : tgc_sum[23:0];
                     end
                 end
                 if (hdr_write) hdr_pend <= 1'b0;
@@ -528,12 +548,13 @@ module ctrl_decode #(
                 0: tx_din = 32'hB34D0001;
                 1: tx_din = {8'd0, info_nonce};
                 2: tx_din = `USB3_BENCH_BUILD_ID;
-                3: tx_din = {16'h0001, 13'd0, 1'b1, lease_enabled, pls_arm};
-                4: tx_din = {19'd0, lease_ms};
+                3: tx_din = {16'h0001, pls_state, pls_fault_code, pls_fault,
+                              1'b1, pls_method, 1'b1, 1'b1, lease_enabled, pls_arm};
+                4: tx_din = {pls_frames, 3'd0, lease_ms};
                 5: tx_din = {16'd0, seq_len};
                 6: tx_din = {8'd0, seq_dly};
                 7: tx_din = {8'd0, seq_gap};
-                8: tx_din = {20'd0, tgc_start};
+                8: tx_din = {8'd0, tgc_stop, tgc_start};
                 9: tx_din = {8'd0, tgc_inc};
                 10: tx_din = {8'd0, pls_n_cycles, pls_t_drive};
                 11: tx_din = {16'd0, pls_t_dead};
@@ -548,7 +569,7 @@ module ctrl_decode #(
             // during S_DLY or after the window has opened, and hdr_write is the
             // only thing that consumes it either way.
             SRC_SEQ: tx_din = hdr_pend
-                            ? {8'hE1, 2'b00, elem, frame_cnt}
+                            ? {(multi_header ? 8'hE2 : 8'hE1), kind, elem, frame_cnt}
                             : adc_word;
             SRC_ADC: tx_din = adc_word;
             default: case (pattern)

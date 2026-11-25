@@ -76,6 +76,220 @@ class HostTests(unittest.TestCase):
         self.assertEqual(self.h.settings_snapshot(self.w)['transmit'], before['transmit'])
         self.assertEqual(len(self.w.debug_events), count)
 
+    def test_pulse_dropdown_preserves_original_and_replays_both_golay_windows(self):
+        from pulse_methods import CUSTOM, GOLAY, NEIGHBOR, GOLAY_CODES, decode_golay
+        self.w.apply_method(GOLAY)
+        n = self.h.cfg['samps']
+        pair = np.zeros((48, 2*n), np.int16)
+        for member, code in enumerate(GOLAY_CODES):
+            for chip, sign in enumerate(code):
+                pair[:,member*n+40+10*chip] = 80 * sign
+        decoded = decode_golay(pair, 10)
+        self.assertTrue(np.all(decoded[:,40] == 80))
+        self.assertEqual(np.count_nonzero(decoded), 48)
+        q = [{'valid': True, 'valid_elements': list(range(48))}]
+        cfg = self.h.settings_snapshot(self.w)
+        files.save_session(self.path, [pair], [0], {'acquired_settings': cfg}, q, self.h.mf_reference())
+        self.w.debug_open_rf(self.path, raise_errors=True)
+        self.assertTrue(np.array_equal(self.w._review_rf(0), pair))
+        self.assertEqual(self.h.prepare_analytic(pair, n).shape[-3:], (48,n,2))
+        self.w.debug_new_live()
+        self.w.apply_method(NEIGHBOR)
+        self.h.set_dead("25,46")
+        self.assertEqual(set(np.flatnonzero(self.h.alive_mask()==0)), {24,25,46,47})
+        self.w.apply_method(CUSTOM)
+        current = self.h.settings_snapshot(self.w)
+        for key in ('chirp_on','t_drive_ns','t_dead_ns','n_cycles','shot_method'):
+            self.assertEqual(self.base['transmit'][key], current['transmit'][key])
+        self.assertEqual(current['acquisition']['dly_us'], self.base['acquisition']['dly_us'])
+
+    def test_golay_pairing_checks_counter_wrap_and_damaged_pairs(self):
+        from pulse_methods import GolayPairs
+        p = GolayPairs()
+        def unpack(kinds, counts):
+            n = len(counts)
+            return p.unpack(np.array(kinds), np.zeros(n,int), np.array(counts),
+                            np.ones((n,4),np.int16), np.zeros(n,bool))
+        self.assertEqual(len(unpack([1], [65535])[0]), 0)
+        self.assertEqual(unpack([2], [0])[3].tolist(), [False])
+        self.assertEqual(unpack([1,2,2], [1,3,4])[3].tolist(), [True,True])
+
+    def test_three_rx_packet_order_edges_and_archive(self):
+        from pulse_methods import MULTI_RX, CUSTOM, RX_OFFSETS, ThreeRxGroups
+        self.addCleanup(self.w.apply_method, CUSTOM)
+        self.w.apply_method(MULTI_RX)
+        self.h.debug_discard_words = 0
+        shots = [(tx, slot) for tx in range(48) for slot, offset in enumerate(RX_OFFSETS)
+                 if 0 <= tx+offset < 48]
+        shots += shots[:2]
+        elems, slots = np.asarray(shots, dtype=np.uint32).T
+        frames = self.rows(elems.tolist(), first=65520)
+        frames[:,0] = (0xe2000000 | (slots << 22) | (elems << 16) | (frames[:,0] & 65535))
+        frames[:,1:] += (slots * 65537)[:,None]
+        for chunk in np.array_split(frames.ravel(), 31):
+            self.h.process(chunk)
+        self.assertEqual(len(self.h.cine.buf), 1)
+        raw = self.h.cine.buf[0][1].reshape(48,3,640)
+        for tx in range(48):
+            for slot, offset in enumerate(RX_OFFSETS):
+                expected = 100+slot if 0 <= tx+offset < 48 else 0
+                self.assertTrue(np.all(raw[tx,slot] == expected))
+        self.assertTrue(self.h.cine.quality[0]['valid'])
+        cfg = self.h.settings_snapshot(self.w)
+        bg = np.zeros((144,640), np.float32)
+        files.save_session(self.path, [raw.reshape(48,-1)], [0], {'acquired_settings': cfg},
+                           list(self.h.cine.quality), self.h.mf_reference(), bg)
+        session = files.load_session(self.path)
+        try:
+            self.assertEqual(session.background.shape, bg.shape)
+            np.testing.assert_array_equal(session.rf[0].reshape(raw.shape), raw)
+        finally:
+            session.close()
+        group = ThreeRxGroups()
+        for seq, cnt in [([0,2],[1,2]), ([0,1,2],[1,2,4]), ([0,1,1,2],[1,2,3,4])]:
+            n = len(seq)
+            result = group.unpack(np.array(seq), np.full(n,6), np.array(cnt),
+                                  np.zeros((n,8),np.int16), np.zeros(n,bool))
+            self.assertTrue(result[-1][0])
+
+    def test_three_rx_coherent_gpu_and_cpu_with_dead_neighbor(self):
+        from pulse_methods import MULTI_RX, CUSTOM
+        from bench_render import Renderer
+        self.addCleanup(self.w.apply_method, CUSTOM)
+        self.w.apply_method(MULTI_RX)
+        self.h.pulser.single_elem = 24
+        self.h.set_dead("25,46")
+        self.h.state.update(apod=0., cf=0., debug_view=1, accept=80)
+        z = .020
+        n = self.h.cfg['samps']
+        analytic = np.zeros((144,n,2),np.float32)
+        weights = self.h.multi_rx_weights()
+        self.assertEqual(weights[24,2], 0)
+        self.assertAlmostEqual(float(weights[24].sum()), 1)
+        # Only the center and left receivers are usable. Put opposite signs at
+        # their respective travel times, plus a large signal on the dead path.
+        E = self.h.elem_uniform()
+        distances = np.hypot(.003-E[:,0],z-E[:,1])
+        for slot, rx in enumerate([24,23,25]):
+            time = (distances[24]+distances[rx])/self.h.state['c']
+            idx = int((time + self.h.state['t0_ns']*1e-9 - self.h.state['dly_us']*1e-6)*self.h.FS_HZ)
+            self.assertTrue(0 <= idx < n-1)
+            analytic[72+slot,idx:idx+2,0] = [7.,-2.,10000.][slot]
+        expected = abs(7*weights[24,0] - 2*weights[24,1])
+        cpu = self.h.mline_sample(analytic,n,(.003,z),(.003,z),1)[0]
+        self.assertAlmostEqual(cpu,expected,places=4)
+        renderer = Renderer(self.h)
+        try:
+            mag,_ = renderer.render(analytic,[3,3,20,20],1,1)
+            self.assertAlmostEqual(mag[0,0],expected,places=4)
+        finally:
+            renderer.close()
+            self.h.pulser.single_elem = None
+
+    def test_fast17_programs_stable_group_and_restores_identity(self):
+        from pulse_methods import BANKS, FAST17, CUSTOM
+        from pulser_ctrl import OP_PLS_ARM, OP_PLS_ELEM, OP_PLS_NELEM
+        p = self.h.pulser
+        self.base['acquisition'].update(depth_cm=17, win_words=4545)
+        self.w.debug_apply(self.base)
+        old_period, old_wave = p.element_period_us(), p.tx_waveform(self.h.FS_HZ).copy()
+        self.addCleanup(self.w.debug_apply, self.base)
+        words = []
+        with patch.object(p, '_send', side_effect=lambda word, label: words.append(word)):
+            for profile, expected in [(FAST17, BANKS[0]+BANKS[1]), (CUSTOM, tuple(range(48)))]:
+                words.clear()
+                self.w.apply_method(profile)
+                ram = {}
+                for word in words:
+                    if word >> 24 == OP_PLS_ELEM:
+                        ram[(word >> 6) & 63] = word & 63
+                self.assertEqual(tuple(ram[i] for i in range(48)), expected)
+                self.assertIn(self.h.cmd(OP_PLS_NELEM,24 if profile==FAST17 else 48), words)
+                if profile == FAST17:
+                    self.assertTrue({25,46}.isdisjoint(ram[i] for i in range(24)))
+                self.assertIn(self.h.cmd(0x20,0), words)
+                self.assertNotIn(self.h.cmd(OP_PLS_ARM,1), words)
+                self.assertEqual(self.h.cfg['samps'],9090)
+                self.assertAlmostEqual(p.element_period_us(),old_period)
+                np.testing.assert_array_equal(p.tx_waveform(self.h.FS_HZ),old_wave)
+                self.assertAlmostEqual(p.frame_ms(),old_period*(24 if profile==FAST17 else 48)/1000)
+                self.assertEqual(self.w.t_draw.interval(),8 if profile==FAST17 else 16)
+
+    def test_fast17_fixed_group_parser_has_no_false_skips(self):
+        from pulse_methods import ALTERNATING_24, BANKS
+        cfg=copy.deepcopy(self.base)
+        cfg['transmit']['shot_method']=ALTERNATING_24
+        cfg['receive'].update(avg_sweeps=1,frequency_compounding=False)
+        self.addCleanup(self.w.debug_apply,self.base)
+        self.w.debug_apply(cfg)
+        self.w.debug_tick()
+        before=self.h.stats['skips']
+        stream=self.rows(BANKS[0]*3,first=65518)
+        for chunk in np.array_split(stream.ravel(),31):
+            self.h.process(chunk)
+        qualities=list(self.h.cine.quality)
+        self.assertEqual([q['bank'] for q in qualities],[0,0,0])
+        self.assertTrue(all(q['valid_elements']==list(BANKS[0]) for q in qualities))
+        self.assertEqual(self.h.stats['skips']-before,0)
+
+    def test_sparse_groups_parser_replay_and_missing_shots(self):
+        from pulse_methods import ALTERNATING_24, BANKS, BankFrame
+        cfg=copy.deepcopy(self.base)
+        cfg['transmit']['shot_method']=ALTERNATING_24
+        cfg['receive'].update(avg_sweeps=1,frequency_compounding=False)
+        self.addCleanup(self.w.debug_apply,self.base)
+        self.w.debug_apply(cfg)
+        self.w.debug_tick()
+        a,b=BANKS
+        stream=self.rows(a[7:]+b+a+b[:9]+b[10:]+a,first=65518)
+        for chunk in np.array_split(stream.ravel(),39):
+            self.h.process(chunk)
+        qualities=list(self.h.cine.quality)
+        self.assertEqual([q['bank'] for q in qualities],[1,0,0])
+        for (_,raw),q in zip(self.h.cine.buf,qualities):
+            bank=q['bank']
+            self.assertEqual(q['valid_elements'],list(BANKS[bank]))
+            self.assertTrue(np.all(raw[list(BANKS[bank])]==100))
+            self.assertFalse(np.any(raw[list(BANKS[1-bank])]))
+        self.w.b_freeze.setChecked(True)
+        self.assertEqual(self.w._review_rf(0).bank,1)
+        files.save_session(self.path,[v for _,v in self.w.review],self.w.rev_t,
+                           {'acquired_settings':cfg},qualities,self.h.mf_reference())
+        self.w.debug_open_rf(self.path,raise_errors=True)
+        for i,q in enumerate(qualities):
+            raw=self.w._review_rf(i)
+            self.assertIsInstance(raw,BankFrame)
+            self.assertEqual(raw.bank,q['bank'])
+            self.h.request_replay(raw)
+            self.assertEqual(self.h.replay['rf'].bank,q['bank'])
+            self.h.publish_replay_sync(raw)
+            self.assertEqual(self.h.hil['data'].bank,q['bank'])
+            self.assertEqual(self.h.hil['data'].shape,(24,640,2))
+        with self.assertRaises(ValueError):
+            files.validate_quality([dict(qualities[0],bank=0)],1,ALTERNATING_24)
+        self.w.debug_new_live()
+
+    def test_sparse_cpu_gpu_match_full_geometry_for_either_bank(self):
+        from pulse_methods import BANKS, BankFrame
+        from bench_render import Renderer
+        rng=np.random.default_rng(70)
+        n=self.h.cfg['samps']
+        analytic=rng.normal(size=(48,n,2)).astype('f')
+        self.h.state.update(dly_us=0,accept=80,apod=.48,cf=.45,debug_view=0)
+        renderer=Renderer(self.h)
+        self.addCleanup(renderer.close)
+        self.addCleanup(self.w.debug_apply,self.base)
+        for group,ids in enumerate(BANKS):
+            self.h.set_dead('25,46')
+            compact=BankFrame(analytic[list(ids)],group)
+            actual,_=renderer.render(compact,[-2,2,4,8],40,30)
+            point=self.h.mline_sample(compact,n,(0,.006),(0,.006),1)
+            excluded=sorted(set(BANKS[1-group])|{25,46})
+            self.h.set_dead(','.join(map(str,excluded)))
+            expected,_=renderer.render(analytic,[-2,2,4,8],40,30)
+            np.testing.assert_allclose(actual,expected,atol=1e-5)
+            np.testing.assert_allclose(point,self.h.mline_sample(analytic,n,(0,.006),(0,.006),1),atol=1e-5)
+
     def test_fast12_keeps_waveform_and_full_aperture_disarmed(self):
         self.h.state['frozen']=False
         self.base['acquisition'].update(win_words=4545,depth_cm=17,tgc_min=1000,tgc_max=3678,damp_gap_us=313)

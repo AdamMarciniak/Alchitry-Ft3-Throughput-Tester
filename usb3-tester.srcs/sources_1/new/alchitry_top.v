@@ -201,8 +201,13 @@ module alchitry_top #(
     // tx_sequencer -> ctrl_decode: the capture trigger.  Declared up here
     // because ctrl_decode is instantiated before the sequencer that drives it.
     wire        pulse_tx_sync;
+    wire [1:0]  pls_method, pulse_kind;
     wire [5:0]  pulse_element;
     wire        capture_ready;
+    wire        pulse_fault;
+    wire [3:0]  pulse_fault_code;
+    wire [15:0] pulse_frames;
+    wire [3:0]  pulse_state;
 
     // ctrl_decode -> tx_sequencer configuration (same clk_in domain, no CDC)
     wire        pls_arm;
@@ -247,8 +252,13 @@ module alchitry_top #(
         // window starts a fixed seq_dly after an actual HV burst, and carries
         // the element the mux tree really had closed.
         .tx_sync        (pulse_tx_sync),
+        .tx_kind(pulse_kind), .pls_method(pls_method),
         .tx_elem        (pulse_element),
         .capture_ready  (capture_ready),
+        .pls_fault      (pulse_fault),
+        .pls_fault_code (pulse_fault_code),
+        .pls_frames     (pulse_frames),
+        .pls_state      (pulse_state),
 
         .pls_arm        (pls_arm),
         .pls_fault_clr  (pls_fault_clr),
@@ -306,8 +316,8 @@ module alchitry_top #(
     // captured window has a known time origin and a known element.  Stop the
     // pulser and the ADC stream goes quiet - by design.
     //
-    // ctrl_decode resets pls_arm to 1, so the chain free-runs from power-up
-    // with no host present, exactly as it did before this control path.
+    // ctrl_decode resets pls_arm to 0, so programming and host loss park the
+    // driver until an explicit arm request arrives.
     //--------------------------------------------------------------------------
     wire        pulse_busy;
     wire        pulse_chain_ok;
@@ -318,11 +328,6 @@ module alchitry_top #(
     wire [5:0]  pulse_chain_err_elem;
     wire [63:0] pulse_chain_err_word;
     wire        pulse_chain_err_stb;
-    wire        pulse_fault;
-    wire [3:0]  pulse_fault_code;
-    wire [15:0] pulse_frames;
-    wire [3:0]  pulse_state;
-
     tx_sequencer #(
         .F_SYS         (100_000_000),
         .SPI_HALF      (5),            // 10 MHz chain clock
@@ -371,6 +376,7 @@ module alchitry_top #(
         .cfg_n_cycles    (pls_n_cycles),
         .cfg_t_drive     (pls_t_drive),
         .cfg_t_dead      (pls_t_dead),
+        .cfg_method(pls_method), .shot_kind(pulse_kind),
         .cfg_chirp_len   (pls_chirp_len),
         .ch_wr           (pls_ch_wr),
         .ch_wr_addr      (pls_ch_addr),

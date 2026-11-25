@@ -7,10 +7,11 @@ import threading
 import time
 
 import numpy as np
-from PySide6.QtCore import QSignalBlocker
+from PySide6.QtCore import QSignalBlocker, Qt
 from PySide6.QtWidgets import (QPushButton, QLabel, QComboBox, QLineEdit,
                                QFileDialog, QMessageBox)
 import rf_debug as files
+import pulse_methods
 
 
 class DebugMixin:
@@ -50,6 +51,23 @@ class DebugMixin:
                     'Higher firing rate increases average transmitted energy; validate in water before on-body use.')
             button.clicked.connect(fn)
             layout.addWidget(button)
+        self.method_base = None
+        self.method_verified = True
+        self.method_combo = QComboBox()
+        self.method_combo.setAccessibleName("Acquisition and pulse method")
+        self.method_combo.addItems(pulse_methods.PROFILES)
+        self.method_combo.setItemData(pulse_methods.FAST17,
+            "Repeats one fixed group of 24 live positions across the full probe at 17 cm. "
+            "Every image uses the same aperture, preventing alternating-aperture ghosting. "
+            "The FPGA uses its ordinary pulse-echo sequence.",
+            Qt.ItemDataRole.ToolTipRole)
+        self.method_combo.setItemData(pulse_methods.MULTI_RX,
+            "Repeats the broad chirp for the center, left and right receivers. "
+            "The receive gate opens after the switch settles. One full aperture takes 142 shots.",
+            Qt.ItemDataRole.ToolTipRole)
+        self.method_combo.setToolTip("Choose the firing and receive sequence. A live switch starts a new RF epoch.")
+        self.method_combo.activated.connect(self.select_method)
+        layout.addWidget(self.method_combo)
         self.debug_mode = QComboBox()
         self.debug_mode.addItems(["weighted image", "ordinary DAS", "coherence map"])
         self.debug_mode.setToolTip("Ordinary DAS bypasses coherence weighting. Coherence map shows CF from black=0 to white=1. Both diagnostic views use the full receive band and temporarily bypass frequency compounding.")
@@ -65,6 +83,61 @@ class DebugMixin:
         self.debug_label.setMaximumWidth(310)
         layout.addWidget(self.debug_label)
         self.debug_tick()
+
+    def apply_method(self, index):
+        if self.debug_offline or self.g["state"]["frozen"] or self.debug_jobs:
+            raise ValueError("Return to live acquisition before switching pulse methods")
+        g = self.g
+        current = g["settings_snapshot"](self)
+        if self.method_base is None:
+            self.method_base = copy.deepcopy(current)
+        # Restore only fields controlled by this selector. Preserve unrelated live edits.
+        baseline = copy.deepcopy(current)
+        for key in ("shot_method", "chirp_on", "chirp_f0_mhz", "chirp_f1_mhz",
+                    "chirp_us", "n_cycles", "t_drive_ns", "t_dead_ns"):
+            baseline["transmit"][key] = self.method_base["transmit"].get(key, 0)
+        baseline["acquisition"]["dly_us"] = self.method_base["acquisition"]["dly_us"]
+        baseline["receive"]["matched_filter"] = self.method_base["receive"]["matched_filter"]
+        if current["transmit"]["shot_method"] == pulse_methods.ALTERNATING_24:
+            for section, keys in (("acquisition", ("depth_cm", "win_words", "tgc_min",
+                                                    "tgc_max", "tgc_reach_pct")),
+                                  ("transmit", ("n_elem", "single_elem")),
+                                  ("receive", ("avg_sweeps",))):
+                for key in keys:
+                    baseline[section][key] = self.method_base[section][key]
+        settings = pulse_methods.profile_settings(current if index == pulse_methods.FAST17 else baseline, index)
+        armed = g["pulser"].arm
+        self.cb_arm.setChecked(False)
+        self.debug_apply(settings)
+        self.debug_tick()
+        self.method_combo.setCurrentIndex(index)
+        if index == pulse_methods.CUSTOM:
+            self.method_base = None
+        if armed:
+            self.cb_arm.setChecked(True)
+
+    def select_method(self, index):
+        try:
+            self.apply_method(index)
+        except Exception as exc:
+            self.debug_label.setText(f"Method change failed: {exc}")
+            self.method_combo.setCurrentIndex(self.method_index())
+
+    def method_index(self):
+        p = self.g["pulser"]
+        if p.shot_method == pulse_methods.ALTERNATING_24:
+            return pulse_methods.FAST17
+        if p.shot_method == 3:
+            return pulse_methods.MULTI_RX
+        if p.shot_method == 1:
+            return pulse_methods.GOLAY
+        if p.shot_method == 2:
+            return pulse_methods.NEIGHBOR
+        if p.chirp_on and (p.chirp_f0_mhz, p.chirp_f1_mhz, p.chirp_us) == (2, 6, 3):
+            return pulse_methods.CHIRP
+        if not p.chirp_on and (p.t_drive_ns, p.t_dead_ns) == (80, 50) and p.n_cycles in (1, 2):
+            return p.n_cycles
+        return pulse_methods.CUSTOM
 
     def debug_fast12(self):
         """Explicit, disarmed candidate; verify new FPGA interlock before timing changes."""
@@ -107,7 +180,7 @@ class DebugMixin:
                                   "name": name, "word_hex": f"{word:08x}"})
         self.debug_events = self.debug_events[-2048:]
         changes_run = opcode in {7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22,
-                                 23, 24, 25, 27, 28, 29} or (opcode == 16 and word & 1)
+                                 23, 24, 25, 27, 28, 29, 32, 33} or (opcode == 16 and word & 1)
         if changes_run and not self.debug_loading:
             self.debug_dirty = True
             self.g["debug_discard_words"] = -1  # UI must finish updating the settings first
@@ -146,7 +219,9 @@ class DebugMixin:
 
     def debug_reset_buffers(self):
         g = self.g
-        samples = g["cfg"]["samps"]
+        g["golay_pairs"].pending = None
+        g["three_rx_groups"].reset()
+        samples = g["cfg"]["samps"] * pulse_methods.windows_per_tx(g["pulser"].shot_method)
         g["raw_buf"] = np.zeros((48, samples), np.int16)
         g["live_buf"] = np.zeros_like(g["raw_buf"])
         g["carry"] = np.empty(0, np.uint32)
@@ -166,17 +241,30 @@ class DebugMixin:
         g["mm_reset"]()
 
     def debug_lock_acquisition(self, locked):
-        labels = ("depth", "pulse→rx", "damp", "TGC min", "TGC max", "pulses",
+        labels = ("depth", "pulse→rx", "damp", "TGC min", "TGC max", "TGC full @", "pulses",
                   "width ns", "dead ns", "settle us", "inhibit us", "ring us",
                   "elements", "element", "chirp f0 M", "chirp f1 M", "chirp us")
+        method = self.g["pulser"].shot_method
+        sparse = method == pulse_methods.ALTERNATING_24
+        self.s_avg.setEnabled(not sparse)
+        fixed = set()
+        if sparse:
+            fixed.update(("depth", "elements", "element"))
+        if method in (1, 2, 3):
+            fixed.update(("pulses", "chirp f0 M", "chirp f1 M", "chirp us"))
+        if method in (2, 3):
+            fixed.update(("pulse→rx", "width ns", "dead ns", "settle us", "inhibit us"))
         for label in labels:
             item = self.g["DEBUG_SLIDERS"].get(label)
             if item:
-                item[0].setEnabled(not locked)
+                item[0].setEnabled(not locked and label not in fixed)
         for name in ("cb_signed", "cb_chirp", "cb_single"):
-            getattr(self, name).setEnabled(not locked)
-        self.debug_trim_button.setEnabled(not locked)
-        self.cb_arm.setEnabled(not self.debug_offline and (not locked or self.g["pulser"].arm))
+            getattr(self, name).setEnabled(not locked and (name != "cb_chirp" or method == 0 or sparse)
+                                           and (name != "cb_single" or not sparse))
+        self.method_combo.setEnabled(not locked)
+        self.debug_trim_button.setEnabled(not locked and method not in (2, 3))
+        self.cb_arm.setEnabled(self.method_verified and not self.debug_offline
+                               and (not locked or self.g["pulser"].arm))
 
     def debug_after_freeze(self):
         if not hasattr(self, "g"):
@@ -207,7 +295,8 @@ class DebugMixin:
 
     def debug_apply(self, supplied, replay=False):
         g = self.g
-        settings = files.validate_settings(supplied, g["settings_snapshot"](self))
+        current = g["settings_snapshot"](self)
+        settings = files.validate_settings(supplied, current)
         if not replay and (settings["receive"].get("bg_subtract") or
                            settings["receive"].get("dejitter_on")):
             settings["receive"]["bg_subtract"] = False
@@ -215,6 +304,17 @@ class DebugMixin:
             self.debug_label.setText("Settings loaded; capture a new background to enable subtraction/de-jitter")
         a, tx, rx, bf, disp = [settings[k] for k in
                               ("acquisition", "transmit", "receive", "beamformer", "display")]
+        if not replay and tx.get("shot_method") == 2:
+            if tx["chirp_on"] or tx["n_cycles"] != 1 or a["dly_us"] < pulse_methods.neighbor_delay_us(tx):
+                raise ValueError("Neighbor receive needs a single-cycle burst and time for the receive switch to settle")
+        if not replay and tx.get("shot_method") == 3:
+            waveform = (tx["chirp_on"], tx["chirp_f0_mhz"], tx["chirp_f1_mhz"], tx["chirp_us"], tx["t_dead_ns"])
+            if waveform != (True, 2., 6., 3., 50.) or a["dly_us"] < pulse_methods.neighbor_delay_us(tx):
+                raise ValueError("Three-position RX requires the broad chirp and a settled receive switch")
+        if not replay and self.method_base is None and (self.method_index() == pulse_methods.CUSTOM
+                or (tx.get("shot_method") == pulse_methods.ALTERNATING_24
+                    and self.method_index() != pulse_methods.FAST17)):
+            self.method_base = current
         # Complete validation happens above, before any state/hardware mutation.
         self.debug_loading = True
         g["debug_discard_words"] = -1
@@ -224,6 +324,7 @@ class DebugMixin:
             with g["pipeline_lock"]:
                 self._stop_play()
                 g["pulser"].arm = False
+                g["pulser"].shot_method = tx.get("shot_method", 0)
                 g["set_cfg"](a["win_words"])
                 g["state"].update(depth_cm=a["depth_cm"], dly_us=a["dly_us"],
                     c=bf["c_m_s"], apod=bf["apod"], cf=bf["cf"], accept=bf["accept_deg"],
@@ -240,6 +341,7 @@ class DebugMixin:
                 g["set_dead"](",".join(map(str, bf["dead"])))
                 g["rf_avg"].set_n(rx["avg_sweeps"])
                 self.gap, self.tgc_lo, self.tgc_hi = a["damp_gap_us"], a["tgc_min"], a["tgc_max"]
+                self.tgc_reach_pct = a.get("tgc_reach_pct", 100.)
                 for key in files.FIELDS["transmit"]:
                     setattr(g["pulser"], key, tx[key])
                 for key in ("chirp_on", "single_elem", "trim_ns"):
@@ -249,7 +351,9 @@ class DebugMixin:
                 g["pulser"].t_rx_us = g["pulser_rx_us"](a["dly_us"], a["damp_gap_us"])
                 g["pulser"].tx_gen += 1
                 if not replay:
-                    g["send_seq_config"](self.tgc_lo, self.tgc_hi, a["dly_us"], self.gap)
+                    g["apply_afe_profile"](settings.get("afe"))
+                    g["send_seq_config"](self.tgc_lo, self.tgc_hi, a["dly_us"], self.gap,
+                                         self.tgc_reach_pct)
                     g["pulser"].push_all()
                 with g["buf_lk"]:
                     self.debug_reset_buffers()
@@ -259,6 +363,27 @@ class DebugMixin:
                 self.debug_sync_controls(settings)
         finally:
             self.debug_loading = False
+        self.method_combo.setCurrentIndex(self.method_index())
+        if not replay and self.method_index() == pulse_methods.CUSTOM:
+            self.method_base = None
+        self.method_verified = replay or not g["HW"] or not g["pulser"].shot_method
+        self.debug_lock_acquisition(self.debug_offline or g["state"]["frozen"])
+        if not replay and g["HW"] and g["pulser"].shot_method:
+            from bench_transport import check_configuration, query_firmware
+            # The identity probe replaces stream callbacks; use the live module, not a copy.
+            import sys
+            actual = query_firmware(sys.modules[g["__name__"]], with_lease=False)
+            if not actual["pulse_methods"] or actual["shot_method"] != pulse_methods.fpga_method(g["pulser"].shot_method):
+                raise ValueError("FPGA did not acknowledge the selected acquisition method")
+            if g["pulser"].shot_method == 3 and not actual.get("multi_rx"):
+                raise ValueError("FPGA does not support tagged three-position receive")
+            check_configuration(sys.modules[g["__name__"]], self, actual)
+            self.debug_firmware_info = dict(actual,
+                checked_utc=datetime.now(timezone.utc).isoformat(),
+                note="Disarmed configuration readback after applying acquisition settings.")
+            self.method_verified = True
+            self.debug_lock_acquisition(g["state"]["frozen"])
+        self.t_draw.setInterval(8 if g["pulser"].shot_method == pulse_methods.ALTERNATING_24 else 16)
         self.pls_refresh()
         self.debug_dirty = not replay
         self.scene.gl.update()
@@ -268,6 +393,7 @@ class DebugMixin:
                               ("acquisition", "transmit", "receive", "beamformer", "display")]
         values = {"depth": a["depth_cm"], "pulse→rx": a["dly_us"], "damp": a["damp_gap_us"],
                   "TGC min": a["tgc_min"], "TGC max": a["tgc_max"],
+                  "TGC full @": a.get("tgc_reach_pct", 100.),
                   "c": bf["c_m_s"], "apod": 100*bf["apod"], "coh": 100*bf["cf"],
                   "aperture": bf["accept_deg"], "R": bf["R_mm"], "pitch": bf["pitch_mm"],
                   "t0": bf["t0_ns"], "dyn range": disp["dyn_db"], "gain": disp["gain_db"],
@@ -396,7 +522,8 @@ class DebugMixin:
         self.debug_label.setText(f"Saving {len(ids)} RF frames…")
         def work():
             files.save_session(path, frames, times, meta, quality, reference, bg)
-            report = files.diagnostics(frames, quality)
+            report = files.diagnostics(frames, quality,
+                                       shot_method=meta["acquired_settings"]["transmit"].get("shot_method", 0))
             files.atomic_json(Path(path).with_suffix(".report.json"), report)
         self.debug_background_job(work, f"Saved RF + report: {Path(path).name}")
 
